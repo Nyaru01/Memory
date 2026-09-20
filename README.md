@@ -16,7 +16,8 @@ L'APK se trouve dans `app/build/outputs/apk/release/app-release.apk`. Cette vers
 
 ## Contenu
 
-- 18 mondes, dont Fées, Maison, Légumes et Détective ; 12 images à découvrir par monde.
+- 18 mondes visibles sur un seul écran, dont Fées, Maison, Légumes et Détective ; 12 images à découvrir par monde.
+- Les illustrations conservent leurs proportions sur les tuiles, les cartes et dans l'album.
 - Un album réorganisé avec vue des mondes, images et badges.
 - 18 histoires narrées, dont les 4 nouvelles produites avec ElevenLabs ; lecture vocale Android de secours.
 - 6 musiques, dont 2 compositions originales générées par `tools/generate_music.py`.

@@ -30,10 +30,7 @@ class GameView extends View {
     static final int ALBUM_TOTAL = 216;
     static final int WORLD_COUNT = 18;
     final RectF[] themeTiles = new RectF[WORLD_COUNT];
-    final RectF themePrevious = new RectF();
-    final RectF themeNext = new RectF();
     final RectF worldsTab = new RectF();
-    int themePage = 0;
     float H;
     float W;
     boolean activityActive;
@@ -1189,7 +1186,16 @@ class GameView extends View {
         path.addRoundRect(rectF, f * f2, f * f2, Path.Direction.CW);
         canvas.save();
         canvas.clipPath(path);
-        canvas.drawBitmap(bitmapLoadAsset, new Rect(i3, i4, width + i3, height + i4), rectF, this.p);
+        // The sprite cells are portrait-shaped. Preserve their proportions in
+        // square album tiles and differently sized game cards instead of stretching.
+        float scale = Math.min(rectF.width() / width, rectF.height() / height);
+        float fittedWidth = width * scale;
+        float fittedHeight = height * scale;
+        RectF fitted = new RectF(rectF.centerX() - fittedWidth / 2.0f,
+                rectF.centerY() - fittedHeight / 2.0f,
+                rectF.centerX() + fittedWidth / 2.0f,
+                rectF.centerY() + fittedHeight / 2.0f);
+        canvas.drawBitmap(bitmapLoadAsset, new Rect(i3, i4, width + i3, height + i4), fitted, this.p);
         canvas.restore();
     }
 
@@ -1852,37 +1858,55 @@ class GameView extends View {
         label(canvas, str2, rectF.centerX(), (this.d * 43.0f) + rectF.top, 15.0f, z ? -1 : this.ink, Paint.Align.CENTER);
     }
 
-    void drawThemesPaged(Canvas canvas) {
+    void drawThemesGrid(Canvas canvas) {
         float topInset = systemTop();
         float scale = this.d;
         this.homeBtn.set(18 * scale, topInset + 8 * scale, 66 * scale, topInset + 54 * scale);
         round(canvas, this.homeBtn, 16, -1);
         label(canvas, "‹", this.homeBtn.centerX(), this.homeBtn.centerY() - 2 * scale, 32, this.ink, Paint.Align.CENTER);
-        label(canvas, "Choisis ton monde", this.W / 2, topInset + 32 * scale, 25, this.ink, Paint.Align.CENTER);
-        label(canvas, "Touche celui que tu préfères", this.W / 2, topInset + 72 * scale, 14, -8950152, Paint.Align.CENTER);
+        label(canvas, "Choisis ton monde", this.W / 2, topInset + 32 * scale, 24, this.ink, Paint.Align.CENTER);
+        label(canvas, "18 aventures à découvrir", this.W / 2, topInset + 68 * scale, 13, -8950152, Paint.Align.CENTER);
         float gap = 8 * scale;
-        float left = 21 * scale;
-        float width = (this.W - 2 * left - gap) / 2;
-        float startY = topInset + 96 * scale;
-        float height = Math.max(48 * scale, Math.min(70 * scale,
-                (this.H - startY - 80 * scale - 4 * gap) / 5));
-        for (RectF tile : this.themeTiles) tile.setEmpty();
-        for (int slot = 0; slot < 10; slot++) {
-            int world = this.themePage * 10 + slot;
-            if (world >= WORLD_COUNT) break;
-            float x = left + (slot % 2) * (width + gap);
-            float y = startY + (slot / 2) * (height + gap);
-            this.themeTiles[world].set(x, y, x + width, y + height);
-            themeChoice(canvas, this.themeTiles[world], world, themeName(world), themeColor(world));
+        float left = 16 * scale;
+        float width = (this.W - 2 * left - 2 * gap) / 3;
+        float startY = topInset + 88 * scale;
+        float bottomInset = getRootWindowInsets() == null ? 26 * scale :
+                Math.max(26 * scale, getRootWindowInsets().getSystemWindowInsetBottom() + 12 * scale);
+        float height = (this.H - startY - bottomInset - 5 * gap) / 6;
+        for (int world = 0; world < WORLD_COUNT; world++) {
+            float x = left + (world % 3) * (width + gap);
+            float y = startY + (world / 3) * (height + gap);
+            RectF tile = this.themeTiles[world];
+            tile.set(x, y, x + width, y + height);
+            drawThemeGridTile(canvas, tile, world);
         }
-        float navY = startY + 5 * (height + gap) + 3 * scale;
-        this.themePrevious.set(left, navY, left + 70 * scale, navY + 48 * scale);
-        this.themeNext.set(this.W - left - 70 * scale, navY, this.W - left, navY + 48 * scale);
-        round(canvas, this.themePrevious, 16, -1);
-        round(canvas, this.themeNext, 16, -1);
-        label(canvas, "‹", this.themePrevious.centerX(), this.themePrevious.centerY(), 27, this.ink, Paint.Align.CENTER);
-        label(canvas, "›", this.themeNext.centerX(), this.themeNext.centerY(), 27, this.ink, Paint.Align.CENTER);
-        label(canvas, (this.themePage + 1) + " / 2", this.W / 2, navY + 25 * scale, 14, this.purple, Paint.Align.CENTER);
+    }
+
+    void drawThemeGridTile(Canvas canvas, RectF tile, int world) {
+        boolean selected = this.theme == world;
+        int accent = themeColor(world);
+        round(canvas, tile, 17, selected ? blend(accent, -1, 0.84f) : -1);
+        if (selected) {
+            this.p.setStyle(Paint.Style.STROKE);
+            this.p.setStrokeWidth(3 * this.d);
+            this.p.setColor(accent);
+            canvas.drawRoundRect(tile, 17 * this.d, 17 * this.d, this.p);
+            this.p.setStyle(Paint.Style.FILL);
+        }
+        float imageSize = Math.min(tile.width() - 16 * this.d, tile.height() * 0.60f);
+        RectF image = new RectF(tile.centerX() - imageSize / 2,
+                tile.top + 3 * this.d,
+                tile.centerX() + imageSize / 2,
+                tile.top + 3 * this.d + imageSize);
+        drawAnimalFrom(canvas, world, 0, image, 12);
+        fitLabel(canvas, themeName(world), tile.centerX(), tile.bottom - 13 * this.d,
+                10, 7.5f, tile.width() - 8 * this.d, this.ink);
+        if (selected) {
+            color(accent);
+            canvas.drawCircle(tile.right - 12 * this.d, tile.top + 12 * this.d, 9 * this.d, this.p);
+            label(canvas, "✓", tile.right - 12 * this.d, tile.top + 11 * this.d,
+                    9, -1, Paint.Align.CENTER);
+        }
     }
 
     RectF albumWorldRect(int world, float top) {
@@ -1921,7 +1945,7 @@ class GameView extends View {
 
     void drawThemes(Canvas canvas) {
         if (this.themeTiles.length > 0) {
-            drawThemesPaged(canvas);
+            drawThemesGrid(canvas);
             return;
         }
         float fSystemTop = systemTop();
@@ -2160,9 +2184,6 @@ class GameView extends View {
             if (this.themeTiles.length > 0) {
                 if (this.homeBtn.contains(x, y)) {
                     this.screen = 0;
-                } else if (this.themePrevious.contains(x, y) || this.themeNext.contains(x, y)) {
-                    this.themePage = 1 - this.themePage;
-                    playSound(82);
                 } else {
                     for (int world = 0; world < WORLD_COUNT; world++) {
                         if (this.themeTiles[world].contains(x, y)) {
@@ -2268,7 +2289,6 @@ class GameView extends View {
         }
         if (i6 == 0) {
             if (this.chooseTheme.contains(x, y)) {
-                this.themePage = this.theme / 10;
                 this.screen = 4;
             } else if (this.easy.contains(x, y)) {
                 choosePairs(6);
