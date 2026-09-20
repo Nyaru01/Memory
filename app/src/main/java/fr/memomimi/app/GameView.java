@@ -5,6 +5,7 @@ import android.content.SharedPreferences;
 import android.content.res.AssetFileDescriptor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.BitmapRegionDecoder;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.LinearGradient;
@@ -21,6 +22,7 @@ import android.speech.tts.UtteranceProgressListener;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowInsets;
+import java.io.InputStream;
 import java.util.Locale;
 import java.util.Random;
 
@@ -30,6 +32,7 @@ class GameView extends View {
     static final int ALBUM_TOTAL = 216;
     static final int WORLD_COUNT = 18;
     final RectF[] themeTiles = new RectF[WORLD_COUNT];
+    final Bitmap[] themeStickers = new Bitmap[WORLD_COUNT];
     final RectF worldsTab = new RectF();
     float H;
     float W;
@@ -325,9 +328,20 @@ class GameView extends View {
     }
 
     Bitmap loadAsset(Context context, String str) {
-        try {
-            return BitmapFactory.decodeStream(context.getAssets().open(str));
+        try (InputStream input = context.getAssets().open(str)) {
+            return BitmapFactory.decodeStream(input);
         } catch (Exception unused) {
+            return null;
+        }
+    }
+
+    Bitmap loadSmallAsset(String name) {
+        try (InputStream input = getContext().getAssets().open(name)) {
+            BitmapFactory.Options options = new BitmapFactory.Options();
+            options.inSampleSize = 4;
+            options.inPreferredConfig = Bitmap.Config.ARGB_8888;
+            return BitmapFactory.decodeStream(input, null, options);
+        } catch (Exception ignored) {
             return null;
         }
     }
@@ -461,7 +475,7 @@ class GameView extends View {
         canvas.save();
         canvas.rotate(9.0f, rectF3.centerX(), rectF3.centerY());
         round(canvas, rectF3, 24.0f, -1);
-        drawAnimalFrom(canvas, this.theme, 0, new RectF(rectF3.left + (this.d * 6.0f), rectF3.top + (this.d * 6.0f), rectF3.right - (this.d * 6.0f), rectF3.bottom - (this.d * 6.0f)), 19.0f);
+        drawThemeSticker(canvas, this.theme, new RectF(rectF3.left + (this.d * 6.0f), rectF3.top + (this.d * 6.0f), rectF3.right - (this.d * 6.0f), rectF3.bottom - (this.d * 6.0f)));
         canvas.restore();
         label(canvas, "MémoMondes", this.W / 2.0f, (this.d * 290.0f) + rectF.top, 37.0f, this.ink, Paint.Align.CENTER);
         label(canvas, "Éveille ta mémoire en t'amusant", this.W / 2.0f, (this.d * 337.0f) + rectF.top, 14.0f, -8950152, Paint.Align.CENTER);
@@ -667,7 +681,7 @@ class GameView extends View {
         this.p.setStyle(Paint.Style.FILL);
         RectF rectF3 = new RectF(rectF.left + (this.d * 10.0f), rectF.top + (this.d * 7.0f), rectF.left + (this.d * 10.0f) + ((rectF.height() - (this.d * 14.0f)) * 0.76f), rectF.bottom - (this.d * 7.0f));
         round(canvas, new RectF(rectF3.left - (this.d * 2.0f), rectF3.top - (this.d * 2.0f), rectF3.right + (this.d * 2.0f), rectF3.bottom + (this.d * 2.0f)), 20.0f, 1157627903);
-        drawAnimalFrom(canvas, this.theme, 0, rectF3, 18.0f);
+        drawThemeSticker(canvas, this.theme, rectF3);
         float f2 = ((rectF3.right + rectF.right) - (this.d * 48.0f)) / 2.0f;
         label(canvas, "TON MONDE", f2, rectF.top + (this.d * 25.0f), 10.0f, -570425345, Paint.Align.CENTER);
         fitLabel(canvas, themeName(this.theme), f2, (this.d * 52.0f) + rectF.top, 20.0f, 14.0f, (rectF.right - rectF3.right) - (this.d * 52.0f), -1);
@@ -682,7 +696,7 @@ class GameView extends View {
         boolean z = this.theme == i;
         round(canvas, rectF, 17.0f, z ? i2 : -1);
         RectF rectF2 = new RectF(rectF.left + (this.d * 6.0f), rectF.top + (this.d * 4.0f), rectF.left + (this.d * 48.0f), rectF.bottom - (this.d * 4.0f));
-        drawAnimalFrom(canvas, i, 0, rectF2, 12.0f);
+        drawThemeSticker(canvas, i, rectF2);
         label(canvas, str, ((rectF2.right + rectF.right) / 2.0f) - (this.d * 2.0f), rectF.centerY(), 10.0f, z ? -1 : this.ink, Paint.Align.CENTER);
         if (z) {
             color(-1);
@@ -1197,6 +1211,122 @@ class GameView extends View {
                 rectF.centerY() + fittedHeight / 2.0f);
         canvas.drawBitmap(bitmapLoadAsset, new Rect(i3, i4, width + i3, height + i4), fitted, this.p);
         canvas.restore();
+    }
+
+    boolean paleIconBackground(int pixel) {
+        int red = Color.red(pixel);
+        int green = Color.green(pixel);
+        int blue = Color.blue(pixel);
+        int highest = Math.max(red, Math.max(green, blue));
+        int lowest = Math.min(red, Math.min(green, blue));
+        return red >= 222 && green >= 210 && blue >= 186 && highest - lowest <= 65;
+    }
+
+    int addBackgroundPixel(int position, int[] pixels, boolean[] background, int[] queue, int tail) {
+        if (!background[position] && paleIconBackground(pixels[position])) {
+            background[position] = true;
+            queue[tail++] = position;
+        }
+        return tail;
+    }
+
+    Bitmap themeSticker(int world) {
+        Bitmap cached = this.themeStickers[world];
+        if (cached != null) return cached;
+        if (world == 11 || world == 13) {
+            Bitmap cutout = loadSmallAsset(world == 11 ?
+                    "ui_icons/arctic_cutout.png" : "ui_icons/jobs_cutout.png");
+            if (cutout != null) {
+                this.themeStickers[world] = cutout;
+                return cutout;
+            }
+        }
+        Bitmap sheet = this.sheets[world];
+        Bitmap region = null;
+        if (sheet == null) {
+            // The world picker needs only the first sprite, not all 12 cards.
+            // This keeps the 18-world screen light on memory and quick to open.
+            try (InputStream input = getContext().getAssets().open(this.assetNames[world])) {
+                BitmapRegionDecoder decoder = BitmapRegionDecoder.newInstance(input, false);
+                try {
+                    BitmapFactory.Options options = new BitmapFactory.Options();
+                    options.inPreferredConfig = Bitmap.Config.ARGB_8888;
+                    region = decoder.decodeRegion(new Rect(0, 0,
+                            decoder.getWidth() / 4, decoder.getHeight() / 3), options);
+                } finally {
+                    decoder.recycle();
+                }
+            } catch (Exception ignored) {
+            }
+        }
+        if (sheet == null && region == null) {
+            sheet = loadAsset(getContext(), this.assetNames[world]);
+            this.sheets[world] = sheet;
+        }
+        if (sheet == null && region == null) return null;
+        int width = region != null ? region.getWidth() : sheet.getWidth() / 4;
+        int height = region != null ? region.getHeight() : sheet.getHeight() / 3;
+        int size = width * height;
+        int[] pixels = new int[size];
+        (region != null ? region : sheet).getPixels(pixels, 0, width, 0, 0, width, height);
+        if (region != null) region.recycle();
+        // The white bear and firefighter have dedicated transparent cutouts.
+        // If they are unavailable, feather the original without erasing them.
+        boolean keyBackground = world != 11 && world != 13;
+        boolean[] background = new boolean[size];
+        if (keyBackground) {
+            int[] queue = new int[size];
+            int tail = 0;
+            for (int x = 0; x < width; x++) {
+                tail = addBackgroundPixel(x, pixels, background, queue, tail);
+                tail = addBackgroundPixel((height - 1) * width + x, pixels, background, queue, tail);
+            }
+            for (int y = 0; y < height; y++) {
+                tail = addBackgroundPixel(y * width, pixels, background, queue, tail);
+                tail = addBackgroundPixel(y * width + width - 1, pixels, background, queue, tail);
+            }
+            for (int head = 0; head < tail; head++) {
+                int position = queue[head];
+                int x = position % width;
+                if (x > 0) tail = addBackgroundPixel(position - 1, pixels, background, queue, tail);
+                if (x + 1 < width) tail = addBackgroundPixel(position + 1, pixels, background, queue, tail);
+                if (position >= width) tail = addBackgroundPixel(position - width, pixels, background, queue, tail);
+                if (position + width < size) tail = addBackgroundPixel(position + width, pixels, background, queue, tail);
+            }
+        }
+        float feather = keyBackground ? 0.10f : 0.18f;
+        for (int y = 0; y < height; y++) {
+            float edgeY = Math.min(1.0f, Math.min(y, height - 1 - y) / (height * feather));
+            for (int x = 0; x < width; x++) {
+                int position = y * width + x;
+                if (background[position]) {
+                    pixels[position] = 0;
+                    continue;
+                }
+                float edgeX = Math.min(1.0f, Math.min(x, width - 1 - x) / (width * feather));
+                float edge = Math.min(edgeX, edgeY);
+                edge = edge * edge * (3.0f - 2.0f * edge);
+                int alpha = Math.round(Color.alpha(pixels[position]) * edge);
+                pixels[position] = (pixels[position] & 0x00ffffff) | (alpha << 24);
+            }
+        }
+        Bitmap sticker = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+        sticker.setPixels(pixels, 0, width, 0, 0, width, height);
+        this.themeStickers[world] = sticker;
+        return sticker;
+    }
+
+    void drawThemeSticker(Canvas canvas, int world, RectF area) {
+        Bitmap sticker = themeSticker(world);
+        if (sticker == null) return;
+        float scale = Math.min(area.width() / sticker.getWidth(), area.height() / sticker.getHeight());
+        float width = sticker.getWidth() * scale;
+        float height = sticker.getHeight() * scale;
+        RectF fitted = new RectF(area.centerX() - width / 2.0f, area.centerY() - height / 2.0f,
+                area.centerX() + width / 2.0f, area.centerY() + height / 2.0f);
+        this.p.setAlpha(255);
+        this.p.setFilterBitmap(true);
+        canvas.drawBitmap(sticker, null, fitted, this.p);
     }
 
     void drawWin(Canvas canvas) {
@@ -1898,7 +2028,7 @@ class GameView extends View {
                 tile.top + 3 * this.d,
                 tile.centerX() + imageSize / 2,
                 tile.top + 3 * this.d + imageSize);
-        drawAnimalFrom(canvas, world, 0, image, 12);
+        drawThemeSticker(canvas, world, image);
         fitLabel(canvas, themeName(world), tile.centerX(), tile.bottom - 13 * this.d,
                 10, 7.5f, tile.width() - 8 * this.d, this.ink);
         if (selected) {
@@ -1927,7 +2057,7 @@ class GameView extends View {
             float imageSize = Math.min(48.0f * this.d, tile.height() * 0.59f);
             RectF image = new RectF(tile.centerX() - imageSize / 2, tile.top + 3.0f * this.d,
                     tile.centerX() + imageSize / 2, tile.top + 3.0f * this.d + imageSize);
-            drawAnimalFrom(canvas, world, 0, image, 12.0f);
+            drawThemeSticker(canvas, world, image);
             fitLabel(canvas, themeName(world), tile.centerX(), tile.bottom - 17.0f * this.d,
                     10.0f, 7.0f, tile.width() - 8.0f * this.d, this.ink);
             label(canvas, Integer.bitCount(albumMask(world)) + " / 12", tile.centerX(),
