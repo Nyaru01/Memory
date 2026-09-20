@@ -473,7 +473,7 @@ class GameView extends View {
         float f19 = this.d;
         RectF rectF4 = new RectF(f17, f18 + (370.0f * f19), (this.W / 2.0f) + (f19 * 82.0f), rectF.top + (this.d * 402.0f));
         round(canvas, rectF4, 15.0f, 570425344 | i2);
-        label(canvas, "★  14 MONDES À EXPLORER", this.W / 2.0f, rectF4.centerY(), 10.0f, iThemeColor, Paint.Align.CENTER);
+        label(canvas, "★  " + WORLD_COUNT + " MONDES À EXPLORER", this.W / 2.0f, rectF4.centerY(), 10.0f, iThemeColor, Paint.Align.CENTER);
         RectF rectF5 = new RectF(rectF.left + (this.d * 48.0f), rectF.top + (this.d * 445.0f), rectF.right - (this.d * 48.0f), rectF.top + (this.d * 461.0f));
         round(canvas, rectF5, 8.0f, -1580827);
         round(canvas, new RectF(rectF5.left, rectF5.top, rectF5.left + (rectF5.width() * fMin), rectF5.bottom), 8.0f, this.mint);
@@ -1798,7 +1798,7 @@ class GameView extends View {
         float f8 = this.d;
         float f9 = (f8 * 20.0f) + f6 + f4;
         float f10 = f6 * 2.0f;
-        statCard(canvas, new RectF(f9, f3, (f8 * 20.0f) + f10 + f4, (f8 * 62.0f) + f3), this.progress.exploredWorlds() + " / 14", "MONDES");
+        statCard(canvas, new RectF(f9, f3, (f8 * 20.0f) + f10 + f4, (f8 * 62.0f) + f3), this.progress.exploredWorlds() + " / " + WORLD_COUNT, "MONDES");
         float f11 = this.d;
         statCard(canvas, new RectF((f11 * 20.0f) + f10 + f5, f3, this.W - (f11 * 20.0f), (f11 * 62.0f) + f3), albumCount() + " / " + ALBUM_TOTAL, "ALBUM");
         label(canvas, "Niveau le plus joué : " + this.progress.preferredPairs() + " paires", this.W / 2.0f, fSystemTop + (this.d * 174.0f), 12.0f, this.purple, Paint.Align.CENTER);
@@ -2268,6 +2268,7 @@ class GameView extends View {
         }
         if (i6 == 0) {
             if (this.chooseTheme.contains(x, y)) {
+                this.themePage = this.theme / 10;
                 this.screen = 4;
             } else if (this.easy.contains(x, y)) {
                 choosePairs(6);
