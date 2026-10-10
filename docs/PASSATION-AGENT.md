@@ -1,5 +1,13 @@
 # MémoMondes — Passation à un prochain agent
 
+## Mise à jour de reprise — 9.13 locale — 10 octobre 2026
+
+**Ce bloc remplace l'état 9.12 ci-dessous, conservé comme historique.** Sources et final : **9.13 / versionCode 54**, `APK/MemoMondes.apk`, 102692335 octets, SHA256 `504ea37610ba701cbfc54104f8f757a203f8d4422af5eb298b50f64ac4d1d5e9`. Compilé via build.ps1 et livré via publish-apk.ps1 ; signature vérifiée, clé fixe conservée, un seul final. Aucun déploiement GitHub 9.13.
+
+- HomeScreen seulement : bords communs de 16 dp, espaces de 12 dp, boutons principaux contenus avec des marges identiques et séparés des illustrations. Textes album/parents centrés ; même typographie des deux actions principales. Glissement d'entrée retiré pour ne plus décaler les cartes de leurs zones tactiles. Navigation, progression et stockage inchangés.
+- 155 tests unitaires sans échec/erreur, lint zéro erreur et 25 avertissements ; rendus Robolectric à 320×480, 360×640 et 412×850 inspectés. Compilation finale réussie ; tests/lint à jour lors de cette compilation.
+- Aucun nouveau test Android attaché : deux lancements GPU host bloqués par la mémoire Windows, une tentative swiftshader démarrée puis arrêtée sur erreur d'allocation. Processus de test terminés avant la compilation finale ; aucun changement du script ou de la configuration AVD persistante. Les contrôles Android 9.12 restent historiques. Pas de téléphone, TalkBack manuel, capture de l'activité réelle ou validation de fluidité 9.13. Voir [VALIDATION.md](VALIDATION.md).
+
 ## Mise à jour de reprise — 9.12 locale — 10 octobre 2026
 
 **Ce bloc remplace l'état 9.11 ci-dessous, conservé comme historique.** Sources et final : **9.12 / versionCode 53**, `APK/MemoMondes.apk`, 102692444 octets, SHA256 `93735cbd06b303cb4ac142741040d582f8302e6ad101a9e7eaa09618df306383`. Compilé avec build.ps1, livré via publish-apk.ps1, signature vérifiée et clé fixe conservée. Aucun déploiement GitHub 9.12.
@@ -81,7 +89,7 @@ Toutes les classes applicatives sont dans `app/src/main/java/fr/memomimi/app/`.
 | MainActivity | Cycle de vie, Retour Android, panneau de mise à jour |
 | GameView | Orchestration des écrans/gestes, start, startAdventure, unlockProgress, sauvegarde, médias |
 | SavedGame | Lecture/validation complète du format de reprise existant avant affectation au GameView, migration des anciens propriétaires en duel |
-| HomeScreen | Composition des deux cartes illustrées, chargement de deux peintures, footer, animation d'entrée |
+| HomeScreen | Composition des deux cartes illustrées, chargement de deux peintures, footer, marges et alignement des contrôles |
 | WelcomeScreen | Clairière de lancement, textes, barre, chargement/libération des ressources |
 | WelcomeMascot | Nouvel atlas de coucou, sélection de poses, pieds enregistrés, respiration ; durée 5000 ms |
 | VictoryCelebration | État de victoire et réaction, indépendant du rendu |

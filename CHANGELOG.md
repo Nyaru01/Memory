@@ -1,5 +1,12 @@
 # Changements
 
+## 9.13 — 10 octobre 2026 — livraison locale
+
+- Accueil : marges internes de 12 dp autour des deux boutons principaux, espace entre illustrations et boutons, même taille de texte pour les actions.
+- Album, musique et parents suivent les mêmes bords ; écarts réguliers de 12 dp et textes centrés dans leurs conteneurs.
+- Suppression du glissement d'entrée des cartes, qui décalait momentanément leur dessin par rapport aux zones tactiles. Mascotte et navigation conservées.
+- Aucun changement des formats de stockage ni de la progression.
+
 ## 9.12 — 10 octobre 2026 — livraison locale
 
 - Bouton Espace parents visible, maintien explicite de deux secondes ; les petits mouvements dans le bouton ne déclenchent plus un défilement annulant le maintien.

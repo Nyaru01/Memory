@@ -1,5 +1,14 @@
 # Validation
 
+## Accueil aligné — 9.13 — 10 octobre 2026
+
+- Marges extérieures communes de 16 dp ; espaces entre blocs de 12 dp ; boutons principaux de 48 dp avec 12 dp sur les côtés et en bas, 8 dp entre illustration et bouton. Album, musique et parents alignés ; textes des groupes centrés verticalement. Le glissement des seules cartes est retiré pour garder dessin et zones tactiles concordants dès l'entrée.
+- Compilation debug, instrumentation et lint par tools/build.ps1 : 155 tests unitaires passent, zéro échec/erreur ; lint zéro erreur et 25 avertissements. Les scénarios existants couvrent les deux entrées, leur retour et les zones tactiles sur plusieurs tailles, ainsi que la protection parents et la conservation des données lors du reset.
+- Rendus natifs Robolectric inspectés à 320×480, 360×640 et 412×850 : boutons contenus, textes lisibles, marges régulières. Fichiers archivés dans releases/validation/9.13/home-local-*.png. À 320×480, le bas de l'accueil nécessite le défilement prévu.
+- Aucun nouveau contrôle Android attaché réussi pour 9.13. Deux démarrages GPU host ont échoué par manque de mémoire engagée Windows ; même la demande de 1536 MiB est augmentée à 2560 MiB par l'émulateur. Une tentative swiftshader a démarré puis échoué sur une allocation mémoire avant les tests. Les processus de test ont été arrêtés avant compilation finale ; aucune application utilisateur fermée, aucune donnée effacée.
+- Les 30 contrôles par taille de 9.12 sont historiques et ne sont pas présentés comme relancés. Pas de capture de l'activité réelle 9.13, de téléphone physique, de TalkBack manuel ou de validation de fluidité.
+- Final 9.13/code54 compilé avec build.ps1 et livré par publish-apk.ps1 : 102692335 octets ; SHA256 504ea37610ba701cbfc54104f8f757a203f8d4422af5eb298b50f64ac4d1d5e9 ; signature vérifiée par apksigner, clé fixe conservée. Un seul fichier final dans APK/. Tests/lint déjà à jour dans le build final ; aucune publication GitHub.
+
 ## Carte nette et rendu accéléré — 9.6 — 10 octobre 2026
 
 - Cause de flou confirmée dans les ressources : ancien atlas1122×1402 réparti en20 cellules, soit environ280pixels par scène. Vingt paysages recréés individuellement avec imagegen : huit972×1619, douze1254×1254 ; JPEG qualité94,17319015octets au total. Planche des20assets inspectée, puis capture1080×1920 dans l'activité attachée examinée : illustration plus détaillée, Lumi, niveaux et Continuer dégagés. Aucun simple agrandissement de l'atlas précédent.
