@@ -196,6 +196,55 @@ public class GameViewTest {
         }
     }
 
+    @Test public void matchedPairVibratesOnceAndRespectsToggle() {
+        view.releaseAudio();
+        final int[] successes={0};
+        view=new GameView(context) {
+            @Override public boolean performHapticFeedback(int effect) {
+                if(effect==android.view.HapticFeedbackConstants.CONFIRM
+                        || effect==android.view.HapticFeedbackConstants.LONG_PRESS) successes[0]++;
+                return false;
+            }
+        };
+        view.sound=false; view.activityActive=false;
+        for(boolean enabled:new boolean[]{true,false}) {
+            view.pairs=3; view.haptics=enabled; start(1,true);
+            int before=successes[0]; tap(0);tap(2); // mismatch
+            assertEquals(before,successes[0]); ready();view.first=-1;view.second=-1;
+            tap(0);tap(1); assertEquals(before+(enabled?1:0),successes[0]);
+            tap(0); assertEquals(before+(enabled?1:0),successes[0]);
+        }
+    }
+
+    @Test public void smallMenusHaveReadableTargetsAndCompletedAdventureLabel() {
+        for(int[] size:new int[][]{{320,480},{360,640}}) {
+            view.screen=0;view.homeScroll=0;render(null,size[0],size[1]);
+            assertTrue(view.adventureButton.height()/view.d>=48);
+            assertTrue(view.freePlayButton.height()/view.d>=48);
+            view.openFreePlay();render(null,size[0],size[1]);
+            for(android.graphics.RectF target:new android.graphics.RectF[]{view.easy,view.medium,view.hard,view.expert,view.play,view.homeBtn}) {
+                assertTrue(target.width()/view.d>=48);assertTrue(target.height()/view.d>=48);
+            }
+        }
+        context.getSharedPreferences("m",0).edit().putInt("adventure_completed",40).commit();
+        view.screen=0;view.homeScroll=0;render(null,360,640);
+        assertTrue(view.accessible.targets().get(0).label.contains("Aventure terminée"));
+    }
+
+    @Test public void accessibilityActivatesVisiblePartOfClippedControl() {
+        view.openFreePlay(); render(null,320,320);
+        view.pairs=8;
+        // Leave only the bottom strip of the six-pair control below the fixed header.
+        view.homeScroll=view.easy.top-(view.systemTop()+64*view.d)+view.easy.height()-8*view.d;
+        render(null,320,320);
+        assertTrue(view.easy.centerY()<view.visibleTop(view.easy));
+        for(GameAccessibility.Target target:view.accessible.targets()) if(target.bounds==view.easy) {
+            assertTrue(view.accessible.performAction(target.id,android.view.accessibility.AccessibilityNodeInfo.ACTION_CLICK,null));
+            assertEquals(6,view.pairs); return;
+        }
+        fail("Clipped control must remain accessible");
+    }
+
     private void start(int players, boolean calm) {
         view.players = players; view.calm = calm; view.start();
         view.tutorialActive = false; view.hintUntil = 0; view.previewUntil = 0;

@@ -1,5 +1,13 @@
 # Changements
 
+## 9.11 — 10 octobre 2026 — livraison locale
+
+- Retour haptique de confirmation à chaque paire trouvée, selon les réglages de vibrations.
+- Contrôles accessibles sur la portion visible des boutons défilants, descriptions de retour corrigées et coucou de bienvenue accessible.
+- Bouton « Revoir mon aventure » après les 40 niveaux.
+- Lecture des sauvegardes extraite dans SavedGame ; paquet, masques, paires, propriétaires, scores et valeurs invalides vérifiés avant restauration. Format et migration des anciens duels conservés.
+- En cas de sauvegarde invalide, contenu brut conservé et proposition de reprise désactivée ; collections, progression et réglages préservés.
+
 ## 9.10 — Accueil à deux modes et coucou de Lumi
 
 - Deux cartes illustrées, progression réelle et état de premier voyage ; aventure ouvrant la carte au prochain niveau.

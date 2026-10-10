@@ -43,7 +43,10 @@ final class GameAccessibility extends AccessibilityNodeProvider {
                 + (view.showResetConfirm ? 2000 : 0) + (view.enlargedItem >= 0 ? 4000 : 0);
         if (state != lastState) { focused = -1; hovered = -1; lastState = state; }
         List<Target> result = new ArrayList<>();
-        if (view.screen < 0) return result;
+        if (view.screen < 0) {
+            add(result, view.splashMascotArea, "Lumi te souhaite la bienvenue, rejouer le coucou");
+            return result;
+        }
         if (view.showQuit) {
             add(result, view.quitContinueBtn, "Continuer la partie");
             add(result, view.quitConfirmBtn, "Quitter la partie");
@@ -61,7 +64,8 @@ final class GameAccessibility extends AccessibilityNodeProvider {
         }
         switch (view.screen) {
             case 0:
-                add(result,view.adventureButton,(view.adventure.completed()==0?"Commencer":"Continuer")+" l’aventure, niveau "+view.adventure.current());
+                add(result,view.adventureButton,view.adventure.completed()==40 ? "Aventure terminée, revoir les 40 niveaux"
+                        : (view.adventure.completed()==0?"Commencer":"Continuer")+" l’aventure, niveau "+view.adventure.current());
                 add(result,view.freePlayButton,"Jouer librement");
                 add(result,view.albumBtn,"Mon album, "+view.albumCount()+" images");
                 add(result,view.soundBtn,"Musique : "+(view.sound?"activée":"désactivée"));
@@ -97,7 +101,7 @@ final class GameAccessibility extends AccessibilityNodeProvider {
             case 2:
                 add(result, view.play,view.nextLevelButton.isEmpty() ? "Rejouer" : "Avancer avec Lumi vers le niveau "+view.adventure.current());
                 add(result, view.storyBtn, "Écouter une histoire"); add(result, view.albumBtn, "Mon album");
-                add(result, view.homeBtn,view.adventureLevel>0 ? "Voir la carte" : "Choisir un monde");
+                add(result, view.homeBtn,view.adventureLevel>0 ? "Voir la carte" : "Retour au jeu libre");
                 add(result, view.victoryMascot.bounds, "Lumi, touche pour jouer avec moi");
                 break;
             case 3:
@@ -126,7 +130,7 @@ final class GameAccessibility extends AccessibilityNodeProvider {
                 }
                 break;
             case 7:
-                add(result,view.adventureMap.back,"Accueil et jeu libre");
+                add(result,view.adventureMap.back,"Retour à l’accueil");
                  add(result,view.adventureMap.focusButton,"Revenir au niveau actuel");
                  add(result,view.adventureMap.lumi,"Lumi, touche pour un coucou");
                 add(result,view.adventureMap.continueButton,"Continuer le niveau "+view.adventure.current());
@@ -205,8 +209,11 @@ final class GameAccessibility extends AccessibilityNodeProvider {
         if ((action == AccessibilityNodeInfo.ACTION_CLICK && !target.longPress)
                 || (action == AccessibilityNodeInfo.ACTION_LONG_CLICK && target.longPress)) {
             long now = GameView.now();
+            float visibleTop=Math.max(target.bounds.top,view.visibleTop(target.bounds));
+            float visibleBottom=Math.min(target.bounds.bottom,view.H-view.systemBottom());
+            if(visibleBottom<=visibleTop) return false;
             MotionEvent event = MotionEvent.obtain(now, now, target.longPress ? MotionEvent.ACTION_DOWN : MotionEvent.ACTION_UP,
-                    target.bounds.centerX(), target.bounds.centerY(), 0);
+                    target.bounds.centerX(), (visibleTop+visibleBottom)/2, 0);
             view.onTouchEvent(event); event.recycle();
             send(id, AccessibilityEvent.TYPE_VIEW_CLICKED); return true;
         }

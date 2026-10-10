@@ -53,7 +53,7 @@ final class HomeScreen {
         v.fitLabel(c,done==0?"Ton voyage commence !":done==40?"Les 40 niveaux terminés !":"Niveau "+level+" t’attend",v.uiScratch.centerX(),y+117*d,13,10,v.uiScratch.width()-10*d,v.ink);
         v.fitLabel(c,done+" / 40 niveaux",v.uiScratch.centerX(),y+135*d,12,10,v.uiScratch.width()-10*d,UiStyle.MUTED);
         v.adventureButton.set(card.left+10*d,y+169*d,card.right-10*d,y+217*d);v.round(c,v.adventureButton,17,UiStyle.REPLAY);
-        v.fitLabel(c,done==0?"Commencer l’aventure":"Continuer l’aventure",v.adventureButton.centerX(),v.adventureButton.centerY(),18,14,v.adventureButton.width()-20*d,UiStyle.REPLAY_TEXT);
+        v.fitLabel(c,done==0?"Commencer l’aventure":done==40?"Revoir mon aventure":"Continuer l’aventure",v.adventureButton.centerX(),v.adventureButton.centerY(),18,14,v.adventureButton.width()-20*d,UiStyle.REPLAY_TEXT);
         c.restore();y=card.bottom+12*d;
         card.set(16*d,y,w-16*d,y+142*d);v.round(c,card,22,UiStyle.SURFACE);
         clip.reset();clip.addRoundRect(card,22*d,22*d,Path.Direction.CW);c.save();c.clipPath(clip);
@@ -62,7 +62,7 @@ final class HomeScreen {
         v.fitLabel(c,"JEU LIBRE",card.centerX(),y+23*d,19,16,card.width()-24*d,v.ink);
         v.fitLabel(c,"Choisis ton monde et joue à ton rythme !",card.centerX(),y+55*d,13,10,card.width()-20*d,v.ink);
         v.freePlayButton.set(card.left+10*d,y+84*d,card.right-10*d,y+132*d);v.round(c,v.freePlayButton,17,0xffe8def7);
-        v.fitLabel(c,"Jouer librement",v.freePlayButton.centerX(),v.freePlayButton.centerY(),17,14,v.freePlayButton.width()-20*d,v.purple);
+        v.fitLabel(c,"Jouer librement",v.freePlayButton.centerX(),v.freePlayButton.centerY(),17,14,v.freePlayButton.width()-20*d,UiStyle.FREE_PLAY_TEXT);
         c.restore();c.restore();y=card.bottom+12*d;
         float mid=w/2;v.albumBtn.set(16*d,y,mid-4*d,y+54*d);v.soundBtn.set(mid+4*d,y,w-16*d,y+54*d);
         v.round(c,v.albumBtn,17,UiStyle.SURFACE);v.round(c,v.soundBtn,17,UiStyle.SURFACE);

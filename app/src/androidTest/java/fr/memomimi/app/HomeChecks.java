@@ -32,8 +32,15 @@ final class HomeChecks {
                 tap(v,v.adventureButton);require(v.screen==7,"Adventure entrance opens map");
                 v.handleBack();require(v.screen==0,"Map back to home");v.invalidate();
             });Thread.sleep(100);
-            host.runOnMainSync(()->{tap(v,v.freePlayButton);require(v.screen==8,"Free entrance opens configuration");v.invalidate();});capture("free-910-live");
-            host.runOnMainSync(()->{tap(v,v.medium);require(v.pairs==8&&v.adventureLevel==0,"Free difficulty isolated");tap(v,v.chooseTheme);require(v.screen==4,"Free world selector");v.familyOpen[0]=true;v.worldsScroll=0;v.invalidate();});capture("worlds-910-live");
+            host.runOnMainSync(()->{
+                require(v.animationsReduced(),"Calm mode reduces animations");
+                for(GameAccessibility.Target target:v.accessible.targets()) if(target.bounds==v.freePlayButton) {
+                    require(v.accessible.performAction(target.id,android.view.accessibility.AccessibilityNodeInfo.ACTION_CLICK,null),"Virtual free play action");break;
+                }
+                require(v.screen==8,"Free entrance opens configuration");
+                v.invalidate();
+            });capture("free-910-live");
+            host.runOnMainSync(()->{require(v.homeBtn.width()/v.d>=48,"Back touch target");tap(v,v.medium);require(v.pairs==8&&v.adventureLevel==0,"Free difficulty isolated");tap(v,v.chooseTheme);require(v.screen==4,"Free world selector");v.familyOpen[0]=true;v.worldsScroll=0;v.invalidate();});capture("worlds-910-live");
             host.runOnMainSync(()->{tap(v,v.themeTiles[0]);require(v.screen==8,"Selected world returns to configuration");require(prefs.getInt("free_pairs",0)==8,"Free choice persisted");v.invalidate();});Thread.sleep(100);
             host.runOnMainSync(()->{tap(v,v.play);require(v.screen==1&&v.adventureLevel==0&&v.cards.length==16,"Free game starts selected deck");v.handleBack();require(v.showQuit,"Android game back asks to quit");v.showQuit=false;v.screen=8;v.handleBack();require(v.screen==0,"Configuration back to home");v.invalidate();});Thread.sleep(100);
             host.runOnMainSync(()->{boolean sound=v.sound;tap(v,v.soundBtn);require(v.sound!=sound&&prefs.getBoolean("sound",sound)!=sound,"Music toggle persists");tap(v,v.albumBtn);require(v.screen==5&&v.albumReturnScreen==0,"Home album opens");v.handleBack();require(v.screen==0,"Album back to home");});

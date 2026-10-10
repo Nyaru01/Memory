@@ -2678,6 +2678,7 @@ class GameView extends View {
                     }
                     this.second = -1;
                     this.first = -1;
+                    matchHapticFeedback();
                     playMatchSound();
                     int i11 = this.players;
                     if (i11 == 2) {
@@ -2825,53 +2826,14 @@ class GameView extends View {
     void loadGame() {
         SharedPreferences sharedPreferences = getContext().getSharedPreferences("m", 0);
         try {
-            this.pairs = sharedPreferences.getInt("saved_pairs", 6);
-            this.players = sharedPreferences.getInt("saved_players", 1);
-            this.theme = Math.max(0, Math.min(WORLD_COUNT - 1, sharedPreferences.getInt("saved_theme", 0)));
-            adventureLevel=sharedPreferences.getInt("saved_adventure_level",0);
-            if(adventureLevel!=0 && (!adventure.unlocked(adventureLevel) || players!=1 || theme!=AdventureStore.world(adventureLevel)
-                    || pairs!=AdventureStore.pairs(adventureLevel))) throw new IllegalStateException("Invalid adventure save");
-            String[] strArrSplit = sharedPreferences.getString("saved_cards", "").split(",");
-            if (strArrSplit.length != this.pairs * 2) {
-                throw new IllegalStateException();
-            }
-            this.cards = new int[strArrSplit.length];
-            this.matched = new boolean[strArrSplit.length];
-            this.owners = new int[strArrSplit.length];
-            long j = sharedPreferences.getLong("saved_matched", 0L);
-            long j2 = sharedPreferences.getLong("saved_owner1", 0L);
-            long j3 = sharedPreferences.getLong("saved_owner2", 0L);
-            for (int i = 0; i < strArrSplit.length; i++) {
-                this.cards[i] = Integer.parseInt(strArrSplit[i]);
-                long j4 = 1 << i;
-                this.matched[i] = (j & j4) != 0;
-                this.owners[i] = (j2 & j4) != 0 ? 1 : (j3 & j4) != 0 ? 2 : 0;
-            }
-            int i2 = this.pairs;
-            int i3 = GameModel.columns(i2);
-            this.cols = i3;
-            this.rows = (((i2 * 2) + i3) - 1) / i3;
-            this.turn = sharedPreferences.getInt("saved_turn", 1);
-            this.score1 = sharedPreferences.getInt("saved_score1", 0);
-            this.score2 = sharedPreferences.getInt("saved_score2", 0);
-            this.moves = sharedPreferences.getInt("saved_moves", 0);
-            int i4 = sharedPreferences.getInt("saved_found", 0);
-            this.found = i4;
-            if (this.players == 2 && j2 == 0 && j3 == 0 && i4 > 0) {
-                migrateOwnersFromScores();
-            } else if (j2 != 0 || j3 != 0) {
-                this.score1 = ownedPairs(1);
-                int iOwnedPairs = ownedPairs(2);
-                this.score2 = iOwnedPairs;
-                this.found = this.score1 + iOwnedPairs;
-            }
-            this.errors = sharedPreferences.getInt("saved_errors", 0);
-            this.hintUsed = sharedPreferences.getBoolean("saved_hint_used", false);
-            int i5 = sharedPreferences.getInt("saved_first", -1);
-            this.first = i5;
-            if (i5 < 0 || i5 >= this.cards.length || this.matched[i5]) {
-                this.first = -1;
-            }
+            SavedGame saved = new SavedGame(sharedPreferences, adventure);
+            this.pairs=saved.pairs; this.players=saved.players; this.theme=saved.theme;
+            this.adventureLevel=saved.level; this.cards=saved.cards; this.matched=saved.matched;
+            this.owners=saved.owners; this.turn=saved.turn;
+            this.score1=saved.score1; this.score2=saved.score2; this.found=saved.found;
+            this.moves=saved.moves; this.errors=saved.errors; this.hintUsed=saved.hintUsed;
+            this.first=saved.first; this.cols=GameModel.columns(pairs);
+            this.rows=(cards.length+cols-1)/cols;
             this.hintB = -1;
             this.hintA = -1;
             this.closeB = -1;
@@ -2895,39 +2857,14 @@ class GameView extends View {
             announceForAccessibility("Partie reprise. " + this.found + " paires sur " + this.pairs);
             invalidate();
         } catch (Exception unused) {
-            clearSavedGame();
+            // Keep the payload for recovery; disable only the unusable resume prompt.
+            sharedPreferences.edit().putBoolean("game_active", false).apply();
+            this.resumeAvailable = false;
+            this.adventureLevel = 0;
+            announceForAccessibility("Cette partie ne peut pas être reprise. Ton album et ton aventure sont conservés.");
             this.screen = 0;
             this.showResumePrompt = false;
             invalidate();
-        }
-    }
-
-    void migrateOwnersFromScores() {
-        int i = this.score1;
-        for (int i2 = 0; i2 < this.cards.length; i2++) {
-            if (this.matched[i2] && this.owners[i2] == 0) {
-                int i3 = i2 + 1;
-                while (true) {
-                    int[] iArr = this.cards;
-                    if (i3 >= iArr.length) {
-                        break;
-                    }
-                    if (this.matched[i3]) {
-                        int[] iArr2 = this.owners;
-                        if (iArr2[i3] == 0 && iArr[i2] == iArr[i3]) {
-                            int i4 = i > 0 ? 1 : 2;
-                            iArr2[i3] = i4;
-                            iArr2[i2] = i4;
-                            if (i <= 0) {
-                                break;
-                            }
-                            i--;
-                            break;
-                        }
-                    }
-                    i3++;
-                }
-            }
         }
     }
 
@@ -3198,6 +3135,12 @@ class GameView extends View {
                 try { audioTrack.release(); } catch (Exception ignored) { }
             }
         }
+    }
+
+    void matchHapticFeedback() {
+        if (haptics) performHapticFeedback(android.os.Build.VERSION.SDK_INT >= 30
+                ? android.view.HapticFeedbackConstants.CONFIRM
+                : android.view.HapticFeedbackConstants.LONG_PRESS);
     }
 
     void playMatchSound() {

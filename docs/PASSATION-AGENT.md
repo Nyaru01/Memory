@@ -1,5 +1,20 @@
 # MémoMondes — Passation à un prochain agent
 
+## Mise à jour de reprise — 9.11 locale — 10 octobre 2026
+
+**Ce bloc remplace les références d'état de la photographie 9.10 ci-dessous.** Version actuelle des sources et de `APK/MemoMondes.apk` : **9.11 / versionCode 52**, 102691581 octets, SHA256 `5f0efeeac6d9a14bd1e10430f417b388f057830737528594778b0e3ae94283b1`. Livraison locale via build.ps1/publish-apk.ps1 ; aucune publication GitHub 9.11 ni validation réseau de son correctif dans cette tâche. Les références GitHub et mesures 9.10 plus bas sont historiques.
+
+- Travail autorisé par l'utilisateur : usage/accessibilité pour 5 et 7 ans, sauvegardes incohérentes, extraction ciblée et vibration sur une paire trouvée. Voir [détails et essais manuels à effectuer](USAGE-ACCESSIBILITE-9.11.md).
+- `SavedGame` valide la reprise avant de modifier le GameView ; format existant conservé, migration des anciens duels identique. Une reprise invalide désactive `game_active` sans supprimer le contenu brut ni les collections/réglages/progression.
+- Retour haptique de confirmation sur correspondance, selon Vibrations et réglages Android. Mode calme conserve le retour tactile si activé. Contraste du bouton Jeu libre 4,92:1 ; deux entrées inchangées. Après 40 niveaux : « Revoir mon aventure ».
+- Contrôles virtuels : bienvenue accessible, descriptions de retour et aventure terminée, activation sur la portion visible d'un contrôle après défilement.
+- Validation : 147 tests unitaires sans échec/erreur, lint sans erreur (25 avertissements), 922 contrôles Android généraux, 21 contrôles de menus par taille petit écran/HD ; captures d'accueil et de configuration inspectées. Signature APK vérifiée. Consulter la section 9.11 de [VALIDATION.md](VALIDATION.md) pour les détails, incidents de scénario et limites.
+- Final release installé avec succès, 25 contrôles de bienvenue passés. L'émulateur s'est arrêté deux fois en fin de session ; aucun résultat revendiqué pour le contrôle supplémentaire des menus en release. Les contrôles de menus petit écran/HD utilisent la build debug des mêmes sources finales. Taille/densité restaurées et vérifiées avant le second arrêt.
+- Aucun essai enfant directement observé, TalkBack manuel complet, téléphone physique, ressenti vibratoire ou vidéo évaluée. Les tests automatiques ne remplacent pas ces observations. Aucune suppression de données de téléphone.
+- Aucun changement des règles de progression, de l'album, de clé de signature ou de configuration SDK/caches. Git reste local sans remote ; dernier commit à consulter dans `git log`.
+
+## Photographie de livraison précédente — 9.10
+
 État vérifié le **10 octobre 2026**, après livraison de **9.10 / versionCode 51**. Ce document est le point d'entrée de reprise ; les documents historiques restent utiles mais leurs descriptions d'anciens écrans ou durées ne doivent pas remplacer l'état présent. Relire les sources et AGENTS.md avant une modification.
 
 ## 1. Projet et livraison actuelle
@@ -55,6 +70,7 @@ Toutes les classes applicatives sont dans `app/src/main/java/fr/memomimi/app/`.
 | --- | --- |
 | MainActivity | Cycle de vie, Retour Android, panneau de mise à jour |
 | GameView | Orchestration des écrans/gestes, start, startAdventure, unlockProgress, sauvegarde, médias |
+| SavedGame | Lecture/validation complète du format de reprise existant avant affectation au GameView, migration des anciens propriétaires en duel |
 | HomeScreen | Composition des deux cartes illustrées, chargement de deux peintures, footer, animation d'entrée |
 | WelcomeScreen | Clairière de lancement, textes, barre, chargement/libération des ressources |
 | WelcomeMascot | Nouvel atlas de coucou, sélection de poses, pieds enregistrés, respiration ; durée 5000 ms |

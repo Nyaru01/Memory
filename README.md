@@ -1,4 +1,4 @@
-# MémoMondes 9.10 — V2
+# MémoMondes 9.11 — V2
 
 **Reprise du projet par un agent : [document de passation](docs/PASSATION-AGENT.md).**
 
@@ -17,6 +17,10 @@ Le dossier source original ayant été perdu, cette version a été reconstruite
 - [Fonctionnement et publication des mises à jour](docs/MISES_A_JOUR.md)
 
 Installer une fois la version 8.6 ou suivante pour activer les mises à jour depuis GitHub. Depuis la 8.11, le jeu vérifie au retour dans l'application et toutes les minutes tant qu'elle reste ouverte. Un correctif compatible est téléchargé en arrière-plan ; un panneau propose « Installer » ou « Plus tard », directement dans le jeu. Une partie en cours n'est pas interrompue par ce panneau : le bouton d'installation reste disponible dans le bandeau. La confirmation finale appartient à Android. Le jeu et la progression restent utilisables hors ligne.
+
+## Usage et reprise — 9.11
+
+Retour haptique sur une paire trouvée, descriptions accessibles plus précises et contrôle renforcé des sauvegardes. Les deux entrées et la progression restent en place. [Détails et parcours de validation](docs/USAGE-ACCESSIBILITE-9.11.md). Cette version est livrée localement ; les liens GitHub ci-dessus désignent la dernière version publiée.
 
 ## Deux façons de jouer — 9.10
 
