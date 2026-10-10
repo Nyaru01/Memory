@@ -662,7 +662,7 @@ class GameView extends View {
     }
     float visibleTop(RectF bounds) {
         if(bounds==homeBtn) return systemTop();
-        if(screen==7 && bounds!=adventureMap.back && bounds!=adventureMap.continueButton) return adventureMap.top;
+        if(screen==7 && bounds!=adventureMap.back && bounds!=adventureMap.focusButton && bounds!=adventureMap.continueButton) return adventureMap.top;
         if(screen==4) return systemTop()+88*d;
         if(screen==3) return systemTop()+92*d;
         if(screen==5 && albumTab==2) for(RectF tile:themeTiles) if(bounds==tile)return systemTop()+222*d;
@@ -820,7 +820,7 @@ class GameView extends View {
 
     void openAdventure() {
         showResumePrompt=false; mapHint=""; screen=7;
-        adventureMap.focus(adventure.current(),Math.max(200*d,H-200*d),d);
+        adventureMap.open(adventure.current(),Math.max(160*d,H-systemTop()-systemBottom()-152*d),d,animationsReduced(),now());
         accessible.changed(); invalidate();
     }
     boolean startAdventure(int level) {
@@ -1790,7 +1790,7 @@ class GameView extends View {
 
     void unlockProgress() {
         if(adventureLevel>0 && players==1 && found==pairs && theme==AdventureStore.world(adventureLevel)
-                && pairs==AdventureStore.pairs(adventureLevel)) adventure.complete(adventureLevel);
+                && pairs==AdventureStore.pairs(adventureLevel) && adventure.complete(adventureLevel)) adventureMap.motion.completed(adventureLevel);
         this.progress.recordCompleted(this.theme, this.pairs);
         SharedPreferences sharedPreferences = getContext().getSharedPreferences("m", 0);
         SharedPreferences.Editor editorEdit = sharedPreferences.edit();
@@ -2290,6 +2290,7 @@ class GameView extends View {
     @Override // android.view.View
     public boolean onTouchEvent(MotionEvent motionEvent) {
         int action = motionEvent.getActionMasked();
+        if(screen==7) adventureMap.touch(motionEvent,dragging,d,animationsReduced());
         if (!showQuit && !showResetConfirm && !showResumePrompt && enlargedItem<0
                 && (screen==0 || screen==3 || screen==4 || screen==7 || screen==5 && albumTab==2)) {
             if (action==MotionEvent.ACTION_DOWN) { dragStartY=dragLastY=motionEvent.getY(); dragging=false; }
@@ -2549,6 +2550,8 @@ class GameView extends View {
         if(i6==7) {
             if(adventureMap.back.contains(x,y)) { screen=0; adventureLevel=0; }
             else if(adventureMap.continueButton.contains(x,y)) startAdventure(adventure.current());
+            else if(adventureMap.focusButton.contains(x,y)) { adventureMap.focus(adventure.current(),adventureMap.bottom-adventureMap.top,d);mapHint="";accessible.changed(); }
+            else if(y>=adventureMap.top && y<=adventureMap.bottom && adventureMap.lumi.contains(x,y)) adventureMap.motion.reactionAt=now();
             else {
                 int level=adventureMap.hit(x,y);
                 if(level>0 && !startAdventure(level)) { mapHint="Termine le niveau "+adventure.current()+" d’abord"; announceForAccessibility(mapHint); }
@@ -3034,6 +3037,7 @@ class GameView extends View {
 
     void pauseMusic() {
         this.activityActive = false;
+        adventureMap.release();
         this.parentHolding = false;
         removeCallbacks(parentHoldAction);
         this.pressedTarget = null;
@@ -3121,6 +3125,7 @@ class GameView extends View {
     @Override // android.view.View
     protected void onDetachedFromWindow() {
         this.activityActive = false;
+        adventureMap.release();
         this.parentHolding = false;
         removeCallbacks(parentHoldAction);
         this.pressedTarget = null;

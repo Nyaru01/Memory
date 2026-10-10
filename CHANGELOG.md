@@ -1,5 +1,13 @@
 # Changements
 
+## 9.4 — 10 octobre 2026
+
+- Carte d'exploration remplacée par vingt paysages peints distincts, chemin organique et repères illustrés ; mêmes quarante étapes et progression conservée.
+- Lumi animé sur le chemin : repos, clignements, coucou, réaction et transfert joyeux vers la prochaine étape au retour après victoire.
+- Papillons, lucioles, poissons et méduses sur spritesheet ; nuages et particules discrets.
+- Défilement avec inertie, en-tête compact, retour au niveau actuel et Continuer accessible.
+- Cache de trois sections RGB565, atlas de créatures partagé, arrêt/libération à la pause, mode calme et réduction système respectés.
+
 ## 9.3 — 10 octobre 2026
 
 - Carte d'aventure Canvas originale : cinq îles pastel, chemin et 40 niveaux.

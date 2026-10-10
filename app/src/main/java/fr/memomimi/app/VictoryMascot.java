@@ -157,6 +157,18 @@ final class VictoryMascot {
         canvas.restore();
     }
 
+    void drawMap(Canvas canvas, RectF area, long elapsed, long reaction, boolean reduced, boolean travelling) {
+        // Reuse actual atlas pose sequences, including blinks and occasional waves.
+        long wave=elapsed%11000;
+        long touch=reaction>=0 && reaction<1440 ? reaction : wave>=8500 && wave<9940 ? wave-8500 : -1;
+        animation.sample(travelling ? 1300+elapsed%2100 : 6000+elapsed, touch, 0, reduced);
+        float size=Math.min(area.height()*.93f,area.width());
+        canvas.save();
+        oval(canvas,area.centerX(),area.bottom-3,size*.24f,size*.025f,0x35645380);
+        drawSprite(canvas,area.centerX(),area.bottom-size*.10f,size);
+        canvas.restore();
+    }
+
     private void drawSprite(Canvas canvas, float cx, float floor, float size) {
         // Feet are the pivot for landing squash and body stretch.
         canvas.save();

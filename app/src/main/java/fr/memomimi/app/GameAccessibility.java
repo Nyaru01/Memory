@@ -123,6 +123,8 @@ final class GameAccessibility extends AccessibilityNodeProvider {
                 break;
             case 7:
                 add(result,view.adventureMap.back,"Accueil et jeu libre");
+                 add(result,view.adventureMap.focusButton,"Revenir au niveau actuel");
+                 add(result,view.adventureMap.lumi,"Lumi, touche pour un coucou");
                 add(result,view.adventureMap.continueButton,"Continuer le niveau "+view.adventure.current());
                 for(int level=1;level<=AdventureStore.LEVEL_COUNT;level++) {
                     RectF node=view.adventureMap.nodes[level-1];

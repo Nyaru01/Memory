@@ -114,6 +114,23 @@ public final class VisualEffectsChecks extends Instrumentation {
         view.saveForPause();GameView restored=new GameView(getTargetContext());restored.sound=false;
         try {restored.loadGame();require(restored.adventureLevel==2 && restored.pairs==6,"Resume keeps adventure level");} finally {restored.releaseAudio();}
         view.openAdventure();render(view,"adventure-device-unlocked",360,640);
+        view.calm=false;
+        for(int level=1;level<=40;level++) {
+            view.adventureMap.focus(level,488,1);render(view,level==13?"adventure-illustrated-ocean":level==21?"adventure-illustrated-space":null,360,640);
+            require(view.adventureMap.scenery.retainedTiles()<=3,"Illustrated tile cache bounded");
+            require(view.adventureMap.scenery.retainedBytes()+view.adventureMap.decor.bytes()<6*1024*1024,"Map bitmap memory bounded");
+        }
+        require(view.adventureMap.decor.bytes()>0,"Animated creatures bundled");
+        view.openAdventure();render(view,"adventure-illustrated-device",360,640);
+        click(view,view.adventureMap.lumi);require(view.screen==7 && view.adventureMap.motion.reactionAt>=0,"Lumi reacts without starting a game");
+        require(view.accessible.targets().stream().anyMatch(t->t.label.equals("Revenir au niveau actuel")),"Accessible current-level shortcut");
+        Bitmap timingBitmap=Bitmap.createBitmap(360,640,Bitmap.Config.ARGB_8888);Canvas timingCanvas=new Canvas(timingBitmap);
+        long[] timing=new long[120];
+        for(int frame=0;frame<120;frame++){long start=System.nanoTime();view.adventureMap.draw(timingCanvas,view);timing[frame]=System.nanoTime()-start;}
+        java.util.Arrays.sort(timing);renderTiming+="\nWarm map Canvas software draw: median="+timing[60]/1000000f+"ms p95="+timing[114]/1000000f+"ms; tiles="+view.adventureMap.scenery.retainedBytes()+"B creatures="+view.adventureMap.decor.bytes()+"B (not device FPS).";
+        timingBitmap.recycle();
+        view.adventureMap.scrollBy(5000);render(view,null,360,640);click(view,view.adventureMap.focusButton);render(view,null,360,640);
+        require(view.adventureMap.nodes[view.adventure.current()-1].centerY()>=view.adventureMap.top && view.adventureMap.nodes[view.adventure.current()-1].centerY()<=view.adventureMap.bottom,"Shortcut centers current level");
         while(view.scrollPage(true))render(view,null,360,640);
         render(view,"adventure-device-end",360,640);require(view.adventureMap.nodes[39].top<view.adventureMap.bottom,"Map reaches level forty");
         view.clearSavedGame();view.adventureLevel=0;

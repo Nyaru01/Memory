@@ -15,7 +15,19 @@ public final class UpdateChecks {
         Bundle result = new Bundle();
         try {
             String mode = arguments == null ? "network" : arguments.getString("mode", "network");
-            if ("v2before".equals(mode) || "v2after".equals(mode)) {
+            if("mapseed".equals(mode)) {
+                if(UpdateManager.version(getTargetContext().getPackageManager().getPackageInfo("fr.memomimi.app",0))!=44)throw new AssertionError("Expected 9.3 base");
+                getTargetContext().getSharedPreferences("m",0).edit().putInt("adventure_completed",17).putInt("album_17",63).putInt("best_12",19).putBoolean("sound",false).putBoolean("calm",true).commit();
+                GameView view=new GameView(getTargetContext());
+                try{if(!view.startAdventure(18))throw new AssertionError("Seed level unavailable");view.saveForPause();getTargetContext().getSharedPreferences("m",0).edit().putBoolean("map_seed_ready",true).commit();if(getTargetContext().getSharedPreferences("m",0).getInt("saved_adventure_level",0)!=18)throw new AssertionError("Seed not saved");}finally{view.releaseAudio();}
+                result.putString("stream","PASS: 9.3 progression at level18 and resumable game seeded\n");
+            } else if("mapverify".equals(mode)) {
+                if(UpdateManager.version(getTargetContext().getPackageManager().getPackageInfo("fr.memomimi.app",0))!=45)throw new AssertionError("Expected 9.4");
+                android.content.SharedPreferences prefs=getTargetContext().getSharedPreferences("m",0);
+                GameView view=new GameView(getTargetContext());
+                try{view.loadGame();if(view.adventure.completed()!=17||view.adventureLevel!=18||view.theme!=AdventureStore.world(18)||view.pairs!=AdventureStore.pairs(18)||view.screen!=1||prefs.getInt("album_17",0)!=63||prefs.getInt("best_12",0)!=19||prefs.getBoolean("sound",true)||!prefs.getBoolean("calm",false))throw new AssertionError("Upgrade changed progress or resume: completed="+view.adventure.completed()+" savedLevel="+prefs.getInt("saved_adventure_level",-1)+" resumed="+view.adventureLevel+" world="+view.theme+" pairs="+view.pairs+" screen="+view.screen);}finally{view.releaseAudio();}
+                result.putString("stream","PASS: signed upgrade9.3 to9.4 keeps17 completed levels, level18 saved game, albums, record, sound and calm\n");
+            } else if ("v2before".equals(mode) || "v2after".equals(mode)) {
                 android.content.Intent intent=new android.content.Intent(getTargetContext(),MainActivity.class).addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK);
                 MainActivity activity=(MainActivity)host.startActivitySync(intent);
                 host.runOnMainSync(() -> {
