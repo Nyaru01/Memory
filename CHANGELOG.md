@@ -1,5 +1,16 @@
 # Changements
 
+## 9.0 — V2 — 10 octobre 2026
+
+- Accueil : carte du monde et progression réelle, difficultés 6/8/10/12 clairement sélectionnées, action Jouer et commandes secondaires lisibles.
+- Mondes : grille de 3 ou 2 colonnes selon largeur et police, défilement accessible et sélection conservée.
+- Plateau : en-tête compact, statistiques distinctes, grille adaptée sans défilement, cartes lavande et retournements doux.
+- Victoire : titre explicite, nouvelles images réelles et confettis de 1,8 s ; Lumi, rejouer, choix de monde, album et histoires conservés.
+- Album : première consultation des nouvelles images, dimensions adaptées et correction du choix du monde. Cache des planches limité à deux.
+- Accessibilité : police système jusqu’à 135 %, états sélectionnés annoncés, défilement natif et cibles contrôlées.
+- Audio : focus Android, interruption correcte et maintien parental annulé à la pause ou au relâchement.
+- Aucun effacement de progression, aucune nouvelle dépendance et mêmes versions Android.
+
 ## 8.11 — 10 octobre 2026
 
 - Vérification des mises à jour au retour au premier plan et toutes les minutes pendant que le jeu reste ouvert, sans devoir fermer et relancer l'application.
