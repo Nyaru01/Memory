@@ -1,5 +1,74 @@
-# MémoMondes
+# MémoMondes 8.8
 
-APK et correctifs de mise à jour dans Releases.
-Installer une première fois l'APK 8.6 ou suivant pour activer les mises à jour.
-Le jeu télécharge ensuite uniquement un correctif compatible ; Android confirme l'installation.
+Jeu de mémoire Android pour les enfants de 5 à 7 ans. Le jeu fonctionne hors ligne ; une connexion sert à vérifier et télécharger les mises à jour GitHub.
+
+Le dossier source original ayant été perdu, cette version a été reconstruite à partir de l'APK 7.2, puis remise en état de compilation. Les images, musiques et narrations antérieures ont été récupérées de cet APK. Le code Java reconstruit par décompilation peut contenir des noms de variables moins lisibles que le code original.
+
+## Télécharger et suivre le projet
+
+- [Dépôt GitHub](https://github.com/Nyaru01/Memory)
+- [Dernière version et notes de publication](https://github.com/Nyaru01/Memory/releases/latest)
+- [Télécharger l’APK actuel](https://github.com/Nyaru01/Memory/releases/latest/download/MemoMondes.apk)
+- [Toutes les versions publiées](https://github.com/Nyaru01/Memory/releases)
+- [Signaler un problème](https://github.com/Nyaru01/Memory/issues)
+- [Changements détaillés](CHANGELOG.md)
+- [Fonctionnement et publication des mises à jour](docs/MISES_A_JOUR.md)
+
+Installer une fois la version 8.6 ou suivante pour activer les mises à jour depuis GitHub. Au lancement, un correctif compatible est téléchargé en arrière-plan ; un panneau propose « Installer » ou « Plus tard », directement dans le jeu. La confirmation finale appartient à Android. Le jeu et la progression restent utilisables hors ligne.
+
+## Compiler
+
+Pré-requis : JDK 21, Android SDK 35 et Build Tools 35.0.0. Les outils de cette session sont dans `D:\AndroidDev` : JDK sous `java/`, SDK sous `sdk/`. Sous Windows :
+
+```powershell
+.\tools\build.ps1
+```
+
+L'APK final se trouve toujours dans `D:\VibeCoding\Appli enfant\APK\MemoMondes.apk`. Après tests Android locaux, compilation et lint réussis, le script remplace ce fichier et retire les autres APK de ce dossier. Si une vérification échoue, le dernier APK final est conservé. Les fichiers dans `app/build/` sont des intermédiaires de compilation et de test.
+
+Le script place les caches Gradle, fichiers temporaires, préférences Android et clé debug sous `D:\AndroidDev`. Il ne modifie pas les variables système. Ne pas utiliser directement le wrapper si l'on veut garantir ces emplacements.
+
+La clé de démonstration est maintenant fixée dans `D:\AndroidDev\signing\MemoMondes.keystore`. Elle correspond à celle de la version 8.3, et diffère de celle de l'ancienne version 8.2. La clé d'origine étant introuvable, une installation neuve a été choisie : désinstaller l'ancienne application avant d'installer la nouvelle, avec perte possible de la progression locale. Conserver la clé fixe pour que les prochaines versions puissent mettre à jour cette nouvelle installation. Changer de clé empêcherait les prochaines mises à jour : conserver cette clé fixe, ne jamais la publier et en garder une sauvegarde privée hors du dépôt.
+
+## Tester ici sur Windows
+
+Les fichiers Android Emulator, le SDK et l'image Android 35 sont dans `D:\AndroidDev`. Le composant Windows `HypervisorPlatform` a été activé avec autorisation ; il est opérationnel après le redémarrage effectué.
+
+Après redémarrage, double-cliquer `Tester-MemoMondes.cmd` à la racine du projet. Le lanceur ouvre l'émulateur `MemoMondes35`, puis installe `APK/MemoMondes.apk` et ouvre le jeu. Les logs sont dans `D:\AndroidDev\emulator-start*.log` et `D:\AndroidDev\emulator-app-install*.log`. Le rendu utilise le GPU hôte et désactive Vulkan pour éviter le plantage observé avec le backend logiciel. Aucun IDE Android Studio n'est nécessaire.
+
+Pour une exécution sans fenêtre : `.\tools\start-emulator.ps1 -Headless`. Le lanceur refuse de démarrer si l'accélération n'est pas disponible.
+
+## Organisation et documentation
+
+- `app/src/main/` : sources Java et ressources de l'application.
+- `tools/` : compilation et scripts facultatifs de génération des médias.
+- `docs/PLAN.md` : plan exécuté et état des vérifications.
+- `docs/AMELIORATIONS.md` : plan de la prochaine itération, par priorité.
+- `docs/ARCHITECTURE.md` : écrans, stockage et fonctionnement des effets.
+- `docs/VALIDATION.md` : vérifications et parcours à tester.
+- `CHANGELOG.md` : changements par version.
+- `APK/` : un seul APK final, `MemoMondes.apk` ; dossier ignoré par Git.
+- `releases/` : rapports de validation et métadonnées archivées, sans ancien APK.
+
+Les dossiers `.gradle/`, `build/` et `app/build/` contiennent des fichiers générés et sont ignorés par Git. Les signatures issues de la décompilation sont conservées dans `releases/archive/`. Les anciens APK distribuables sont supprimés pour ne conserver que la version finale actuelle.
+
+## Contenu
+
+- Paires réussies : impulsion douce, halo, particules et coches permanentes ; mode calme respecté.
+- Dernière paire visible avant l'écran de victoire ; étoiles et confettis améliorés.
+- Retour de pression des boutons et erreur de paire avec une teinte douce.
+- Préférence Android de réduction des animations respectée ; commandes et cartes accessibles via TalkBack.
+- Horloge monotone, géométrie des cartes réutilisée et file de sons bornée.
+
+- 18 mondes visibles sur un seul écran, dont Fées, Maison, Légumes et Détective ; 12 images à découvrir par monde.
+- Les illustrations conservent leurs proportions sur les tuiles, les cartes et dans l'album.
+- Les vignettes de choix du monde sont détourées, sans rectangle crème autour des personnages ; l'ours blanc et le pompier utilisent des détourages transparents dédiés.
+- Un album réorganisé avec vue des mondes, images et badges.
+- 18 histoires narrées, dont les 4 nouvelles produites avec ElevenLabs ; lecture vocale Android de secours.
+- 6 musiques, dont 2 compositions originales générées par `tools/generate_music.py`.
+
+Les éléments du compte ElevenLabs ne sont pas inclus dans le projet. Le script `tools/generate_narrations.py` lit la clé depuis la variable d'environnement `ELEVENLABS_API_KEY` si une nouvelle génération est souhaitée.
+
+## Mises à jour du jeu
+
+Depuis la version 8.6, les correctifs GitHub se téléchargent au lancement et sont proposés directement dans le jeu, hors de l'espace parents. Android confirme l'installation. Installer une première fois cette version pour activer le mécanisme. Voir [MISES_A_JOUR.md](docs/MISES_A_JOUR.md) pour publier les versions suivantes et connaître les limites.
