@@ -15,6 +15,10 @@ final class WelcomeChecks {
             android.content.Intent intent=new android.content.Intent(host.getTargetContext(),MainActivity.class).addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK);
             activity=(MainActivity)host.startActivitySync(intent);MainActivity live=activity;GameView v=live.game;
             host.runOnMainSync(()->{live.updates.close();v.sound=false;v.pauseMusic();v.activityActive=true;v.calm=false;v.systemReducedMotion=false;});
+            host.runOnMainSync(()->{v.screen=-1;v.splashStart=GameView.now();v.invalidate();});
+            long deadline=GameView.now()+1400;
+            while(!v.welcomeScreen.hasArtwork() && GameView.now()<deadline)Thread.sleep(20);
+            require(v.welcomeScreen.hasArtwork(),"Dedicated illustration loaded off UI");require(v.welcomeScreen.bytes()<=4*1024*1024,"Welcome bitmap memory bounded");
             for(int age:new int[]{180,650,1030,1400}){
                 host.runOnMainSync(()->{v.screen=-1;v.splashStart=GameView.now()-age;v.invalidate();});
                 Thread.sleep(75);

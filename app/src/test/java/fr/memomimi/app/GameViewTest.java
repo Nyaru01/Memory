@@ -48,9 +48,11 @@ public class GameViewTest {
         assertFalse(view.celebration.active);
         assertTrue(view.splashMascotArea.bottom < view.splashBadge.top);
         assertEquals(0, view.victoryMascot.animation.frame);
+        assertTrue(view.welcomeScreen.hasArtwork());assertTrue(view.welcomeScreen.bytes()<=4*1024*1024);
         view.splashStart = GameView.now()-1800;
         render(null, 320, 616);
         assertEquals(0, view.screen);
+        assertEquals(0,view.welcomeScreen.bytes());
     }
 
     @Test public void rapidTapWaitsForFullTurnAndReducedMotionDoesNot() {
@@ -271,6 +273,7 @@ public class GameViewTest {
         Bitmap bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
         view.layout(0, 0, width, height);
         view.onDraw(new Canvas(bitmap));
+        if(view.screen==-1){view.adventureMap.scenery.awaitReady();org.robolectric.shadows.ShadowSystemClock.advanceBy(java.time.Duration.ofMillis(280));view.onDraw(new Canvas(bitmap));}
         if (name != null) {
             File directory = new File(System.getProperty("memomondes.captureDir"));
             directory.mkdirs();

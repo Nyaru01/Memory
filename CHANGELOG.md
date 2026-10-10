@@ -1,5 +1,12 @@
 # Changements
 
+## 9.9 — 10 octobre2026
+
+- Paysage de carte derrière l’en-tête et jusqu’au haut de l’écran, avec un voile translucide dégradé pour conserver la lisibilité.
+- Illustration d’accueil dédiée : clairière, fleurs, pont et ciel lumineux ; Lumi plus petite et intégrée au sol.
+- Décodage hors UI de l’illustration, cacheRGB565 limité à4MiB, libéré à la fin du lancement et à la pause.
+- Même respiration douce et bref clignement, démarrage1750ms et réduction d’animations ; progression inchangée.
+
 ## 9.8 — 10 octobre 2026
 
 - Carte illustrée jusqu’au bas de l’écran, sous Continuer et sa marge de sécurité ; fin du parcours cadrée sans bande vide.

@@ -69,9 +69,10 @@ final class AdventureMap {
             scroll=Math.max(0,Math.min(maxScroll,scroll+motion.velocity*dt));motion.velocity*=(float)Math.exp(-5*dt);if(scroll==old)motion.velocity=0;
         }
         motion.lastFrame=now;scroll=Math.max(0,Math.min(scroll,maxScroll));prepare(v);
-        c.save();c.clipRect(0,top,w,v.H);
+        c.save();c.clipRect(0,0,w,v.H);
         int first=Math.max(0,(int)(scroll/(SECTION*d))),last=Math.min(19,(int)((scroll+v.H-top)/(SECTION*d)));
         scenery.request(first,last,(int)w,(int)(SECTION*d),repaint);
+        scenery.extendTop(c,first,top+first*SECTION*d-scroll,w,SECTION*d);
         for(int section=first;section<=last;section++){
             float y=top+section*SECTION*d-scroll;scenery.draw(c,section,y,w,SECTION*d);
         }
@@ -119,8 +120,8 @@ final class AdventureMap {
             if(done)drawStar(c,n.right-3*d,n.top+2*d,8*d,0xffffd16a);
         }
         drawLumi(c,v,now,reduced);c.restore();
-        if(headerFade==null || fadeTop!=top || fadeDensity!=d){fadeTop=top;fadeDensity=d;headerFade=new LinearGradient(0,top,0,top+44*d,0xffe3f0e7,0x00e3f0e7,Shader.TileMode.CLAMP);}
-        paint.setColor(Color.WHITE);paint.setShader(headerFade);c.drawRect(0,top,w,top+44*d,paint);paint.setShader(null);
+        if(headerFade==null || fadeTop!=top || fadeDensity!=d){fadeTop=top;fadeDensity=d;headerFade=new LinearGradient(0,0,0,top+44*d,new int[]{0xd6e3f0e7,0xb0e3f0e7,0x00e3f0e7},new float[]{0,.55f,1},Shader.TileMode.CLAMP);}
+        paint.setColor(Color.WHITE);paint.setShader(headerFade);c.drawRect(0,0,w,top+44*d,paint);paint.setShader(null);
         back.set(12*d,v.systemTop()+5*d,60*d,v.systemTop()+53*d);focusButton.set(w-60*d,v.systemTop()+5*d,w-12*d,v.systemTop()+53*d);
         surface(c,back,16*d,UiStyle.SURFACE,d);v.label(c,"‹",back.centerX(),back.centerY(),30,UiStyle.TEXT,Paint.Align.CENTER);
         surface(c,focusButton,16*d,UiStyle.SURFACE,d);v.label(c,"◎",focusButton.centerX(),focusButton.centerY(),29,UiStyle.ACCENT,Paint.Align.CENTER);

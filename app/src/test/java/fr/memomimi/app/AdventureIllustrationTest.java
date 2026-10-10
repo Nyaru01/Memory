@@ -13,7 +13,7 @@ public class AdventureIllustrationTest extends AdventureTest {
             Bitmap image=Bitmap.createBitmap(360,640,Bitmap.Config.ARGB_8888);view.onDraw(new Canvas(image));
             assertNotEquals(0xffe3f0e7,image.getPixel(2,638));
             int edge=image.getPixel(2,(int)view.adventureMap.top+1);
-            assertTrue(Math.abs(Color.red(edge)-227)<12);assertTrue(Math.abs(Color.green(edge)-240)<12);
+            assertNotEquals(0xffe3f0e7,edge);assertNotEquals(0xffe3f0e7,image.getPixel(180,1));
             if(level==40)assertTrue(view.adventureMap.nodes[39].centerY()<view.adventureMap.continueButton.top);
             image.recycle();
         }

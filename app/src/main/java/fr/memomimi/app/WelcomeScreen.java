@@ -1,26 +1,44 @@
 package fr.memomimi.app;
 
 import android.graphics.*;
+import android.content.Context;
+import java.io.*;
 
 /** Quiet brand composition: cached light, a grounded character, understated loading feedback. */
 final class WelcomeScreen {
     private final Paint paint=new Paint(Paint.ANTI_ALIAS_FLAG);
     private LinearGradient background;
-    private RadialGradient light;
+    private LinearGradient skyWash,groundWash;
+    private volatile Bitmap artwork;
+    private volatile long artworkAt;
+    private boolean attempted;
+    private int generation;
+    private final Rect source=new Rect();
+    private final RectF target=new RectF();
     private float width=-1,height=-1,origin=-1;
     void draw(Canvas canvas,GameView view,long elapsed,float progress){
         float d=view.d,w=view.W,top=view.systemTop(),bottom=view.H-view.systemBottom(),h=bottom-top;
+        request(view.getContext(),view.adventureMap.scenery.executor(),view::postInvalidate,w);
         if(width!=w || height!=h || origin!=top){
             width=w;height=h;origin=top;
             background=new LinearGradient(0,0,w*.35f,view.H,0xfffffbf5,0xffdef0e8,Shader.TileMode.CLAMP);
-            light=new RadialGradient(w/2,top+h*.49f,Math.max(1,Math.min(w*.66f,h*.43f)),0xcaffffff,0x00ffffff,Shader.TileMode.CLAMP);
+            skyWash=new LinearGradient(0,0,0,view.H*.38f,0xbafffff2,0x00fffff2,Shader.TileMode.CLAMP);
+            groundWash=new LinearGradient(0,view.H*.72f,0,view.H,0x00ecf8ee,0xe4ecf8ee,Shader.TileMode.CLAMP);
         }
         paint.setColor(Color.WHITE);paint.setShader(background);canvas.drawRect(0,0,w,view.H,paint);
-        paint.setShader(light);canvas.drawRect(0,top,w,bottom,paint);paint.setShader(null);
+        paint.setShader(null);Bitmap scene=artwork;
+        if(scene!=null){
+            AdventureScenery.crop(scene,w,view.H,source);target.set(0,0,w,view.H);
+            float fade=view.animationsReduced()?1:Math.min(1,Math.max(0,(GameView.now()-artworkAt)/260f));
+            paint.setAlpha(Math.round(255*fade));canvas.drawBitmap(scene,source,target,paint);paint.setAlpha(255);
+        }
+        paint.setShader(skyWash);canvas.drawRect(0,0,w,view.H*.38f,paint);
+        paint.setShader(groundWash);canvas.drawRect(0,view.H*.72f,w,view.H,paint);paint.setShader(null);
         view.splashPanel.set(18*d,top,w-18*d,bottom);
         view.fitLabel(canvas,"MémoMondes",w/2,top+h*.17f,35,25,w-36*d,0xff493f50);
         view.fitLabel(canvas,"De petites paires, de grandes aventures",w/2,top+h*.235f,13,10,w-36*d,0xff736c7b);
-        view.splashMascotArea.set(24*d,top+h*.33f,w-24*d,top+h*.69f);
+        float hero=Math.min(152*d,h*.255f),floor=top+h*.65f;
+        view.splashMascotArea.set(w/2-hero*.68f,floor-hero,w/2+hero*.68f,floor);
         boolean reduced=view.animationsReduced();
         float t=Math.max(0,Math.min(1,elapsed/240f));t=t*t*(3-2*t);
         int layer=!reduced && t<1 ? canvas.saveLayerAlpha(view.splashMascotArea,Math.round(t*255)) : -1;
@@ -35,4 +53,23 @@ final class WelcomeScreen {
         paint.setColor(0xff62bda7);canvas.drawRoundRect(view.splashFill,2*d,2*d,paint);
         view.fitLabel(canvas,progress<.94f?"Les aventures se préparent…":"Bienvenue !",w/2,top+h*.92f,12,10,w-36*d,0xff57736b);
     }
+    private synchronized void request(Context context,java.util.concurrent.Executor worker,Runnable changed,float pixels){
+        if(attempted)return;attempted=true;int token=generation;
+        worker.execute(()->{
+            Bitmap decoded=null;
+            try(InputStream input=context.getApplicationContext().getAssets().open("welcome/clearing-v99.png")){
+                BitmapFactory.Options options=new BitmapFactory.Options();options.inScaled=false;options.inPreferredConfig=Bitmap.Config.RGB_565;
+                options.inSampleSize=pixels<=550?2:1;decoded=BitmapFactory.decodeStream(input,null,options);
+                if(decoded!=null && decoded.getConfig()!=Bitmap.Config.RGB_565){Bitmap opaque=decoded.copy(Bitmap.Config.RGB_565,false);decoded.recycle();decoded=opaque;}
+            }catch(IOException|OutOfMemoryError ignored){if(decoded!=null){decoded.recycle();decoded=null;}}
+            synchronized(this){
+                if(token!=generation){if(decoded!=null)decoded.recycle();return;}
+                artworkAt=GameView.now();artwork=decoded;
+            }
+            changed.run();
+        });
+    }
+    boolean hasArtwork(){return artwork!=null;}
+    int bytes(){Bitmap b=artwork;return b==null?0:b.getAllocationByteCount();}
+    synchronized void release(){generation++;artwork=null;attempted=false;}
 }

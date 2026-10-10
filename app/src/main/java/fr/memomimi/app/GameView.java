@@ -466,7 +466,7 @@ class GameView extends View {
         this.H = getHeight();
         if (screen != 5) albumFreshWorld = -1;
         if (screen != lastRenderedScreen) { navigationAt = now(); lastRenderedScreen = screen; }
-        int desiredLayer=screen==7 ? View.LAYER_TYPE_NONE : View.LAYER_TYPE_SOFTWARE;
+        int desiredLayer=screen==7 || screen==-1 ? View.LAYER_TYPE_NONE : View.LAYER_TYPE_SOFTWARE;
         if(getLayerType()!=desiredLayer)setLayerType(desiredLayer,null);
         if(screen==7)canvas.drawColor(0xffe3f0e7);
         else if(screen!=-1)drawWorldBackground(canvas, this.screen == 5 ? this.albumPage : this.theme);
@@ -534,6 +534,7 @@ class GameView extends View {
             return;
         }
         this.screen = 0;
+        welcomeScreen.release();
         this.accessible.changed();
         announceForAccessibility("Bienvenue dans MémoMondes");
         updateMusic();
@@ -3019,6 +3020,7 @@ class GameView extends View {
 
     void pauseMusic() {
         this.activityActive = false;
+        welcomeScreen.release();
         adventureMap.release();
         this.parentHolding = false;
         removeCallbacks(parentHoldAction);
@@ -3107,6 +3109,7 @@ class GameView extends View {
     @Override // android.view.View
     protected void onDetachedFromWindow() {
         this.activityActive = false;
+        welcomeScreen.release();
         adventureMap.release();
         this.parentHolding = false;
         removeCallbacks(parentHoldAction);

@@ -17,6 +17,9 @@ final class AdventureScenery {
     private final Paint paint=new Paint(Paint.ANTI_ALIAS_FLAG|Paint.FILTER_BITMAP_FLAG);
     private final Rect source=new Rect();
     private final RectF target=new RectF();
+    private Bitmap topBitmap;
+    private BitmapShader topShader;
+    private final Matrix topMatrix=new Matrix();
     private Context context;
     private ExecutorService worker;
     private int generation,first,last,width=360,sectionHeight=400;
@@ -110,6 +113,14 @@ final class AdventureScenery {
         crop(b,w,h,source);
         paint.setColor(Color.WHITE);c.drawBitmap(b,source,target,paint);
     }
+    /** Continue the same painting above its cropped viewport, using its unused upper pixels. */
+    void extendTop(Canvas c,int section,float y,float w,float h){
+        if(y<=0)return;Bitmap b=tile(section);if(b==null)return;
+        if(b!=topBitmap){topBitmap=b;topShader=new BitmapShader(b,Shader.TileMode.MIRROR,Shader.TileMode.MIRROR);}
+        crop(b,w,h,source);target.set(0,y,w,y+h);
+        topMatrix.setRectToRect(new RectF(source),target,Matrix.ScaleToFit.FILL);topShader.setLocalMatrix(topMatrix);
+        paint.setColor(Color.WHITE);paint.setShader(topShader);c.drawRect(0,0,w,y,paint);paint.setShader(null);
+    }
     static void crop(Bitmap b,float w,float h,Rect out){float ratio=w/h;if(b.getWidth()/(float)b.getHeight()>ratio){int crop=Math.round(b.getHeight()*ratio);out.set((b.getWidth()-crop)/2,0,(b.getWidth()+crop)/2,b.getHeight());}else{int crop=Math.round(b.getWidth()/ratio);out.set(0,(b.getHeight()-crop)/2,b.getWidth(),(b.getHeight()+crop)/2);}}
     void drawSeam(Canvas c,int boundary,float y,float w,float scale){Bitmap b=seam(boundary);if(b==null)return;float h=b.getHeight()*w/b.getWidth();target.set(0,y-h/2,w,y+h/2);paint.setColor(Color.WHITE);c.drawBitmap(b,null,target,paint);}
     synchronized int seamBytes(){int bytes=0;for(Bitmap b:seams.values())bytes+=b.getAllocationByteCount();return bytes;}
@@ -118,5 +129,5 @@ final class AdventureScenery {
     synchronized int decodeCount(){return decodes;}
     /** Test synchronization only; the production renderer never waits for decoding. */
     void awaitReady(){ExecutorService current; synchronized(this){current=worker;}if(current!=null)try{current.submit(()->{}).get(15,TimeUnit.SECONDS);}catch(Exception e){throw new IllegalStateException("Map image loading failed",e);}}
-    synchronized void release(){generation++;context=null;repaint=null;tiles.clear();seams.clear();Arrays.fill(failed,false);Arrays.fill(failedSeams,false);if(worker!=null)worker.shutdownNow();worker=null;running=false;}
+    synchronized void release(){generation++;context=null;repaint=null;tiles.clear();seams.clear();topBitmap=null;topShader=null;Arrays.fill(failed,false);Arrays.fill(failedSeams,false);if(worker!=null)worker.shutdownNow();worker=null;running=false;}
 }
