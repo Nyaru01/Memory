@@ -148,3 +148,15 @@ Direction artistique, liste des frames, architecture et prompt final : `MASCOTTE
 - APK final 8.10/code39 installé sur l'émulateur : 86 contrôles réussis ; renderer isolé p95 0,64 ms. Signature fixe vérifiée par le script de publication.
 - Release GitHub v8.10 publiée. Manifeste public latest/download vérifié (code39, empreinte correspondant au final). Un bref délai de propagation a d'abord renvoyé le manifeste précédent ; nouvelle lecture réussie.
 - Test Android contre le flux public latest avec base 8.9 : téléchargement de 81 453 octets, reconstruction exacte de 73 311 148 octets et signature/package/version vérifiés. Correctifs 8.8, 8.7 et 8.6 reconstruits avant publication. Confirmation d'installation système non répétée dans ce test réseau.
+
+## Accueil et mises à jour — 8.11 — 10 octobre 2026
+
+- 58 tests locaux réussis : états de mascotte et accueil, modes de jeu API 28/35, cartes et mises à jour. UpdatePoller testé sur trois minutes au premier plan, pause, reprise et retours rapides ; aucun callback supplémentaire en arrière-plan.
+- Instrumentation Android : 88 contrôles réussis, incluant la non-interruption d'une partie par une proposition automatique de mise à jour et deux captures de l'accueil réellement affiché.
+- Captures loading-lumi-salut-8.11.png et loading-lumi-rebond-8.11.png inspectées : poses distinctes, salut puis bond, texte et barre de progression dégagés. La continuité de l'animation n'a pas été observée manuellement en vidéo.
+- Renderer de mascotte isolé, 180 images sur émulateur : médiane 0,45 ms, p95 0,87 ms, maximum 1,44 ms. Aucun essai sur téléphone Android modeste ni mesure de FPS de l'écran entier.
+- Lint : 0 erreur, 25 avertissements existants. Aucun SDK, framework UI ou bitmap supplémentaire.
+- APK final 8.11/code40 signé avec la clé fixe, publié via tools/publish-apk.ps1 puis GitHub v8.11. Manifeste public vérifié : version et empreinte SHA-256 identiques au final.
+- Installation de l'APK final sur emulator-5554 puis 88 contrôles réussis. Renderer isolé release : médiane 0,30 ms, p95 0,88 ms, maximum 2,87 ms. Rapport : releases/validation/mascot-update-release-8.11.txt.
+- Test Android contre latest/download public, avec base officielle 8.10 : correctif de 82 749 octets téléchargé, APK de 73 312 477 octets reconstruit à l'identique ; package/version/signature vérifiés. Rapport : releases/validation/github-update-8.10-to-8.11.txt. La confirmation système d'installation n'a pas été répétée dans ce test réseau.
+- Correctifs depuis 8.6, 8.7, 8.8, 8.9 et 8.10 reconstruits avant publication. Base de test retirée du stockage externe de l'émulateur. Un seul APK final sous APK/ ; aucun APK à la racine ni sous releases/.

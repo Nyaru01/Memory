@@ -1,4 +1,4 @@
-# MémoMondes 8.10
+# MémoMondes 8.11
 
 Jeu de mémoire Android pour les enfants de 5 à 7 ans. Le jeu fonctionne hors ligne ; une connexion sert à vérifier et télécharger les mises à jour GitHub.
 
@@ -14,7 +14,7 @@ Le dossier source original ayant été perdu, cette version a été reconstruite
 - [Changements détaillés](CHANGELOG.md)
 - [Fonctionnement et publication des mises à jour](docs/MISES_A_JOUR.md)
 
-Installer une fois la version 8.6 ou suivante pour activer les mises à jour depuis GitHub. Au lancement, un correctif compatible est téléchargé en arrière-plan ; un panneau propose « Installer » ou « Plus tard », directement dans le jeu. La confirmation finale appartient à Android. Le jeu et la progression restent utilisables hors ligne.
+Installer une fois la version 8.6 ou suivante pour activer les mises à jour depuis GitHub. Depuis la 8.11, le jeu vérifie au retour dans l'application et toutes les minutes tant qu'elle reste ouverte. Un correctif compatible est téléchargé en arrière-plan ; un panneau propose « Installer » ou « Plus tard », directement dans le jeu. Une partie en cours n'est pas interrompue par ce panneau : le bouton d'installation reste disponible dans le bandeau. La confirmation finale appartient à Android. Le jeu et la progression restent utilisables hors ligne.
 
 ## Compiler
 

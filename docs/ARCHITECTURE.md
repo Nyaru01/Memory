@@ -56,3 +56,9 @@ VictoryCelebration sépare le cycle de victoire du rendu VictoryMascot. GameView
 ## Mascotte 8.9
 
 MascotAnimation sélectionne les cinq états, les cellules d'atlas et les transitions. VictoryMascot conserve un seul bitmap de 6 Mio et rend les poses et effets sur Canvas. VictoryCelebration reste indépendant du rendu. Voir MASCOTTE-SPRITES.md.
+
+## Accueil et vérification continue — 8.11
+
+UpdatePoller programme une vérification au retour au premier plan et toutes les 60 secondes. Un retour rapide attend le délai minimal de 15 secondes depuis la dernière demande. onPause retire le callback ; onDestroy ferme également le worker. UpdateManager conserve son verrou de téléchargement unique et demande de ne pas réutiliser le cache HTTP. Une mise à jour prête reste dans le bandeau pendant une partie, une histoire ou le chargement ; la proposition automatique attend un menu.
+
+MascotAnimation.sampleLoading utilise six poses pendant les 1750 ms de démarrage : redressement, sourire, salut et petit bond, avec de légers fondus, rotation et squash/stretch. Le mode calme ou la réduction système des animations utilise une pose fixe. Le même atlas et le même renderer servent au chargement et à la victoire.

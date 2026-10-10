@@ -1,5 +1,11 @@
 # Changements
 
+## 8.11 — 10 octobre 2026
+
+- Vérification des mises à jour au retour au premier plan et toutes les minutes pendant que le jeu reste ouvert, sans devoir fermer et relancer l'application.
+- Proposition automatique différée dans les menus pour ne pas interrompre une partie, une histoire ou le chargement ; bouton d'installation toujours disponible.
+- Accueil de Lumi plus expressif : six poses, salut et petit rebond pendant le chargement existant ; mode calme et réduction des animations conservés.
+
 ## 8.10 — 10 octobre 2026
 
 - Animations de Lumi ralenties de 50 % : apparition 1,08 s, joie 2,7 s, réaction 1,44 s ; attente plus tranquille.

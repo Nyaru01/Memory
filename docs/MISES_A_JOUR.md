@@ -1,12 +1,12 @@
 # Mises à jour GitHub
 
-Le dépôt public utilisé est https://github.com/Nyaru01/Memory. Le jeu cherche `releases/latest/download/update.json` une fois à chaque création de l'activité, sur un thread dédié. Il ne contient aucun jeton GitHub et n'envoie aucune progression au serveur. Une connexion sert seulement à consulter le manifeste et télécharger le correctif.
+Le dépôt public utilisé est https://github.com/Nyaru01/Memory. Depuis la 8.11, le jeu cherche `releases/latest/download/update.json` au retour au premier plan et toutes les 60 secondes tant que l'activité reste visible, sur un thread dédié. Les retours rapides sont espacés d'au moins 15 secondes ; un seul téléchargement peut fonctionner à la fois. Les requêtes demandent de ne pas réutiliser le cache HTTP. Le timer est retiré en arrière-plan et à la fermeture. Il ne contient aucun jeton GitHub et n'envoie aucune progression au serveur. Une connexion sert seulement à consulter le manifeste et télécharger le correctif.
 
 ## Utilisation
 
 Installer une fois l'APK 8.6 ou suivant pour activer le mécanisme ; les anciennes versions n'ont aucun code permettant une mise à jour automatique. La signature fixe reste celle des versions 8.3 et suivantes. Une mise à jour avec cette signature garde les préférences et l'album. La version 8.2 nécessite toujours une installation neuve à cause de sa signature différente.
 
-Une mise à jour disponible se télécharge automatiquement au lancement. Une fois prête, la boîte « Installer / Plus tard » apparaît directement dans le jeu. Si elle est différée, le bouton « Installer la mise à jour » reste visible, hors de l'espace parents, dans une zone réservée sous le jeu. Android demande l'autorisation d'installer depuis MémoMondes et la confirmation finale d'installation. Une installation silencieuse n'est pas utilisée.
+Une mise à jour disponible se télécharge automatiquement. Une fois prête, la boîte « Installer / Plus tard » apparaît dans les menus. Une partie, une histoire ou le chargement ne sont pas interrompus par cette boîte. Le bouton « Installer la mise à jour » reste visible, hors de l'espace parents, dans une zone réservée sous le jeu. Android demande l'autorisation d'installer depuis MémoMondes et la confirmation finale d'installation. Une installation silencieuse n'est pas utilisée. Pour profiter de la vérification pendant que le jeu reste ouvert, les versions antérieures doivent installer la 8.11 une première fois avec leur mécanisme actuel ou avec l'APK officiel.
 
 ## Correctifs
 

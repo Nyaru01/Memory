@@ -49,3 +49,7 @@ Un atlas de 6 poses par action avec fondus ne remplace pas une animation dessin�
 ## Ajustements 8.10
 
 La timeline est jouée à deux tiers de sa vitesse précédente (durées multipliées par 1,5) : apparition 1080 ms, victoire 2700 ms, toucher 1440 ms, cycle idle 8100 ms. Le chargement réutilise l'atlas et le dessin de sprite en mode attente, sans état de victoire ni bulle de félicitations. Le démarrage reste de 1750 ms. Aucun second bitmap n'est créé.
+
+## Accueil 8.11
+
+Séquence dédiée de six poses, indices 0, 1, 19, 22, 23, 0, environ 290 ms par pose avec fondus de 90 ms. Un petit bond accompagne la quatrième pose. Cette séquence tient dans le chargement existant de 1750 ms ; elle ne déclenche pas la célébration de victoire. Pose fixe en mode calme et en animations réduites.
