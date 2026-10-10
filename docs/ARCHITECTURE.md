@@ -1,5 +1,7 @@
 # Architecture
 
+État actuel et procédure de reprise : [PASSATION-AGENT.md](PASSATION-AGENT.md). Les sections ci-dessous décrivent aussi des versions historiques. Depuis 9.10, l'écran7 est la carte, l'écran8 la configuration libre, l'accueil0 présente les deux modes et le lancement dure5000ms avec WelcomeMascot dédié ; les descriptions de1750ms ou de configuration sur l'accueil sont historiques.
+
 L'application utilise Java et les API Android, sans bibliothèque applicative externe. `MainActivity` héberge une `GameView` dessinée avec `Canvas`, et transmet les événements de cycle de vie pour sauvegarder une partie et suspendre les médias.
 
 | Source | Rôle |

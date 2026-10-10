@@ -1,0 +1,206 @@
+# MémoMondes — Passation à un prochain agent
+
+État vérifié le **10 octobre 2026**, après livraison de **9.10 / versionCode 51**. Ce document est le point d'entrée de reprise ; les documents historiques restent utiles mais leurs descriptions d'anciens écrans ou durées ne doivent pas remplacer l'état présent. Relire les sources et AGENTS.md avant une modification.
+
+## 1. Projet et livraison actuelle
+
+- Workspace : `D:\VibeCoding\Appli enfant` ; shell PowerShell.
+- Android Java, activité `fr.memomimi.app.MainActivity`, interface personnalisée `GameView` / Canvas. Aucun framework UI externe, Rive ou Lottie embarqué.
+- SDK minimum 23, compilation/cible 35. Dépendances JUnit/Robolectric uniquement pour les tests.
+- Sources reconstruites après perte du projet original, à partir de l'APK 7.2. Certains noms courts et commentaires de décompilation sont hérités ; ne pas confondre cette histoire avec un projet Compose/Flutter.
+- APK final unique : `APK/MemoMondes.apk`, **102690679 octets**.
+- SHA256 de la 9.10 : `aa4db2d69a30957ccedfd78305d94f56e0380100501c073f3f08fe9ccba8f787`.
+- Distribution : https://github.com/Nyaru01/Memory/releases/tag/v9.10 ; le flux `releases/latest` a été vérifié sur cette version.
+- Branche locale : `codex/memomondes-v2`. Dernier commit applicatif : `f09066f` ; précédents : `df6d10a` (9.9), `aef59aa` (9.8). Le commit de cette passation viendra après ces références.
+
+**Point de récupération essentiel :** le GitHub public contient actuellement README, CHANGELOG, docs et les releases APK/correctifs. Les sources Java n'y ont pas été poussées. `git remote -v` est vide dans ce checkout au moment de la passation. La publication via les scripts/API GitHub ne constitue pas un push des sources. Conserver ce workspace et son historique Git ; cloner le dépôt public seul ne permet pas de recompiler le jeu. Ne pas annoncer les sources comme sauvegardées sur GitHub sans l'avoir réellement fait et vérifié.
+
+## 2. Contraintes utilisateur à conserver
+
+- Lire [AGENTS.md](../AGENTS.md). Tous les SDK, installations tierces, caches et temporaires de travail doivent rester sur **D:** ; outil principal : `D:\AndroidDev`.
+- Compiler avec `tools/build.ps1`. Livrer avec `tools/publish-apk.ps1` ; le build appelle ce script lorsqu'il contient `:app:assembleRelease`.
+- Un seul APK final dans `APK/`. Aucun ancien APK final dans la racine ou `releases/`. `app/build/` contient des intermédiaires, y compris les bases nécessaires aux correctifs.
+- Conserver la clé **`D:\AndroidDev\signing\MemoMondes.keystore`**. Ne jamais la régénérer automatiquement. Le Gradle existant décrit la configuration de signature ; ne pas publier la clé ou des credentials.
+- La signature de 8.2 différait ; une installation neuve avait été autorisée pour ce cas précis. Ce n'est pas une autorisation générale de désinstaller ou d'effacer les données lors des mises à jour actuelles.
+- Windows HypervisorPlatform a été activé avec autorisation. Pas de redémarrage automatique de Windows. Émulateur et données sur D:.
+- Préserver les sauvegardes, l'album, les records et les réglages. Ne pas utiliser `pm clear` ou une désinstallation comme réparation de routine.
+- Le rendu doit rester pastel, doux, arrondi, lisible pour 5–7 ans, avec zones tactiles d'au moins 48 dp. Illustrations réelles pour les paysages ; des formes Canvas seules ne remplacent pas ces peintures.
+- Respecter son, mode calme et réduction système des animations. Éviter flashs, fortes oscillations et navigation bloquée par la célébration.
+- Rapporter les tests réellement passés et leurs limites ; une capture fixe n'est pas une validation vidéo, ni une preuve de fluidité sur téléphone.
+
+## 3. Parcours et écrans actuels
+
+| ID GameView.screen | Écran | Navigation |
+| --- | --- | --- |
+| -1 | Bienvenue illustrée | 5 secondes, puis accueil ; toucher Lumi rejoue le salut sans prolonger le timer |
+| 0 | Accueil à deux modes | Mon aventure, Jeu libre, album, musique, parents protégés |
+| 1 | Partie | Retour ouvre une confirmation ; sauvegarde/reprise existantes |
+| 2 | Résultat/victoire | Aventure : carte/voyage ; libre : rejouer ou revenir à la configuration |
+| 3 | Parents | Appui long depuis accueil ; réglages, statistiques, tutoriel |
+| 4 | Sélection des mondes | Familles dépliables ; retourne à l'écran 8 après sélection ou Retour |
+| 5 | Album | Retour vers `albumReturnScreen` ; images, mondes, badges et agrandissement |
+| 6 | Histoire | Retour vers résultat ; narration existante |
+| 7 | Carte d'aventure | 40 étapes, Continuer, recentrage, Retour accueil |
+| 8 | Configuration Jeu libre | Monde illustré, 6/8/10/12 paires, difficulté, Jouer ; Retour accueil |
+
+L'accueil n'est plus un panneau de réglages. La grande carte Mon aventure affiche le chapitre actuel et les niveaux terminés sur 40. État neuf : « Ton voyage commence ! » / « Commencer l'aventure ». En cours : prochain niveau et « Continuer l'aventure ». Après 40 : état terminé, carte encore accessible pour rejouer.
+
+Le bouton aventure appelle `openAdventure()`, qui utilise `AdventureStore.current()` et le centrage existant. Le bouton libre appelle `openFreePlay()`. La sélection des mondes utilise `worldReturnScreen=8`. Les réglages ne doivent pas revenir sur l'accueil.
+
+## 4. Sources à modifier selon le besoin
+
+Toutes les classes applicatives sont dans `app/src/main/java/fr/memomimi/app/`.
+
+| Composant | Responsabilité |
+| --- | --- |
+| MainActivity | Cycle de vie, Retour Android, panneau de mise à jour |
+| GameView | Orchestration des écrans/gestes, start, startAdventure, unlockProgress, sauvegarde, médias |
+| HomeScreen | Composition des deux cartes illustrées, chargement de deux peintures, footer, animation d'entrée |
+| WelcomeScreen | Clairière de lancement, textes, barre, chargement/libération des ressources |
+| WelcomeMascot | Nouvel atlas de coucou, sélection de poses, pieds enregistrés, respiration ; durée 5000 ms |
+| VictoryCelebration | État de victoire et réaction, indépendant du rendu |
+| VictoryMascot / MascotAnimation / SpritePose | Atlas historique, victoire, toucher, attente et Lumi sur la carte ; choix d'une pose nette |
+| AdventureStore | Route stable, 40 niveaux, verrouillage séquentiel, niveau actuel |
+| AdventureMap / AdventureRoute | Layout, chemin, repères, scroll/inertie, touch, focus/caméra |
+| AdventureMotion | Victoire → départ → trajet → arrivée ; consommation unique du déblocage |
+| AdventureScenery / AdventureSeam | Décodage worker, cache borné, peinture proportionnelle, raccords, prolongement haut |
+| AdventureDecor | Créatures/effets ambiants selon les zones |
+| GameModel / BoardLayout / CardMotion | Paquet, géométrie commune aux gestes/dessin/accessibilité, retournement |
+| ProgressStore / WorldCatalog | Collection, statistiques/badges et familles/20 mondes |
+| GameAccessibility | Boutons virtuels Canvas, mêmes actions que le tactile, descriptions et scroll |
+| AudioFocus / StoryLibrary / NewWorldStories | Focus audio, histoires/narrations et nouveaux contenus |
+| UpdatePoller / UpdateManager / ApkDelta / UpdateFileProvider | Vérification, téléchargement différentiel, reconstruction, installation Android |
+
+La carte, l'accueil et le lancement utilisent le Canvas matériel de la fenêtre (`LAYER_TYPE_NONE`). Les autres écrans gardent leur configuration de rendu existante. Ne pas changer toutes les couches sans vérifier les effets et performances.
+
+## 5. Données et invariants de progression
+
+Stockage local : SharedPreferences **`m`**. Les formats existants sont conservés, avec ajouts de clés.
+
+- `adventure_completed` : niveaux terminés, borné 0–40. Prochain jouable = min(40, terminés+1).
+- `adventureLevel` : état du GameView ; 0 signifie partie libre. `start()` le remet à 0 ; `startAdventure(level)` crée le plateau puis rétablit et sauvegarde le niveau.
+- Déblocage : uniquement le niveau immédiatement suivant, partie solo terminée, monde et nombre de paires exactement ceux de ce niveau. Rejouer un ancien niveau ne saute pas d'étapes.
+- `free_theme` / `free_pairs` : choix libres persistants, initialisés une seule fois depuis les anciennes clés `theme` / `pairs`. `remember()` les écrit depuis les écrans 8/4 lorsque `adventureLevel==0`. Une aventure ne doit pas les écraser.
+- `saved_adventure_level`, `game_active`, `saved_cards`, `saved_matched`, scores/tours/monde/difficulté : sauvegarde/reprise du plateau. Vérification des valeurs avant reprise.
+- `album_<monde>` : masque des images déjà obtenues. **Les deux modes enrichissent le même album** ; les premières images jusqu'au nombre de paires sont ajoutées par union, sans retirer les anciennes.
+- `album_seen_<monde>` : suivi des images vues, ajouté sans remise à zéro. 20 mondes × 12 images = 240.
+- `best_<paires>`, statistiques/badges, `sound`, `calm`, haptics, `tutorial_done` : conserver les clés existantes.
+
+Ne pas dupliquer les règles d'album ou de déblocage dans le renderer des nouveaux menus. Lire `unlockProgress()` et les tests AdventureTest avant une modification de victoire. Les modes duel/coopération restent dans le moteur et la suite de régression, même si l'accueil actuel propose ces deux entrées solo.
+
+## 6. Images, animation et mémoire
+
+- `app/src/main/assets/adventure/landscapes/world-00.jpg` à `world-19.jpg` : 20 grandes peintures. **L'index est celui de la route/section, pas directement l'ID du monde.** Chapitre du niveau = `(level-1)/2`, puis `AdventureStore.world(level)` donne le monde du plateau.
+- Carte : 3 paysages / budget 16 MiB ; 3 raccords / 2 MiB ; deux atlases de créatures partagés, environ 3 MiB. Ne jamais charger 40 grandes peintures simultanément.
+- `AdventureScenery` décode hors UI en RGB565, proportion conservée par recadrage ; génération protège les callbacks après release. `extendTop()` réutilise le premier bitmap et ses pixels supérieurs, puis miroir à sa limite. Un voile translucide dégradé protège la lecture du header. Paysage jusqu'en bas, sous Continuer.
+- Les peintures de sections sont distinctes et raccordées ; ne pas promettre une géographie peinte continue. Les titres de section redondants ont été retirés ; ne pas les réintroduire.
+- HomeScreen : deux peintures existantes, section courante et décor marin, largeur plafonnée à 720 px ; worker partagé, références libérées en quittant le menu/à la pause. Apparition de 420 ms avec décalage de 8 dp ; Lumi en attente discrète.
+- `mascot/lumi-atlas.png` : atlas historique 6×4, 24 poses, cellules 256 px. Pour victoire, trajet et mascotte du menu.
+- `mascot/lumi-welcome-v910.png` : huit nouvelles poses de coucou, grille 4×2, alpha ; 1465788 octets sur disque, bitmap limité à 8 MiB. WelcomeMascot enregistre le sol à partir de l'alpha pour éviter un déplacement des pieds entre poses.
+- `welcome/clearing-v99.png` : clairière dédiée, 941×1672, 2465399 octets ; RGB565, demi-résolution sur petits écrans, inférieur à 4 MiB conservés.
+- Bienvenue : pose tranquille, patte levée, salut/sourire/clignement, retour au repos, respiration. Toucher rejoue le coucou ; pas d'état de victoire ni son ajouté. Réduction : pose fixe. Fallback ancien renderer si le nouvel atlas manque.
+- Ne pas mélanger les visages de deux poses transparentes : la précédente tentative de fondu donnait une double image. SpritePose choisit une pose nette ; les transformations corporelles sont temporelles.
+- **Ne pas recycler un bitmap déjà publié au renderer/GPU** : une commande peut encore le référencer. Déréférencer les ressources publiées ; recycler seulement les décodages privés abandonnés. Le crash de carte corrigé précédemment rend ce point important.
+- Assets créés via imagegen intégré et copiés dans le projet, sans dépendance d'exécution. Prompts : [accueil 9.9](WELCOME-PROMPT-9.9.md), [coucou 9.10](WELCOME-PROMPT-9.10.md), [paysages](ILLUSTRATION-PROMPTS.md).
+
+## 7. Compiler et tester
+
+Commandes depuis la racine du workspace, en PowerShell. Pas d'installation d'un autre SDK/JDK sur C:.
+
+```powershell
+# Tests unitaires + release + lint ; copie finale via publish-apk.ps1.
+& tools/build.ps1
+
+# Construire aussi les contrôles Android.
+& tools/build.ps1 -Tasks ':app:testDebugUnitTest', ':app:assembleRelease', ':app:assembleDebugAndroidTest', ':app:lintRelease'
+
+# Démarrer l'émulateur dédié si nécessaire ; peut installer/lancer le final.
+& tools/start-emulator.ps1 -Headless
+& tools/install-on-emulator.ps1
+
+$memoAdb = 'D:/AndroidDev/sdk/platform-tools/adb.exe'
+& $memoAdb -s emulator-5554 install -r APK/MemoMondes.apk
+& $memoAdb -s emulator-5554 install -r app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
+& $memoAdb -s emulator-5554 shell am instrument -w fr.memomimi.app.test/fr.memomimi.app.VisualEffectsChecks
+& $memoAdb -s emulator-5554 shell am instrument -w -e mode home fr.memomimi.app.test/fr.memomimi.app.VisualEffectsChecks
+& $memoAdb -s emulator-5554 shell am instrument -w -e mode welcome fr.memomimi.app.test/fr.memomimi.app.VisualEffectsChecks
+& $memoAdb -s emulator-5554 shell am instrument -w -e mode mappolish fr.memomimi.app.test/fr.memomimi.app.VisualEffectsChecks
+```
+
+Ces scénarios modifient des préférences/parties : utiliser **l'émulateur dédié**, jamais le téléphone personnel comme fixture. HomeChecks restaure ses préférences ; la suite générale prépare volontairement de la progression. Des modes anciens de seed/upgrade vérifient des codes précis (9.3/9.4, etc.) : ne pas les lancer au hasard sur la dernière version.
+
+Ne pas croire le seul code de sortie PowerShell/ADB : vérifier le texte **PASS**, absence de FAIL/« Process crashed », et logcat si nécessaire. Une AssertionError dans une lambda runOnMainSync peut tuer l'instrumentation malgré un retour shell 0.
+
+Les captures PNG en HD prennent du temps : faire les assertions temporelles avant l'encodage. À la fin d'un lancement, les assets sont libérés ; un scénario qui réouvre la bienvenue doit attendre leur décodage avant de lire le nouvel atlas. Ce sont des attentes de test, pas des délais à ajouter au thread UI de production.
+
+Pour vérifier une haute densité : `wm size 1080x1920`, `wm density 480`, puis **`wm size reset` et `wm density reset`** après les tests. État de référence restauré : 320×640, densité160, Android15, AVD MemoMondes35, emulator-5554.
+
+Rapports unitaires : `app/build/test-results/testDebugUnitTest/` ; lint : `app/build/reports/lint-results-release.xml`. Captures/rapports locaux : `releases/validation/`, ignorés par Git. Source des scénarios : `app/src/androidTest/java/fr/memomimi/app/`.
+
+## 8. Publier et vérifier une mise à jour
+
+1. Incrémenter **versionCode ET versionName** dans app/build.gradle ; créer les notes dans tools/. Ne jamais réécrire un APK déjà publié sous la même version.
+2. Compiler et valider le final signé avant publication. Si un contrôle échoue, ne pas distribuer cette tentative ; conserver le dernier final valide.
+3. Utiliser le pipeline existant, sans poster manuellement un manifeste partiel :
+
+```powershell
+& tools/publish-github-release.ps1 -Notes tools/release-notes-<nouvelle-version>.md
+```
+
+Le script recompilé/validé prépare `app/build/github-release-<version>/`, télécharge les bases dans `app/build/update-bases/`, génère/reconstruit les deltas, charge les assets en draft puis rend la release publique/latest. Une tentative échouée peut laisser le dossier/draft : l'examiner avant de relancer, ne pas supprimer aveuglément une release ou des sauvegardes.
+
+4. Vérifier API GitHub latest, `update.json` latest, versionCode, taille et SHA256 du final. Le tag ou un HTTP200 ne suffisent pas.
+5. Tester le flux Android avec une base officielle précédente : pousser cette base dans `/sdcard/Android/data/fr.memomimi.app/files/update-base.apk`, lancer l'instrumentation `-e mode network`, vérifier reconstruction exacte/version/signature, puis retirer uniquement ce fichier de test.
+6. Mettre à jour README/CHANGELOG/docs et publier leur contenu via :
+
+```powershell
+$env:TEMP='D:/AndroidDev/tmp'; $env:TMP=$env:TEMP
+$env:PYTHONPYCACHEPREFIX='D:/AndroidDev/tmp/python-cache'
+& 'D:/AndroidDev/python/python.exe' -X utf8 tools/update-github-docs.py
+```
+
+Ce script publie README, CHANGELOG et les Markdown de docs sur GitHub main. Il ne publie ni sources, ni AGENTS.md, ni clé. Les scripts utilisent Git Credential Manager ; ne jamais afficher les credentials récupérés. Faire ensuite un commit local explicite des fichiers de la tâche.
+
+En cas de problème de propriétaire Git, utiliser `git -c safe.directory='D:/VibeCoding/Appli enfant' ...` par commande. Les commits locaux précédents utilisent l'identité Codex / codex@openai.com via options de commande, sans changer toute la configuration utilisateur.
+
+## 9. Fonctionnement de l'updater
+
+Depuis 8.11 : vérification au retour au premier plan et toutes les 60 secondes ; intervalle minimal 15 secondes entre demandes. Callback retiré à la pause, worker fermé à la destruction. Correctif compatible avec SHA256 exact de la base, téléchargement borné en arrière-plan, reconstruction locale et signature/identité vérifiées.
+
+Le panneau Installer/Plus tard apparaît dans les menus ; une partie ou une histoire n'est pas interrompue. Android garde sa confirmation finale et son autorisation d'installation : **pas de hot reload ni installation silencieuse promise**. Le jeu reste hors ligne lorsque GitHub/réseau manque. Sans correctif compatible, pas de téléchargement automatique d'un APK complet ; installer manuellement l'officiel. Espace nécessaire pour reconstruire un APK complet, même pour un petit delta. Détails : [MISES_A_JOUR.md](MISES_A_JOUR.md).
+
+## 10. Validation de référence et limites
+
+Dernière version applicative : 9.10.
+
+- **129 tests unitaires**, 0 échec/erreur ; lint 0 erreur, 25 avertissements existants.
+- **922 contrôles Android généraux** : solo/duel/coopération/calme, progression, carte, médias et régressions.
+- Accueil attaché : **18 contrôles** sur petit écran et HD ; configuration/mondes/partie/Retour, album, musique, choix persistés.
+- Bienvenue : **24 contrôles** petit écran ; **25 contrôles** HD après fiabilisation du scénario de recharge d'atlas.
+- Carte attachée HD : **37 contrôles** de vraie victoire, départ/voyage/toucher/arrivée, Continuer, caméra et caches jusqu'à40.
+- Captures réellement inspectées : `releases/validation/9.10/home-small.png`, `free-small.png`, `home-hd.png`, `welcome-wave-small.png`, `welcome-wave-hd.png`, plus rendus unitaires aux petites tailles. Consulter les rapports .txt du même dossier.
+- Mise à jour officielle 9.9 → 9.10 : **PASS**, 1519122 octets téléchargés, APK exact de 102690679 octets, identité/signature/provider lecture seule vérifiés. Confirmation système d'installation non répétée par le scénario réseau.
+- Chronique détaillée des essais, échecs de scénarios anciens et corrections : [VALIDATION.md](VALIDATION.md).
+
+Pas de téléphone physique modeste testé, d'essai enfant, de vidéo évaluée manuellement ou de parcours TalkBack manuel complet. Les huit nouvelles poses sont des sprites successifs et une respiration continue, pas un rig squelettique. Les mesures de dessin Canvas isolé ne sont **pas** les FPS du jeu. Un profil de la carte HD sur émulateur en 9.7 n'atteignait pas60FPS ; aucune affirmation contraire sur téléphone n'est fondée sur ces mesures. Tous les animaux peints ne sont pas animés ; seuls les sprites/effets ajoutés bougent.
+
+## 11. Reprendre sans perdre le contexte
+
+1. Lire ce document et AGENTS.md, vérifier Git status avant d'éditer ; ne pas écraser du travail nouveau de l'utilisateur.
+2. Vérifier la version/build.gradle, le SHA256 du final et la release latest : les valeurs de cette passation sont une photographie, pas une vérité permanente.
+3. Identifier le composant concerné dans le tableau ; garder les règles de progression/album dans leurs propriétaires existants.
+4. Faire une modification ciblée, adapter les vrais parcours de tests (écran libre8), compiler et valider avant publication.
+5. Mettre à jour cette passation et VALIDATION.md avec les résultats réels, la nouvelle version et les limites. Éviter de présenter un test d'état ou une capture comme une vidéo validée.
+
+À la rédaction, les demandes précédentes sont implémentées et la 9.10 publiée. **Aucun chantier applicatif supplémentaire n'est autorisé par cette seule passation.** Le prochain besoin sera surtout le retour utilisateur sur le nouvel accueil et la fluidité réelle de Lumi ; ne pas annoncer ces retours comme déjà reçus.
+
+## 12. Documents complémentaires
+
+- [Accueil et deux modes 9.10](ACCUEIL-DEUX-MODES-9.10.md)
+- [Accueil illustré / haut et bas de carte 9.9](ACCUEIL-IMMERSIF-9.9.md)
+- [Carte et progression](AVENTURE.md), [finitions 9.7](FINITIONS-CARTE-9.7.md)
+- [V2](V2.md), [mascotte et sprites](MASCOTTE-SPRITES.md)
+- [Architecture et historique](ARCHITECTURE.md), [validation](VALIDATION.md), [mises à jour](MISES_A_JOUR.md)
+- [Changelog](../CHANGELOG.md), [README](../README.md)
+
+Cette passation est documentaire : elle n'incrémente pas la version, ne recompile pas l'APK et ne prétend pas avoir rerun les contrôles applicatifs. L'état Git, les sources et le SHA256 du final ont été relus lors de sa création.

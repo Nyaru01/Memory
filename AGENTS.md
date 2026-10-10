@@ -1,5 +1,7 @@
 # Règles du projet
 
+- Pour reprendre le projet, lire d'abord [docs/PASSATION-AGENT.md](docs/PASSATION-AGENT.md) : état actuel, architecture, données, commandes et limites de validation. Vérifier ses références dans les sources avant de les considérer comme actuelles.
+
 - Toutes les installations tierces, SDK, caches et fichiers temporaires de travail doivent être sur D:. Utiliser `tools/build.ps1` pour compiler.
 - Livrer toujours l'APK final dans `D:\VibeCoding\Appli enfant\APK\MemoMondes.apk`.
 - Ne conserver qu'un APK final dans `APK/`, sans versions anciennes dans `releases/` ou à la racine. Les APK générés pour compilation et tests dans `app/build/` sont des intermédiaires.
