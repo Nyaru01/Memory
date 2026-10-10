@@ -25,6 +25,7 @@ public class AdventureTest {
     @After public void close() {view.releaseAudio();}
     void render(String name,int w,int h) {
         view.layout(0,0,w,h);Bitmap b=Bitmap.createBitmap(w,h,Bitmap.Config.ARGB_8888);view.onDraw(new Canvas(b));
+        if(view.screen==7){view.adventureMap.scenery.awaitReady();view.onDraw(new Canvas(b));}
         if(name!=null) try(FileOutputStream out=new FileOutputStream(new File(System.getProperty("memomondes.captureDir"),name+".png"))) {b.compress(Bitmap.CompressFormat.PNG,100,out);} catch(Exception e){throw new AssertionError(e);}
         b.recycle();
     }

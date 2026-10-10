@@ -23,6 +23,16 @@ final class AdventureMap {
     private final LinearGradient[] nodeColors={new LinearGradient(0,0,0,1,0xffa9e9b6,0xff439b87,Shader.TileMode.CLAMP),new LinearGradient(0,0,0,1,0xffc7a6f2,0xff8163bd,Shader.TileMode.CLAMP),new LinearGradient(0,0,0,1,0xffede3d6,0xffb0a798,Shader.TileMode.CLAMP)};
     float scroll,maxScroll,top,bottom;
     private static final float SECTION=400;
+    private Runnable repaint;
+    boolean hardwareCanvas;
+    void prepare(GameView view){
+        if(repaint==null)repaint=view::postInvalidate;
+        scenery.load(view.getContext());decor.request(view.getContext(),scenery.executor(),repaint);
+    }
+    void prewarm(GameView view){
+        prepare(view);int section=(view.adventure.current()-1)/2;
+        scenery.request(Math.max(0,section-1),Math.min(19,section+1),(int)view.W,repaint);
+    }
     AdventureMap(){
         for(int i=0;i<40;i++)nodes[i]=new RectF();
         for(int i=0;i<10;i++){double a=-Math.PI/2+i*Math.PI/5;float r=i%2==0?1:.46f;
@@ -35,6 +45,7 @@ final class AdventureMap {
         motion.open(level,now,reduced);openedAt=now;scroll=Math.max(0,levelY(motion.from,d)-viewport*.42f);focusStart=scroll;pendingFocus=true;
     }
     void draw(Canvas c,GameView v){
+        hardwareCanvas=c.isHardwareAccelerated();
         float d=v.d,w=v.W;long now=GameView.now();boolean reduced=v.animationsReduced();
         top=v.systemTop()+86*d;bottom=v.H-v.systemBottom()-66*d;
         maxScroll=Math.max(0,20*SECTION*d-(bottom-top));
@@ -46,13 +57,14 @@ final class AdventureMap {
             float dt=Math.min(.05f,Math.max(0,(now-motion.lastFrame)/1000f));float old=scroll;
             scroll=Math.max(0,Math.min(maxScroll,scroll+motion.velocity*dt));motion.velocity*=(float)Math.exp(-5*dt);if(scroll==old)motion.velocity=0;
         }
-        motion.lastFrame=now;scroll=Math.max(0,Math.min(scroll,maxScroll));scenery.load(v.getContext());decor.load(v.getContext());
+        motion.lastFrame=now;scroll=Math.max(0,Math.min(scroll,maxScroll));prepare(v);
         c.save();c.clipRect(0,top,w,bottom);
         int first=Math.max(0,(int)(scroll/(SECTION*d))),last=Math.min(19,(int)((scroll+bottom-top)/(SECTION*d)));
+        scenery.request(first,last,(int)w,repaint);
         for(int section=first;section<=last;section++){
             float y=top+section*SECTION*d-scroll;scenery.draw(c,section,y,w,SECTION*d);
             shaderMatrix.setScale(1,30*d);shaderMatrix.postTranslate(0,y);mist.setLocalMatrix(shaderMatrix);paint.setColor(Color.WHITE);paint.setShader(mist);c.drawRect(0,y,w,y+30*d,paint);paint.setShader(null);
-            area.set(14*d,y+12*d,w-14*d,y+46*d);v.round(c,area,14,0xdffffbf5);
+            area.set(14*d,y+12*d,w-14*d,y+46*d);surface(c,area,14*d,0xdffffbf5,d);
             v.fitLabel(c,v.worldTitle(AdventureStore.world(section*2+1)),w/2,y+29*d,17,14,w-48*d,UiStyle.TEXT);
             if(!reduced)drawAtmosphere(c,section,y,w,d,now-openedAt);
             decor.draw(c,section,y,w,d,now-openedAt,reduced);
@@ -86,14 +98,22 @@ final class AdventureMap {
         }
         drawLumi(c,v,now,reduced);c.restore();
         back.set(12*d,v.systemTop()+5*d,60*d,v.systemTop()+53*d);focusButton.set(w-60*d,v.systemTop()+5*d,w-12*d,v.systemTop()+53*d);
-        v.round(c,back,16,UiStyle.SURFACE);v.label(c,"‹",back.centerX(),back.centerY(),30,UiStyle.TEXT,Paint.Align.CENTER);
-        v.round(c,focusButton,16,UiStyle.SURFACE);v.label(c,"◎",focusButton.centerX(),focusButton.centerY(),29,UiStyle.ACCENT,Paint.Align.CENTER);
+        surface(c,back,16*d,UiStyle.SURFACE,d);v.label(c,"‹",back.centerX(),back.centerY(),30,UiStyle.TEXT,Paint.Align.CENTER);
+        surface(c,focusButton,16*d,UiStyle.SURFACE,d);v.label(c,"◎",focusButton.centerX(),focusButton.centerY(),29,UiStyle.ACCENT,Paint.Align.CENTER);
         int section=Math.min(19,Math.max(0,(int)((scroll+(bottom-top)*.42f)/(SECTION*d))));
         v.fitLabel(c,v.worldTitle(AdventureStore.world(section*2+1)),w/2,v.systemTop()+26*d,20,14,w-130*d,UiStyle.TEXT);
         v.fitLabel(c,v.mapHint.isEmpty()?v.adventure.completed()+" / 40 · Mon aventure":v.mapHint,w/2,v.systemTop()+64*d,14,12,w-24*d,UiStyle.MUTED);
-        continueButton.set(16*d,bottom+7*d,w-16*d,bottom+59*d);v.round(c,continueButton,18,UiStyle.REPLAY);
+        continueButton.set(16*d,bottom+7*d,w-16*d,bottom+59*d);surface(c,continueButton,18*d,UiStyle.REPLAY,d);
         v.label(c,v.adventure.completed()==40?"Rejouer le niveau 40":"Continuer · Niveau "+v.adventure.current(),w/2,continueButton.centerY(),18,UiStyle.REPLAY_TEXT,Paint.Align.CENTER);
-        if(v.activityActive && (!reduced || Math.abs(motion.velocity)>8*d))v.postInvalidateOnAnimation();
+        if(v.activityActive && (!reduced || Math.abs(motion.velocity)>8*d)){
+            if(v.dragging || motion.travelling(now) || Math.abs(motion.velocity)>8*d || motion.reactionAt>=0 && now-motion.reactionAt<1440)v.postInvalidateOnAnimation();
+            else v.postInvalidateDelayed(33);
+        }
+    }
+    /** Soft offset shadow avoids a large blur mask being rebuilt during every scroll frame. */
+    private void surface(Canvas c,RectF bounds,float radius,int color,float d){
+        paint.setColor(0x12605d68);c.drawRoundRect(bounds.left,bounds.top+2*d,bounds.right,bounds.bottom+2*d,radius,radius,paint);
+        paint.setColor(color);c.drawRoundRect(bounds,radius,radius,paint);
     }
     private void drawLumi(Canvas c,GameView v,long now,boolean reduced){
         RectF dest=nodes[v.adventure.current()-1];float x=dest.centerX(),y=dest.centerY();

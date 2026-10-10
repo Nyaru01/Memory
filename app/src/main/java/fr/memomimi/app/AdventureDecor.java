@@ -6,18 +6,27 @@ import java.io.*;
 
 /** Four illustrated creatures, each with four real atlas poses; shared across visible sections. */
 final class AdventureDecor {
-    private Bitmap atlas;
+    private volatile Bitmap atlas;
+    private int generation;
     private boolean attempted;
     private final Rect[] frames=new Rect[16];
     private final RectF target=new RectF();
     private final Paint paint=new Paint(Paint.ANTI_ALIAS_FLAG|Paint.FILTER_BITMAP_FLAG);
-    void load(Context context){
-        if(attempted)return;attempted=true;
-        try(InputStream input=context.getAssets().open("adventure/creatures-atlas.png")){
+    synchronized void request(Context context,java.util.concurrent.Executor executor,Runnable changed){
+        if(attempted)return;attempted=true;int token=generation;
+        executor.execute(()->{
+        Bitmap decoded=null;
+        try(InputStream input=context.getApplicationContext().getAssets().open("adventure/creatures-atlas.png")){
             BitmapFactory.Options options=new BitmapFactory.Options();options.inSampleSize=2;options.inScaled=false;
-            atlas=BitmapFactory.decodeStream(input,null,options);
-            if(atlas!=null)for(int i=0;i<16;i++)frames[i]=new Rect(i%4*atlas.getWidth()/4,i/4*atlas.getHeight()/4,(i%4+1)*atlas.getWidth()/4,(i/4+1)*atlas.getHeight()/4);
-        }catch(IOException ignored){ }
+            decoded=BitmapFactory.decodeStream(input,null,options);
+        }catch(IOException|OutOfMemoryError ignored){ }
+        synchronized(this){
+            if(token!=generation){if(decoded!=null)decoded.recycle();return;}
+            if(decoded!=null)for(int i=0;i<16;i++)frames[i]=new Rect(i%4*decoded.getWidth()/4,i/4*decoded.getHeight()/4,(i%4+1)*decoded.getWidth()/4,(i/4+1)*decoded.getHeight()/4);
+            atlas=decoded;
+        }
+        changed.run();
+        });
     }
     void draw(Canvas c,int section,float y,float w,float d,long elapsed,boolean reduced){
         if(atlas==null)return;
@@ -36,5 +45,5 @@ final class AdventureDecor {
         paint.setAlpha(255);
     }
     int bytes(){return atlas==null?0:atlas.getAllocationByteCount();}
-    void release(){if(atlas!=null)atlas.recycle();atlas=null;attempted=false;}
+    synchronized void release(){generation++;atlas=null;attempted=false;}
 }

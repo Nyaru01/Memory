@@ -465,7 +465,11 @@ class GameView extends View {
         this.H = getHeight();
         if (screen != 5) albumFreshWorld = -1;
         if (screen != lastRenderedScreen) { navigationAt = now(); lastRenderedScreen = screen; }
-        drawWorldBackground(canvas, this.screen == 5 ? this.albumPage : this.theme);
+        int desiredLayer=screen==7 ? View.LAYER_TYPE_NONE : View.LAYER_TYPE_SOFTWARE;
+        if(getLayerType()!=desiredLayer)setLayerType(desiredLayer,null);
+        if(screen==7)canvas.drawColor(0xffe3f0e7);
+        else drawWorldBackground(canvas, this.screen == 5 ? this.albumPage : this.theme);
+        if(activityActive && screen<=0 && W>0)adventureMap.prewarm(this);
         int i = this.screen;
         if (i == -1) {
             drawSplash(canvas);
@@ -820,6 +824,7 @@ class GameView extends View {
 
     void openAdventure() {
         showResumePrompt=false; mapHint=""; screen=7;
+        setLayerType(View.LAYER_TYPE_NONE,null);
         adventureMap.open(adventure.current(),Math.max(160*d,H-systemTop()-systemBottom()-152*d),d,animationsReduced(),now());
         accessible.changed(); invalidate();
     }

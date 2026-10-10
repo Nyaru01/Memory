@@ -151,6 +151,7 @@ public final class VisualEffectsChecks extends Instrumentation {
         Bitmap bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
         view.layout(0, 0, width, height);
         view.onDraw(new Canvas(bitmap));
+        if(view.screen==7){view.adventureMap.scenery.awaitReady();view.onDraw(new Canvas(bitmap));}
         if (name != null) {
             try (FileOutputStream output = new FileOutputStream(new File(getTargetContext().getExternalFilesDir(null), name + ".png"))) {
                 bitmap.compress(Bitmap.CompressFormat.PNG, 100, output);

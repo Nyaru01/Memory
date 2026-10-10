@@ -15,7 +15,9 @@ public final class UpdateChecks {
         Bundle result = new Bundle();
         try {
             String mode = arguments == null ? "network" : arguments.getString("mode", "network");
-            if("mapseed".equals(mode)) {
+            if("mapprofile".equals(mode)) {
+                return new MapProfile(host,arguments).run();
+            } else if("mapseed".equals(mode)) {
                 if(UpdateManager.version(getTargetContext().getPackageManager().getPackageInfo("fr.memomimi.app",0))!=44)throw new AssertionError("Expected 9.3 base");
                 getTargetContext().getSharedPreferences("m",0).edit().putInt("adventure_completed",17).putInt("album_17",63).putInt("best_12",19).putBoolean("sound",false).putBoolean("calm",true).commit();
                 GameView view=new GameView(getTargetContext());

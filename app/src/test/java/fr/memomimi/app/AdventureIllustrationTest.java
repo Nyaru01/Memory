@@ -6,6 +6,32 @@ import static org.junit.Assert.*;
 
 /** Meaningful renderer regressions in addition to the full progression scenarios. */
 public class AdventureIllustrationTest extends AdventureTest {
+    @Test public void nativeResolutionCacheLoadsOnceAndSurvivesReleaseDuringLoading() {
+        view.d=3;view.openAdventure();render("adventure-hd-1080",1080,2400);
+        assertEquals(android.view.View.LAYER_TYPE_NONE,view.getLayerType());
+        assertTrue(view.adventureMap.scenery.tile(0).getWidth()>=900);
+        assertTrue(view.adventureMap.scenery.retainedBytes()<=AdventureScenery.MAX_BYTES);
+        int count=view.adventureMap.scenery.decodeCount();
+        for(int i=0;i<30;i++)render(null,1080,2400);
+        assertEquals(count,view.adventureMap.scenery.decodeCount());
+        view.adventureMap.focus(33,1944,3);Bitmap pending=Bitmap.createBitmap(1080,2400,Bitmap.Config.ARGB_8888);view.onDraw(new Canvas(pending));pending.recycle();
+        view.adventureMap.release();assertEquals(0,view.adventureMap.scenery.retainedTiles());
+        view.openAdventure();render(null,1080,2400);
+        assertNotNull(view.adventureMap.scenery.tile(0));
+        assertTrue(view.adventureMap.decor.bytes()>0);
+        view.d=2;view.adventureMap.focus(17,1296,2);render(null,720,1600);
+        assertEquals(720,view.adventureMap.scenery.tile(8).getWidth());
+        assertTrue(view.adventureMap.scenery.retainedBytes()<=4*1024*1024);
+        view.startAdventure(1);render(null,1080,2400);
+        assertEquals(android.view.View.LAYER_TYPE_SOFTWARE,view.getLayerType());
+    }
+    @Test public void allTwentyLandscapeAssetsHaveResolvedPhoneScaleDetail() throws Exception {
+        for(int section=0;section<20;section++){
+            BitmapFactory.Options bounds=new BitmapFactory.Options();bounds.inJustDecodeBounds=true;
+            try(java.io.InputStream input=context.getAssets().open(String.format(java.util.Locale.ROOT,"adventure/landscapes/world-%02d.jpg",section))){BitmapFactory.decodeStream(input,null,bounds);}
+            assertTrue("HD scene "+section,bounds.outWidth>=900 && bounds.outHeight>=900);
+        }
+    }
     @Test public void firstLevelOpensWithAnimationsEnabledAndNoPreviousVictory() {
         view.calm=false;
         view.systemReducedMotion=false;
