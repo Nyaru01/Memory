@@ -1,5 +1,10 @@
 # Changements
 
+## 9.5 — 10 octobre 2026
+
+- Correction du plantage au premier accès à Mon aventure avec les animations actives : l'absence de victoire précédente ne déclenche plus un trajet depuis le niveau0 inexistant.
+- Tests de première ouverture normale, répétée et dans l'activité Android réelle ; progression et déplacements après victoire conservés.
+
 ## 9.4 — 10 octobre 2026
 
 - Carte d'exploration remplacée par vingt paysages peints distincts, chemin organique et repères illustrés ; mêmes quarante étapes et progression conservée.

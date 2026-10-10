@@ -6,6 +6,16 @@ import static org.junit.Assert.*;
 
 /** Meaningful renderer regressions in addition to the full progression scenarios. */
 public class AdventureIllustrationTest extends AdventureTest {
+    @Test public void firstLevelOpensWithAnimationsEnabledAndNoPreviousVictory() {
+        view.calm=false;
+        view.systemReducedMotion=false;
+        view.openAdventure();
+        render(null,360,640);
+        assertEquals(1,view.adventureMap.motion.from);
+        assertFalse(view.adventureMap.motion.travelling(GameView.now()));
+        assertEquals(0,view.adventure.completed());
+        assertEquals(7,view.screen);
+    }
     @Test public void illustratedTilesRemainBoundedDuringWholeRouteAndReopen() {
         view.openAdventure();
         for(int level=1;level<=40;level++) {

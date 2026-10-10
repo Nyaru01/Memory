@@ -101,7 +101,14 @@ public final class VisualEffectsChecks extends Instrumentation {
     }
     private void verifyAdventure(GameView view) {
         getTargetContext().getSharedPreferences("m",0).edit().remove("adventure_completed").commit();
-        view.calm=true;view.d=1;view.layout(0,0,360,640);view.openAdventure();render(view,"adventure-device-start",360,640);
+        view.calm=false;view.systemReducedMotion=false;view.d=1;view.layout(0,0,360,640);
+        for(int opening=0;opening<3;opening++) {
+            view.openAdventure();render(view,"adventure-first-open-animated",360,640);
+            require(view.adventureMap.motion.from==1 && !view.adventureMap.motion.travelling(GameView.now()),"Fresh animated map never travels from level zero");
+            require(view.screen==7 && view.adventure.completed()==0,"Fresh map opens without changing progression");
+            view.screen=0;
+        }
+        view.calm=true;view.openAdventure();render(view,"adventure-device-start",360,640);
         require(!view.startAdventure(2),"Locked level cannot start");
         require(view.startAdventure(1),"Level one available");view.tutorialActive=false;
         for(int i=0;i<view.cards.length;i++)view.cards[i]=i/2;
@@ -297,6 +304,18 @@ public final class VisualEffectsChecks extends Instrumentation {
         Thread.sleep(650); liveScreenshot("loading-lumi-salut-8.11");
         Thread.sleep(400); liveScreenshot("loading-lumi-rebond-8.11");
         Thread.sleep(800);
+        int savedAdventure=getTargetContext().getSharedPreferences("m",0).getInt("adventure_completed",0);
+        runOnMainSync(() -> {
+            getTargetContext().getSharedPreferences("m",0).edit().putInt("adventure_completed",0).commit();
+            activity.game.openAdventure();
+        });
+        Thread.sleep(500);liveScreenshot("map-first-open-live-9.5");
+        runOnMainSync(() -> {
+            require(activity.game.screen==7,"Attached animated first map stays open");
+            require(activity.game.adventureMap.motion.from==1 && !activity.game.adventureMap.motion.travelling(GameView.now()),"Attached map starts Lumi at one");
+            getTargetContext().getSharedPreferences("m",0).edit().putInt("adventure_completed",savedAdventure).commit();
+            activity.game.screen=0;
+        });
         runOnMainSync(() -> {
             GameView view = activity.game;
             require(view.screen == 0, "Loading completes with mascot");
