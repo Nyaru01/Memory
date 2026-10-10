@@ -1,5 +1,11 @@
 # Changements
 
+## 9.12 — 10 octobre 2026 — livraison locale
+
+- Bouton Espace parents visible, maintien explicite de deux secondes ; les petits mouvements dans le bouton ne déclenchent plus un défilement annulant le maintien.
+- Bouton Recommencer l’aventure dans les parents, confirmation avec boutons de 52 dp et annulation par Retour Android.
+- Seuls la progression d’aventure et sa partie sauvegardée sont réinitialisés après confirmation. Album, badges, records, statistiques, réglages et sauvegarde libre conservés.
+
 ## 9.11 — 10 octobre 2026 — livraison locale
 
 - Retour haptique de confirmation à chaque paire trouvée, selon les réglages de vibrations.

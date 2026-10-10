@@ -245,6 +245,61 @@ public class GameViewTest {
         fail("Clipped control must remain accessible");
     }
 
+    @Test public void parentHoldSurvivesFingerJitterAndOpensSettings() {
+        android.app.Activity activity=org.robolectric.Robolectric.buildActivity(android.app.Activity.class).setup().get();
+        activity.setContentView(view);
+        try {
+            view.screen=0;view.showResumePrompt=false;view.homeScroll=0;render(null,320,640);
+            parentEvent(MotionEvent.ACTION_DOWN,view.parentBtn.centerX(),view.parentBtn.centerY());
+            parentEvent(MotionEvent.ACTION_MOVE,view.parentBtn.centerX(),view.parentBtn.centerY()+12*view.d);
+            assertTrue(view.parentHolding);assertFalse(view.dragging);
+            org.robolectric.shadows.ShadowLooper.idleMainLooper(GameView.PARENT_HOLD_MS,java.util.concurrent.TimeUnit.MILLISECONDS);
+            assertEquals(3,view.screen);assertFalse(view.parentHolding);
+            render(null,320,640);boolean haptics=view.haptics;
+            parentEvent(MotionEvent.ACTION_UP,view.hapticBtn.centerX(),view.hapticBtn.centerY());
+            assertEquals(haptics,view.haptics);assertFalse(view.parentReleasePending);
+        } finally { activity.finish(); }
+    }
+
+    @Test public void shortParentTapDoesNotOpenSettings() {
+        view.screen=0;render(null,320,640);
+        parentEvent(MotionEvent.ACTION_DOWN,view.parentBtn.centerX(),view.parentBtn.centerY());
+        parentEvent(MotionEvent.ACTION_UP,view.parentBtn.centerX(),view.parentBtn.centerY());
+        view.m1lambda$onTouchEvent$3$frmemomimiappGameView();assertEquals(0,view.screen);
+    }
+
+    void parentEvent(int action,float x,float y) {
+        MotionEvent event=MotionEvent.obtain(GameView.now(),GameView.now(),action,x,y,0);
+        view.onTouchEvent(event);event.recycle();
+    }
+
+    @Test public void adventureResetRequiresConfirmationAndPreservesCollection() {
+        android.content.SharedPreferences prefs=context.getSharedPreferences("m",0);
+        prefs.edit().putInt("adventure_completed",4).putInt("album_0",63).putInt("best_6",12)
+                .putInt("saved_adventure_level",1).putBoolean("game_active",true).putString("saved_cards","old")
+                .putBoolean("calm",true).commit();
+        view.calm=true;
+        view.screen=3;render(null,320,480);view.parentsScroll=view.parentsScrollMax;render(null,320,480);
+        click(view.adventureResetBtn);assertTrue(view.showResetConfirm);render(null,320,480);
+        assertTrue(view.resetConfirmBtn.height()/view.d>=48);
+        view.handleBack();assertFalse(view.showResetConfirm);assertEquals(4,view.adventure.completed());
+        click(view.adventureResetBtn);render(null,320,480);click(view.resetCancelBtn);
+        assertEquals(4,view.adventure.completed());
+        click(view.adventureResetBtn);render(null,320,480);click(view.resetConfirmBtn);
+        assertEquals(0,view.adventure.completed());assertEquals(1,view.adventure.current());
+        assertFalse(prefs.getBoolean("game_active",true));assertFalse(prefs.contains("saved_cards"));
+        assertEquals(63,prefs.getInt("album_0",0));assertEquals(12,prefs.getInt("best_6",0));assertTrue(prefs.getBoolean("calm",false));
+        assertEquals(0,view.adventureMap.motion.pendingFrom);assertFalse(view.showResetConfirm);
+    }
+
+    @Test public void adventureResetKeepsFreePlayResume() {
+        android.content.SharedPreferences prefs=context.getSharedPreferences("m",0);
+        prefs.edit().putInt("adventure_completed",40).putInt("saved_adventure_level",0)
+                .putBoolean("game_active",true).putString("saved_cards","free").commit();
+        assertTrue(view.adventure.reset());assertTrue(prefs.getBoolean("game_active",false));
+        assertEquals("free",prefs.getString("saved_cards",""));assertEquals(0,view.adventure.completed());
+    }
+
     private void start(int players, boolean calm) {
         view.players = players; view.calm = calm; view.start();
         view.tutorialActive = false; view.hintUntil = 0; view.previewUntil = 0;

@@ -44,6 +44,30 @@ final class HomeChecks {
             host.runOnMainSync(()->{tap(v,v.themeTiles[0]);require(v.screen==8,"Selected world returns to configuration");require(prefs.getInt("free_pairs",0)==8,"Free choice persisted");v.invalidate();});Thread.sleep(100);
             host.runOnMainSync(()->{tap(v,v.play);require(v.screen==1&&v.adventureLevel==0&&v.cards.length==16,"Free game starts selected deck");v.handleBack();require(v.showQuit,"Android game back asks to quit");v.showQuit=false;v.screen=8;v.handleBack();require(v.screen==0,"Configuration back to home");v.invalidate();});Thread.sleep(100);
             host.runOnMainSync(()->{boolean sound=v.sound;tap(v,v.soundBtn);require(v.sound!=sound&&prefs.getBoolean("sound",sound)!=sound,"Music toggle persists");tap(v,v.albumBtn);require(v.screen==5&&v.albumReturnScreen==0,"Home album opens");v.handleBack();require(v.screen==0,"Album back to home");});
+            host.runOnMainSync(()->{v.homeScroll=v.homeScrollMax;v.invalidate();});Thread.sleep(150);
+            host.runOnMainSync(()->{
+                long now=GameView.now();MotionEvent down=MotionEvent.obtain(now,now,MotionEvent.ACTION_DOWN,v.parentBtn.centerX(),v.parentBtn.centerY(),0);
+                v.onTouchEvent(down);down.recycle();
+                MotionEvent move=MotionEvent.obtain(now,now+30,MotionEvent.ACTION_MOVE,v.parentBtn.centerX(),v.parentBtn.centerY()+12*v.d,0);
+                v.onTouchEvent(move);move.recycle();require(v.parentHolding,"Parent hold tolerates jitter");
+            });Thread.sleep(GameView.PARENT_HOLD_MS+150);
+            host.runOnMainSync(()->{require(v.screen==3,"Real timed parent hold opens settings");tap(v,v.parentBtn);v.invalidate();});capture("parents-912-live");
+            host.runOnMainSync(()->{
+                prefs.edit().putInt("adventure_completed",4).putInt("saved_adventure_level",1).putBoolean("game_active",true).commit();
+                v.parentsScroll=v.parentsScrollMax;v.invalidate();
+            });Thread.sleep(150);
+            host.runOnMainSync(()->{tap(v,v.adventureResetBtn);require(v.showResetConfirm,"Adventure reset asks confirmation");v.invalidate();});capture("adventure-reset-912-live");
+            host.runOnMainSync(()->{
+                v.handleBack();require(!v.showResetConfirm&&v.adventure.completed()==4,"Android back cancels adventure reset");
+                tap(v,v.adventureResetBtn);v.invalidate();
+            });Thread.sleep(150);
+            host.runOnMainSync(()->{
+                int album=v.albumCount(),record=prefs.getInt("best_6",0);boolean haptics=prefs.getBoolean("haptics",true);
+                tap(v,v.resetConfirmBtn);require(v.adventure.completed()==0&&v.adventure.current()==1,"Reset returns to first level");
+                require(!prefs.getBoolean("game_active",true),"Adventure resume discarded");
+                require(v.albumCount()==album&&prefs.getInt("best_6",0)==record&&prefs.getBoolean("haptics",true)==haptics,"Album records settings preserved");
+                v.invalidate();
+            });
             result.putString("stream","PASS: "+checks+" attached home checks, two illustrated modes, map, free configuration/worlds/game/back, album, music and settings. Preferences restored; no manual video or physical phone validation.\n");
         }catch(Throwable error){result.putString("stream","FAIL: "+error+"\n");}
         finally{

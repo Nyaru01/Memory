@@ -33,7 +33,7 @@ final class HomeScreen {
         request(v);float d=v.d,top=v.systemTop(),bottom=v.H-v.systemBottom(),w=v.W;
         v.players=1;v.onePlayer.setEmpty();v.coopPlayer.setEmpty();v.twoPlayers.setEmpty();v.mega.setEmpty();
         v.chooseTheme.setEmpty();v.easy.setEmpty();v.medium.setEmpty();v.hard.setEmpty();v.expert.setEmpty();v.play.setEmpty();
-        v.homeScrollMax=Math.max(0,586*d-(bottom-top));v.homeScroll=Math.min(v.homeScroll,v.homeScrollMax);
+        v.homeScrollMax=Math.max(0,594*d-(bottom-top));v.homeScroll=Math.min(v.homeScroll,v.homeScrollMax);
         c.save();c.clipRect(0,top,w,bottom);float y=top+24*d-v.homeScroll;
         v.fitLabel(c,"MémoMondes",w/2,y,30,25,w-32*d,v.ink);
         v.fitLabel(c,"Un voyage, mille découvertes",w/2,y+28*d,13,11,w-32*d,UiStyle.MUTED);y+=48*d;
@@ -69,7 +69,9 @@ final class HomeScreen {
         v.fitLabel(c,"Mon album",v.albumBtn.centerX(),y+17*d,14,12,v.albumBtn.width()-10*d,v.purple);
         v.fitLabel(c,v.albumCount()+" / "+GameView.ALBUM_TOTAL+" images",v.albumBtn.centerX(),y+37*d,12,10,v.albumBtn.width()-10*d,UiStyle.MUTED);
         v.fitLabel(c,v.sound?"♪ Musique : oui":"♪ Musique : non",v.soundBtn.centerX(),v.soundBtn.centerY(),13,10,v.soundBtn.width()-10*d,UiStyle.SUCCESS);
-        v.parentBtn.set(20*d,y+60*d,w-20*d,y+108*d);v.fitLabel(c,"Espace parents · maintenir",w/2,v.parentBtn.centerY(),12,10,w-40*d,UiStyle.MUTED);
+        v.parentBtn.set(20*d,y+60*d,w-20*d,y+116*d);v.round(c,v.parentBtn,17,UiStyle.SURFACE);
+        v.fitLabel(c,"Espace parents",w/2,v.parentBtn.top+18*d,14,12,w-40*d,v.ink);
+        v.fitLabel(c,v.parentHolding?"Continue à maintenir…":"Maintenir 2 secondes",w/2,v.parentBtn.top+39*d,12,10,w-40*d,UiStyle.MUTED);
         c.restore();
         if(v.activityActive&&!v.animationsReduced())v.postInvalidateDelayed(50);
     }

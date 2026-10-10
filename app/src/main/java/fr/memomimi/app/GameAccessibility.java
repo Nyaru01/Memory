@@ -54,7 +54,7 @@ final class GameAccessibility extends AccessibilityNodeProvider {
         }
         if (view.showResetConfirm) {
             add(result, view.resetCancelBtn, "Annuler");
-            add(result, view.resetConfirmBtn, "Effacer les records et statistiques");
+            add(result, view.resetConfirmBtn, view.resetAdventureRequested ? "Confirmer : recommencer l’aventure au niveau 1" : "Effacer les records et statistiques");
             return result;
         }
         if (view.screen == 0 && view.showResumePrompt && view.resumeAvailable) {
@@ -69,7 +69,7 @@ final class GameAccessibility extends AccessibilityNodeProvider {
                 add(result,view.freePlayButton,"Jouer librement");
                 add(result,view.albumBtn,"Mon album, "+view.albumCount()+" images");
                 add(result,view.soundBtn,"Musique : "+(view.sound?"activée":"désactivée"));
-                add(result,view.parentBtn,"Espace parents, appui long");break;
+                add(result,view.parentBtn,"Espace parents, maintenir 2 secondes");break;
             case 8:
                 add(result,view.homeBtn,"Retour à l’accueil");
                 add(result,view.chooseTheme,"Choisir un monde : "+view.themeName(view.theme));
@@ -110,6 +110,7 @@ final class GameAccessibility extends AccessibilityNodeProvider {
                 add(result, view.longDelay, "Délai long, 2 secondes");
                 add(result, view.calmBtn, "Mode calme : " + (view.calm ? "activé" : "désactivé"));
                 add(result, view.hapticBtn, "Vibrations : " + (view.haptics ? "activées" : "désactivées"));
+                add(result, view.adventureResetBtn, "Recommencer l’aventure, album, records et réglages conservés");
                 add(result, view.resetBtn, "Effacer records et statistiques"); add(result, view.tutorialResetBtn, "Revoir le tutoriel");
                 break;
             case 4:
@@ -209,6 +210,7 @@ final class GameAccessibility extends AccessibilityNodeProvider {
         if ((action == AccessibilityNodeInfo.ACTION_CLICK && !target.longPress)
                 || (action == AccessibilityNodeInfo.ACTION_LONG_CLICK && target.longPress)) {
             long now = GameView.now();
+            view.parentReleasePending=false; // Virtual activation is a new gesture.
             float visibleTop=Math.max(target.bounds.top,view.visibleTop(target.bounds));
             float visibleBottom=Math.min(target.bounds.bottom,view.H-view.systemBottom());
             if(visibleBottom<=visibleTop) return false;

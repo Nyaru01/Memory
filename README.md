@@ -1,4 +1,4 @@
-# MémoMondes 9.11 — V2
+# MémoMondes 9.12 — V2
 
 **Reprise du projet par un agent : [document de passation](docs/PASSATION-AGENT.md).**
 
@@ -17,6 +17,10 @@ Le dossier source original ayant été perdu, cette version a été reconstruite
 - [Fonctionnement et publication des mises à jour](docs/MISES_A_JOUR.md)
 
 Installer une fois la version 8.6 ou suivante pour activer les mises à jour depuis GitHub. Depuis la 8.11, le jeu vérifie au retour dans l'application et toutes les minutes tant qu'elle reste ouverte. Un correctif compatible est téléchargé en arrière-plan ; un panneau propose « Installer » ou « Plus tard », directement dans le jeu. Une partie en cours n'est pas interrompue par ce panneau : le bouton d'installation reste disponible dans le bandeau. La confirmation finale appartient à Android. Le jeu et la progression restent utilisables hors ligne.
+
+## Espace parents — 9.12
+
+Maintenir le bouton Espace parents deux secondes ouvre les réglages, même avec de petits mouvements du doigt. Le bouton Recommencer l’aventure propose une confirmation : retour au niveau 1, album et records conservés. La partie libre sauvegardée reste disponible ; une partie d’aventure en cours est abandonnée après confirmation.
 
 ## Usage et reprise — 9.11
 

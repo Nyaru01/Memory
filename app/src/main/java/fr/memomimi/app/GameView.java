@@ -176,6 +176,8 @@ class GameView extends View {
     int pairs;
     RectF parentBtn;
     boolean parentHolding;
+    boolean parentReleasePending;
+    static final long PARENT_HOLD_MS = 2000L;
     final Runnable parentHoldAction = () -> m1lambda$onTouchEvent$3$frmemomimiappGameView();
     String parentNotice;
     RectF pirateTheme;
@@ -187,6 +189,8 @@ class GameView extends View {
     RectF quitConfirmBtn;
     RectF quitContinueBtn;
     RectF resetBtn;
+    final RectF adventureResetBtn = new RectF();
+    boolean resetAdventureRequested;
     RectF resetCancelBtn;
     RectF resetConfirmBtn;
     long resetDoneUntil;
@@ -1991,7 +1995,7 @@ class GameView extends View {
         label(canvas,"‹",homeBtn.centerX(),homeBtn.centerY(),32,ink,Paint.Align.CENTER);
         fitLabel(canvas,"Espace parents",(64*d+W)/2,top+28*d,23,18,W-88*d,ink);
         label(canvas,"Tout reste sur cet appareil",W/2,top+70*d,14,UiStyle.MUTED,Paint.Align.CENTER);
-        parentsScrollMax=Math.max(0,510*d-(bottom-top-92*d));
+        parentsScrollMax=Math.max(0,574*d-(bottom-top-92*d));
         parentsScroll=Math.max(0,Math.min(parentsScroll,parentsScrollMax));
         canvas.save(); canvas.clipRect(0,top+92*d,W,bottom);
         float y=top+94*d-parentsScroll, gap=8*d, width=(W-40*d-2*gap)/3;
@@ -2015,6 +2019,9 @@ class GameView extends View {
         y+=64*d;
         hapticBtn.set(20*d,y,W-20*d,y+52*d); round(canvas,hapticBtn,18,UiStyle.SURFACE);
         label(canvas,"Vibrations : "+(haptics ? "oui" : "non"),W/2,hapticBtn.centerY(),16,ink,Paint.Align.CENTER);
+        y+=64*d;
+        adventureResetBtn.set(20*d,y,W-20*d,y+52*d); round(canvas,adventureResetBtn,18,UiStyle.SURFACE);
+        fitLabel(canvas,"Recommencer l’aventure",W/2,adventureResetBtn.centerY(),15,12,W-64*d,UiStyle.PRIMARY);
         y+=64*d;
         resetBtn.set(20*d,y,W-20*d,y+52*d); round(canvas,resetBtn,18,UiStyle.SURFACE);
         fitLabel(canvas,"Effacer records et statistiques",W/2,resetBtn.centerY(),14,12,W-64*d,coral);
@@ -2244,33 +2251,37 @@ class GameView extends View {
     }
 
     void drawResetConfirm(Canvas canvas) {
-        color(-2013265920);
-        canvas.drawRect(0.0f, 0.0f, this.W, this.H, this.p);
-        float f = this.d;
-        float f2 = this.H;
-        round(canvas, new RectF(f * 30.0f, 0.28f * f2, this.W - (f * 30.0f), f2 * 0.7f), 28.0f, -516);
-        label(canvas, "Espace Parents", this.W / 2.0f, 0.36f * this.H, 22.0f, this.ink, Paint.Align.CENTER);
-        label(canvas, "Effacer records et statistiques ?", this.W / 2.0f, this.H * 0.43f, 15.0f, this.coral, Paint.Align.CENTER);
-        label(canvas, "L'album et les badges seront conservés", this.W / 2.0f, this.H * 0.48f, 11.0f, -8950152, Paint.Align.CENTER);
-        RectF rectF = this.resetCancelBtn;
-        float f3 = this.d;
-        float f4 = this.H;
-        rectF.set(f3 * 48.0f, 0.54f * f4, this.W - (f3 * 48.0f), f4 * 0.6f);
-        round(canvas, this.resetCancelBtn, 20.0f, this.mint);
-        label(canvas, "ANNULER", this.resetCancelBtn.centerX(), this.resetCancelBtn.centerY(), 14.0f, -1, Paint.Align.CENTER);
-        RectF rectF2 = this.resetConfirmBtn;
-        float f5 = this.d;
-        float f6 = this.H;
-        rectF2.set(f5 * 62.0f, 0.625f * f6, this.W - (f5 * 62.0f), f6 * 0.68f);
-        round(canvas, this.resetConfirmBtn, 18.0f, -5918);
-        label(canvas, "OUI, EFFACER", this.resetConfirmBtn.centerX(), this.resetConfirmBtn.centerY(), 12.0f, this.coral, Paint.Align.CENTER);
+        color(0x88000000); canvas.drawRect(0,0,W,H,p);
+        float top=Math.max(systemTop()+8*d,(H-280*d)/2);
+        uiScratch.set(16*d,top,W-16*d,top+280*d); round(canvas,uiScratch,24,UiStyle.SURFACE);
+        fitLabel(canvas,"Espace parents",W/2,top+30*d,22,17,W-48*d,ink);
+        fitLabel(canvas,resetAdventureRequested?"Recommencer au niveau 1 ?":"Effacer records et statistiques ?",W/2,top+70*d,17,12,W-48*d,UiStyle.PRIMARY);
+        fitLabel(canvas,resetAdventureRequested?"Album, records et réglages conservés":"Album, badges et aventure conservés",W/2,top+100*d,12,10,W-48*d,UiStyle.MUTED);
+        if(resetAdventureRequested)fitLabel(canvas,"La partie d’aventure en cours sera effacée",W/2,top+120*d,12,10,W-48*d,UiStyle.MUTED);
+        resetCancelBtn.set(32*d,top+140*d,W-32*d,top+192*d);round(canvas,resetCancelBtn,18,UiStyle.REPLAY);
+        label(canvas,"ANNULER",W/2,resetCancelBtn.centerY(),15,UiStyle.REPLAY_TEXT,Paint.Align.CENTER);
+        resetConfirmBtn.set(32*d,top+204*d,W-32*d,top+256*d);round(canvas,resetConfirmBtn,18,0xffffe5df);
+        label(canvas,resetAdventureRequested?"RECOMMENCER":"OUI, EFFACER",W/2,resetConfirmBtn.centerY(),14,UiStyle.PRIMARY,Paint.Align.CENTER);
     }
-
     /* JADX WARN: Code duplicated, block: B:150:0x0267  */
     @Override // android.view.View
     public boolean onTouchEvent(MotionEvent motionEvent) {
         int action = motionEvent.getActionMasked();
+        if(action==MotionEvent.ACTION_DOWN) parentReleasePending=false;
+        else if(parentReleasePending) {
+            if(action==MotionEvent.ACTION_UP || action==MotionEvent.ACTION_CANCEL) parentReleasePending=false;
+            return true;
+        }
         if(screen==-1){if(action==MotionEvent.ACTION_UP && splashMascotArea.contains(motionEvent.getX(),motionEvent.getY())){welcomeScreen.reactionAt=now();invalidate();}return true;}
+        // A stationary hold can include finger jitter. Do not turn it into a scroll.
+        if(screen==0 && !showResumePrompt && !showQuit && !showResetConfirm) {
+            if(action==MotionEvent.ACTION_DOWN && parentBtn.contains(motionEvent.getX(),motionEvent.getY())) {
+                dragging=false; parentHolding=true; pressedTarget=parentBtn;
+                removeCallbacks(parentHoldAction); postDelayed(parentHoldAction,PARENT_HOLD_MS);
+                invalidate(); return true;
+            }
+            if(parentHolding && action==MotionEvent.ACTION_MOVE && parentBtn.contains(motionEvent.getX(),motionEvent.getY())) return true;
+        }
         if(screen==7) adventureMap.touch(motionEvent,dragging,d,animationsReduced());
         if (!showQuit && !showResetConfirm && !showResumePrompt && enlargedItem<0
                 && (screen==0 || screen==8 || screen==3 || screen==4 || screen==7 || screen==5 && albumTab==2)) {
@@ -2344,9 +2355,19 @@ class GameView extends View {
                 if (this.resetCancelBtn.contains(x, y)) {
                     this.showResetConfirm = false;
                 } else if (this.resetConfirmBtn.contains(x, y)) {
-                    this.progress.resetStatsAndRecords();
+                    if(resetAdventureRequested) {
+                        if(!adventure.reset()) { announceForAccessibility("La remise à zéro a échoué. Réessaie."); return true; }
+                        adventureLevel=0;
+                        adventureMap.motion.pendingFrom=0; adventureMap.motion.from=0; adventureMap.motion.to=0;
+                        adventureMap.motion.stop();
+                        resumeAvailable=getContext().getSharedPreferences("m",0).getBoolean("game_active",false);
+                        parentNotice="L’aventure recommence au niveau 1";
+                    } else {
+                        this.progress.resetStatsAndRecords();
+                        this.parentNotice = "Records et statistiques effacés";
+                    }
                     this.showResetConfirm = false;
-                    this.parentNotice = "Records et statistiques effacés";
+                    announceForAccessibility(parentNotice); accessible.changed();
                     this.resetDoneUntil = now() + 2400;
                 }
                 buzz(4);
@@ -2364,11 +2385,6 @@ class GameView extends View {
                 buzz(4);
                 invalidate();
             }
-            return true;
-        }
-        if (i4 == 0 && motionEvent.getAction() == 0 && this.parentBtn.contains(x, y)) {
-            this.parentHolding = true;
-            removeCallbacks(parentHoldAction); postDelayed(parentHoldAction,2500L);
             return true;
         }
         if (motionEvent.getAction() == 2) {
@@ -2403,7 +2419,12 @@ class GameView extends View {
                     saveParents();
                     buzz(4);
                 } else if (this.resetBtn.contains(x, y)) {
+                    this.resetAdventureRequested = false;
                     this.showResetConfirm = true;
+                } else if (this.adventureResetBtn.contains(x, y)) {
+                    this.resetAdventureRequested = true;
+                    this.showResetConfirm = true;
+                    announceForAccessibility("Recommencer l’aventure au niveau 1 ? Album, records et réglages conservés.");
                 } else if (this.tutorialResetBtn.contains(x, y)) {
                     getContext().getSharedPreferences("m", 0).edit().remove("tutorial_done").apply();
                     this.parentNotice = "Lumi reviendra à la prochaine partie";
@@ -2733,6 +2754,11 @@ class GameView extends View {
             this.parentHolding = false;
             removeCallbacks(parentHoldAction);
             this.screen = 3;
+            this.parentReleasePending = true;
+            this.pressedTarget = null;
+            this.dragging = false;
+            this.parentsScroll = 0;
+            accessible.changed();
             buzz(0);
             announceForAccessibility("Espace Parents");
             invalidate();
@@ -2880,6 +2906,7 @@ class GameView extends View {
 
     boolean handleBack() {
         if (this.pendingWinAt > 0) return true;
+        if(showResetConfirm) { showResetConfirm=false; accessible.changed(); invalidate(); return true; }
         if (this.showQuit) {
             this.showQuit = false;
         } else {

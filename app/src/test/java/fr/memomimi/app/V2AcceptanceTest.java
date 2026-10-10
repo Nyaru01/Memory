@@ -184,12 +184,12 @@ public class V2AcceptanceTest {
         org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle();
         view.screen=0; render(null,360,640);
         event(MotionEvent.ACTION_DOWN,view.parentBtn.centerX(),view.parentBtn.centerY());
-        org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idleFor(java.time.Duration.ofMillis(2000));
+        org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idleFor(java.time.Duration.ofMillis(GameView.PARENT_HOLD_MS-500));
         event(MotionEvent.ACTION_UP,view.parentBtn.centerX(),view.parentBtn.centerY());
         event(MotionEvent.ACTION_DOWN,view.parentBtn.centerX(),view.parentBtn.centerY());
         org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idleFor(java.time.Duration.ofMillis(600));
         assertEquals(0,view.screen);
-        org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idleFor(java.time.Duration.ofMillis(1900));
+        org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idleFor(java.time.Duration.ofMillis(GameView.PARENT_HOLD_MS-600));
         assertEquals(3,view.screen);
         controller.pause().stop().destroy();
     }

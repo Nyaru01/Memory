@@ -1,5 +1,15 @@
 # MémoMondes — Passation à un prochain agent
 
+## Mise à jour de reprise — 9.12 locale — 10 octobre 2026
+
+**Ce bloc remplace l'état 9.11 ci-dessous, conservé comme historique.** Sources et final : **9.12 / versionCode 53**, `APK/MemoMondes.apk`, 102692444 octets, SHA256 `93735cbd06b303cb4ac142741040d582f8302e6ad101a9e7eaa09618df306383`. Compilé avec build.ps1, livré via publish-apk.ps1, signature vérifiée et clé fixe conservée. Aucun déploiement GitHub 9.12.
+
+- Espace parents : bouton de 56 dp avec maintien explicite de 2 secondes. Petits mouvements dans le bouton tolérés avant traitement du scroll ; relâchement après ouverture consommé, pour éviter un appui sur un réglage dessous. Appui court/CANCEL/pause restent protégés.
+- « Recommencer l'aventure » : confirmation, Annuler et Retour Android ; remet adventure_completed au niveau zéro (prochain niveau 1), retire uniquement une partie sauvegardée d'aventure et son mouvement de carte. Album, badges, records, statistiques, réglages et sauvegarde libre conservés. AdventureStore.reset() possède la mutation persistante ; GameView synchronise son état.
+- 155 tests unitaires sans échec/erreur, lint sans erreur (25 avertissements), 30 contrôles Android attachés par taille petit écran et HD, dont vrai maintien et reset confirmé. Les scénarios restaurent les préférences de l'émulateur. Les 922 contrôles généraux cités pour 9.11 n'ont pas été relancés pour 9.12.
+- Captures parents petit écran/HD et confirmation petit écran inspectées. La capture de confirmation HD est noire : aucune validation visuelle revendiquée pour cette capture. Aucun essai manuel sur le téléphone utilisateur ni TalkBack manuel.
+- Tests et émulateur doivent tourner séparément sur ce PC : une exécution simultanée a épuisé la mémoire Windows/Java. Voir [VALIDATION.md](VALIDATION.md), section 9.12, pour les incidents de fixtures et détails. Émulateur arrêté après restauration de taille/densité, avant compilation finale.
+
 ## Mise à jour de reprise — 9.11 locale — 10 octobre 2026
 
 **Ce bloc remplace les références d'état de la photographie 9.10 ci-dessous.** Version actuelle des sources et de `APK/MemoMondes.apk` : **9.11 / versionCode 52**, 102691581 octets, SHA256 `5f0efeeac6d9a14bd1e10430f417b388f057830737528594778b0e3ae94283b1`. Livraison locale via build.ps1/publish-apk.ps1 ; aucune publication GitHub 9.11 ni validation réseau de son correctif dans cette tâche. Les références GitHub et mesures 9.10 plus bas sont historiques.
