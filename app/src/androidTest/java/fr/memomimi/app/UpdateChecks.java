@@ -15,7 +15,9 @@ public final class UpdateChecks {
         Bundle result = new Bundle();
         try {
             String mode = arguments == null ? "network" : arguments.getString("mode", "network");
-            if("welcome".equals(mode)) {
+            if("home".equals(mode)) {
+                return new HomeChecks(host).run();
+            } else if("welcome".equals(mode)) {
                 return new WelcomeChecks(host).run();
             } else if("mappolish".equals(mode)) {
                 return new MapPolishChecks(host).run();

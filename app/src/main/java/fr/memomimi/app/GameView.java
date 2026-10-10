@@ -84,7 +84,9 @@ class GameView extends View {
     final RectF worldsTab = new RectF();
     final BoardLayout boardLayout = new BoardLayout();
     final AdventureMap adventureMap=new AdventureMap();
-    final RectF adventureButton=new RectF(), nextLevelButton=new RectF();
+    final RectF adventureButton=new RectF(), nextLevelButton=new RectF(), freePlayButton=new RectF();
+    final HomeScreen homeScreen=new HomeScreen();
+    int worldReturnScreen=8;
     final AdventureStore adventure;
     int adventureLevel;
     String mapHint="";
@@ -357,6 +359,8 @@ class GameView extends View {
         this.d = getResources().getDisplayMetrics().density;
         setLayerType(View.LAYER_TYPE_SOFTWARE, null);
         this.adventure=new AdventureStore(context);
+        android.content.SharedPreferences freePrefs=context.getSharedPreferences("m",0);
+        if(!freePrefs.contains("free_theme"))freePrefs.edit().putInt("free_theme",freePrefs.getInt("theme",0)).putInt("free_pairs",freePrefs.getInt("pairs",6)).apply();
         ProgressStore progressStore = new ProgressStore(context);
         this.progress = progressStore;
         SharedPreferences sharedPreferencesPrefs = progressStore.prefs();
@@ -466,11 +470,12 @@ class GameView extends View {
         this.H = getHeight();
         if (screen != 5) albumFreshWorld = -1;
         if (screen != lastRenderedScreen) { navigationAt = now(); lastRenderedScreen = screen; }
-        int desiredLayer=screen==7 || screen==-1 ? View.LAYER_TYPE_NONE : View.LAYER_TYPE_SOFTWARE;
+        int desiredLayer=screen==7 || screen==-1 || screen==0 ? View.LAYER_TYPE_NONE : View.LAYER_TYPE_SOFTWARE;
         if(getLayerType()!=desiredLayer)setLayerType(desiredLayer,null);
         if(screen==7)canvas.drawColor(0xffe3f0e7);
         else if(screen!=-1)drawWorldBackground(canvas, this.screen == 5 ? this.albumPage : this.theme);
-        if(activityActive && screen<=0 && W>0)adventureMap.prewarm(this);
+        if(activityActive && screen<=0 && W>0)homeScreen.request(this);
+        if(screen>0)homeScreen.release();
         int i = this.screen;
         if (i == -1) {
             drawSplash(canvas);
@@ -486,6 +491,8 @@ class GameView extends View {
             drawParents(canvas);
         } else if (i == 4) {
             drawThemes(canvas);
+        } else if (i == 8) {
+            drawFreePlay(canvas);
         } else if (i == 7) {
             adventureMap.draw(canvas,this);
         } else if (i == 5) {
@@ -526,7 +533,7 @@ class GameView extends View {
 
     void drawSplash(Canvas canvas) {
         long elapsed = Math.max(0, now()-this.splashStart);
-        float progress = Math.min(1f, elapsed/1750f);
+        float progress = Math.min(1f, elapsed/(float)WelcomeMascot.DURATION_MS);
         welcomeScreen.draw(canvas,this,elapsed,progress);
         if (progress < 1f) {
             if (animationsReduced()) postInvalidateDelayed(120L);
@@ -634,7 +641,7 @@ class GameView extends View {
     boolean scrollPage(boolean forward) {
         float delta=(forward ? 1 : -1)*(H-systemTop()-systemBottom())*.65f;
         float before;
-        if(screen==0) { before=homeScroll; homeScroll=Math.max(0,Math.min(homeScrollMax,homeScroll+delta)); if(before==homeScroll)return false; }
+        if(screen==0 || screen==8) { before=homeScroll; homeScroll=Math.max(0,Math.min(homeScrollMax,homeScroll+delta)); if(before==homeScroll)return false; }
         else if(screen==7) { if(!adventureMap.scrollBy(delta))return false; }
         else if(screen==4) { before=worldsScroll; worldsScroll=Math.max(0,Math.min(worldsScrollMax,worldsScroll+delta)); if(before==worldsScroll)return false; }
         else if(screen==3) { before=parentsScroll; parentsScroll=Math.max(0,Math.min(parentsScrollMax,parentsScroll+delta)); if(before==parentsScroll)return false; }
@@ -645,6 +652,7 @@ class GameView extends View {
     float visibleTop(RectF bounds) {
         if(bounds==homeBtn) return systemTop();
         if(screen==7 && bounds!=adventureMap.back && bounds!=adventureMap.focusButton && bounds!=adventureMap.continueButton) return adventureMap.top;
+        if(screen==8) return systemTop()+64*d;
         if(screen==4) return systemTop()+88*d;
         if(screen==3) return systemTop()+92*d;
         if(screen==5 && albumTab==2) for(RectF tile:themeTiles) if(bounds==tile)return systemTop()+222*d;
@@ -672,43 +680,32 @@ class GameView extends View {
         }
     }
 
-    void drawHome(Canvas canvas) {
-        players = 1; onePlayer.setEmpty(); coopPlayer.setEmpty(); twoPlayers.setEmpty(); mega.setEmpty();
-        float top = systemTop(), bottom = H-systemBottom();
-        float extra = Math.max(0, bottom-top-640*d);
-        homeScrollMax = Math.max(0, 640*d-(bottom-top));
-        homeScroll = Math.max(0, Math.min(homeScroll, homeScrollMax));
-        canvas.save(); canvas.clipRect(0, top, W, bottom);
-        float y = top+28*d-homeScroll;
-        fitLabel(canvas, "MémoMondes", W/2, y, 32, 26, W-32*d, ink);
-        fitLabel(canvas, "Explore, retourne, retrouve !", W/2, y+34*d, 15, 13, W-32*d, UiStyle.MUTED);
-        y += 62*d+extra*.18f;
-        adventureButton.set(20*d,y,W-20*d,y+56*d); round(canvas,adventureButton,18,UiStyle.REPLAY);
-        label(canvas,"Mon aventure · Niveau "+adventure.current(),W/2,adventureButton.centerY(),18,UiStyle.REPLAY_TEXT,Paint.Align.CENTER);
-        y+=70*d;
-        chooseTheme.set(20*d,y,W-20*d,y+108*d); selectedThemeChoice(canvas,chooseTheme);
-        y = chooseTheme.bottom+26*d;
-        label(canvas,"Combien de paires ?",W/2,y,17,ink,Paint.Align.CENTER);
-        y += 19*d;
-        float mid = W/2, gap=5*d, height=54*d;
-        easy.set(20*d,y,mid-gap,y+height); medium.set(mid+gap,y,W-20*d,y+height);
-        y += height+8*d;
-        hard.set(20*d,y,mid-gap,y+height); expert.set(mid+gap,y,W-20*d,y+height);
-        compactLevel(canvas,easy,"6 paires","Facile",pairs==6,mint);
-        compactLevel(canvas,medium,"8 paires","Normal",pairs==8,mint);
-        compactLevel(canvas,hard,"10 paires","Difficile",pairs==10,mint);
-        compactLevel(canvas,expert,"12 paires","Expert",pairs==12,mint);
-        y += height+18*d+extra*.15f;
-        play.set(20*d,y,W-20*d,y+56*d); round(canvas,play,18,coral);
-        label(canvas,"JEU LIBRE  ▶",play.centerX(),play.centerY(),22,-1,Paint.Align.CENTER);
-        y = play.bottom+16*d;
-        soundBtn.set(20*d,y,mid-gap,y+54*d); albumBtn.set(mid+gap,y,W-20*d,y+54*d);
-        round(canvas,soundBtn,18,UiStyle.SURFACE); round(canvas,albumBtn,18,UiStyle.SURFACE);
-        fitLabel(canvas,sound ? "♪ Musique : oui" : "♪ Musique : non",soundBtn.centerX(),soundBtn.centerY(),13,11,soundBtn.width()-12*d,UiStyle.SUCCESS);
-        label(canvas,"Mon album",albumBtn.centerX(),albumBtn.top+17*d,14,purple,Paint.Align.CENTER);
-        label(canvas,albumCount()+" / "+ALBUM_TOTAL+" images",albumBtn.centerX(),albumBtn.top+37*d,12,UiStyle.MUTED,Paint.Align.CENTER);
-        parentBtn.set(30*d,y+62*d,W-30*d,y+110*d);
-        fitLabel(canvas,"Espace parents · maintenir",parentBtn.centerX(),parentBtn.centerY(),13,11,parentBtn.width(),UiStyle.MUTED);
+    void drawHome(Canvas canvas) { homeScreen.draw(canvas,this); }
+
+    void openFreePlay() {
+        android.content.SharedPreferences prefs=getContext().getSharedPreferences("m",0);
+        theme=Math.max(0,Math.min(WORLD_COUNT-1,prefs.getInt("free_theme",prefs.getInt("theme",0))));
+        int saved=prefs.getInt("free_pairs",prefs.getInt("pairs",6));
+        pairs=saved==6||saved==8||saved==10||saved==12?saved:6;
+        players=1;adventureLevel=0;screen=8;homeScroll=0;showResumePrompt=false;
+        accessible.changed();updateMusic();invalidate();
+    }
+    void drawFreePlay(Canvas canvas) {
+        float top=systemTop(),bottom=H-systemBottom(),mid=W/2,gap=5*d;
+        homeBtn.set(16*d,top+4*d,64*d,top+52*d);round(canvas,homeBtn,18,UiStyle.SURFACE);
+        label(canvas,"‹",homeBtn.centerX(),homeBtn.centerY(),32,ink,Paint.Align.CENTER);
+        fitLabel(canvas,"Jeu libre",(64*d+W)/2,top+28*d,24,19,W-88*d,ink);
+        homeScrollMax=Math.max(0,466*d-(bottom-top-64*d));homeScroll=Math.max(0,Math.min(homeScroll,homeScrollMax));
+        canvas.save();canvas.clipRect(0,top+64*d,W,bottom);float y=top+72*d-homeScroll;
+        chooseTheme.set(20*d,y,W-20*d,y+108*d);selectedThemeChoice(canvas,chooseTheme);y+=134*d;
+        label(canvas,"Combien de paires ?",W/2,y,18,ink,Paint.Align.CENTER);y+=20*d;
+        easy.set(20*d,y,mid-gap,y+58*d);medium.set(mid+gap,y,W-20*d,y+58*d);y+=66*d;
+        hard.set(20*d,y,mid-gap,y+58*d);expert.set(mid+gap,y,W-20*d,y+58*d);
+        compactLevel(canvas,easy,"6 paires","Facile",pairs==6,mint);compactLevel(canvas,medium,"8 paires","Normal",pairs==8,mint);
+        compactLevel(canvas,hard,"10 paires","Difficile",pairs==10,mint);compactLevel(canvas,expert,"12 paires","Expert",pairs==12,mint);
+        y+=78*d;play.set(20*d,y,W-20*d,y+56*d);round(canvas,play,18,UiStyle.REPLAY);
+        label(canvas,"Jouer !  ▶",play.centerX(),play.centerY(),22,UiStyle.REPLAY_TEXT,Paint.Align.CENTER);
+        fitLabel(canvas,"Chaque partie enrichit ton album",W/2,play.bottom+25*d,12,10,W-40*d,UiStyle.MUTED);
         canvas.restore();
     }
 
@@ -2273,15 +2270,16 @@ class GameView extends View {
     @Override // android.view.View
     public boolean onTouchEvent(MotionEvent motionEvent) {
         int action = motionEvent.getActionMasked();
+        if(screen==-1){if(action==MotionEvent.ACTION_UP && splashMascotArea.contains(motionEvent.getX(),motionEvent.getY())){welcomeScreen.reactionAt=now();invalidate();}return true;}
         if(screen==7) adventureMap.touch(motionEvent,dragging,d,animationsReduced());
         if (!showQuit && !showResetConfirm && !showResumePrompt && enlargedItem<0
-                && (screen==0 || screen==3 || screen==4 || screen==7 || screen==5 && albumTab==2)) {
+                && (screen==0 || screen==8 || screen==3 || screen==4 || screen==7 || screen==5 && albumTab==2)) {
             if (action==MotionEvent.ACTION_DOWN) { dragStartY=dragLastY=motionEvent.getY(); dragging=false; }
             if (action==MotionEvent.ACTION_MOVE) {
                 float delta=dragLastY-motionEvent.getY(); dragLastY=motionEvent.getY();
                 if (Math.abs(motionEvent.getY()-dragStartY)>8*d) dragging=true;
                 if (dragging) {
-                    if (screen==0) homeScroll=Math.max(0,Math.min(homeScrollMax,homeScroll+delta));
+                    if (screen==0 || screen==8) homeScroll=Math.max(0,Math.min(homeScrollMax,homeScroll+delta));
                     else if (screen==4) worldsScroll=Math.max(0,Math.min(worldsScrollMax,worldsScroll+delta));
                     else if (screen==7) adventureMap.scrollBy(delta);
                     else if (screen==3) parentsScroll=Math.max(0,Math.min(parentsScrollMax,parentsScroll+delta));
@@ -2420,7 +2418,7 @@ class GameView extends View {
         if (i6 == 4) {
             if (this.themeTiles.length > 0) {
                 if (this.homeBtn.contains(x, y)) {
-                    this.screen = 0;
+                    this.screen = worldReturnScreen;
                 } else {
                     for(int family=0;family<familyTiles.length;family++) {
                         if(y>=systemTop()+88*d && y<=H-systemBottom() && familyTiles[family].contains(x,y)) {
@@ -2435,7 +2433,7 @@ class GameView extends View {
                             stopMusic();
                             updateMusic();
                             playSound(92);
-                            this.screen = 0;
+                            this.screen = worldReturnScreen;
                             break;
                         }
                     }
@@ -2543,8 +2541,16 @@ class GameView extends View {
         }
         if (i6 == 0) {
             if(adventureButton.contains(x,y)) { openAdventure(); return true; }
+            if(freePlayButton.contains(x,y)){openFreePlay();return true;}
+            if(albumBtn.contains(x,y)){albumPage=theme;albumReturnScreen=0;screen=5;}
+            else if(soundBtn.contains(x,y)){sound=!sound;getContext().getSharedPreferences("m",0).edit().putBoolean("sound",sound).apply();updateMusic();}
+            invalidate();return true;
+        }
+        if (i6 == 8) {
+            if(y<systemTop()+64*d && !homeBtn.contains(x,y))return true;
+            if(homeBtn.contains(x,y)){screen=0;homeScroll=0;invalidate();return true;}
             if (this.chooseTheme.contains(x, y)) {
-                this.screen = 4;
+                worldReturnScreen=8;this.screen = 4;
             } else if (this.easy.contains(x, y)) {
                 choosePairs(6);
             } else if (this.medium.contains(x, y)) {
@@ -2557,16 +2563,6 @@ class GameView extends View {
                 if (this.play.contains(x, y)) {
                     start();
                     return true;
-                }
-                if (this.albumBtn.contains(x, y)) {
-                    this.albumPage = this.theme;
-                    this.albumReturnScreen = 0;
-                    this.screen = 5;
-                } else if (this.soundBtn.contains(x, y)) {
-                    this.sound = !this.sound;
-                    getContext().getSharedPreferences("m", 0).edit().putBoolean("sound", this.sound).apply();
-                    updateMusic();
-                    playSound(82);
                 }
             }
             buzz(4);
@@ -2592,7 +2588,7 @@ class GameView extends View {
                         this.albumReturnScreen = 2;
                         this.screen = 5;
                     } else if (this.homeBtn.contains(x, y)) {
-                        if(adventureLevel>0) openAdventure(); else this.screen = 4;
+                        if(adventureLevel>0) openAdventure(); else openFreePlay();
                     }
                     buzz(4);
                 }
@@ -2758,7 +2754,9 @@ class GameView extends View {
     }
 
     void remember() {
-        getContext().getSharedPreferences("m", 0).edit().putInt("players", this.players).putInt("theme", this.theme).putInt("pairs", this.pairs).apply();
+        android.content.SharedPreferences.Editor edit=getContext().getSharedPreferences("m",0).edit().putInt("players",players).putInt("theme",theme).putInt("pairs",pairs);
+        if(adventureLevel==0 && (screen==8 || screen==4))edit.putInt("free_theme",theme).putInt("free_pairs",pairs);
+        edit.apply();
     }
 
     void choosePairs(int i) {
@@ -2963,7 +2961,8 @@ class GameView extends View {
                     if (i2 == 0) {
                         return false;
                     }
-                    this.screen = 0;
+                    this.screen = i2==4 ? worldReturnScreen : 0;
+                    if(screen==0)homeScroll=0;
                 }
             }
         }
@@ -3021,6 +3020,7 @@ class GameView extends View {
     void pauseMusic() {
         this.activityActive = false;
         welcomeScreen.release();
+        homeScreen.release();
         adventureMap.release();
         this.parentHolding = false;
         removeCallbacks(parentHoldAction);
@@ -3110,6 +3110,7 @@ class GameView extends View {
     protected void onDetachedFromWindow() {
         this.activityActive = false;
         welcomeScreen.release();
+        homeScreen.release();
         adventureMap.release();
         this.parentHolding = false;
         removeCallbacks(parentHoldAction);

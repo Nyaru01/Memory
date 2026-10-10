@@ -80,7 +80,7 @@ final class AdventureScenery {
             if(notify!=null)notify.run();
         }
     }
-    private static Bitmap decode(Context ctx,int section,int pixels){
+    static Bitmap decode(Context ctx,int section,int pixels){
         String file=String.format(Locale.ROOT,"adventure/landscapes/world-%02d.jpg",section);
         BitmapFactory.Options bounds=new BitmapFactory.Options();bounds.inJustDecodeBounds=true;
         try(InputStream in=ctx.getAssets().open(file)){BitmapFactory.decodeStream(in,null,bounds);}catch(IOException e){return null;}

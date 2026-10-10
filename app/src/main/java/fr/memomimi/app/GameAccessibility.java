@@ -61,15 +61,19 @@ final class GameAccessibility extends AccessibilityNodeProvider {
         }
         switch (view.screen) {
             case 0:
-                add(result,view.adventureButton,"Mon aventure, niveau "+view.adventure.current());
-                add(result, view.chooseTheme, "Choisir un monde : " + view.themeName(view.theme));
-                add(result, view.easy, "6 paires, Facile"+(view.pairs==6 ? ", sélectionné" : "")); add(result, view.medium, "8 paires, Normal"+(view.pairs==8 ? ", sélectionné" : ""));
-                add(result, view.hard, "10 paires, Difficile"+(view.pairs==10 ? ", sélectionné" : "")); add(result, view.expert, "12 paires, Expert"+(view.pairs==12 ? ", sélectionné" : ""));
-                add(result, view.onePlayer, "Jouer seul"); add(result, view.twoPlayers, "Duel à deux");
-                add(result, view.coopPlayer, "Jouer ensemble"); add(result, view.play, "Jouer");
-                add(result, view.albumBtn, "Mon album"); add(result, view.soundBtn, "Son : " + (view.sound ? "activé" : "désactivé"));
-                add(result, view.parentBtn, "Espace parents, appui long");
-                break;
+                add(result,view.adventureButton,(view.adventure.completed()==0?"Commencer":"Continuer")+" l’aventure, niveau "+view.adventure.current());
+                add(result,view.freePlayButton,"Jouer librement");
+                add(result,view.albumBtn,"Mon album, "+view.albumCount()+" images");
+                add(result,view.soundBtn,"Musique : "+(view.sound?"activée":"désactivée"));
+                add(result,view.parentBtn,"Espace parents, appui long");break;
+            case 8:
+                add(result,view.homeBtn,"Retour à l’accueil");
+                add(result,view.chooseTheme,"Choisir un monde : "+view.themeName(view.theme));
+                add(result,view.easy,"6 paires, Facile"+(view.pairs==6?", sélectionné":""));
+                add(result,view.medium,"8 paires, Normal"+(view.pairs==8?", sélectionné":""));
+                add(result,view.hard,"10 paires, Difficile"+(view.pairs==10?", sélectionné":""));
+                add(result,view.expert,"12 paires, Expert"+(view.pairs==12?", sélectionné":""));
+                add(result,view.play,"Jouer !");break;
             case 1:
                 if (view.pendingWinAt > 0) return result;
                 if (view.tutorialActive && view.tutorialStep >= 2) {
@@ -105,7 +109,7 @@ final class GameAccessibility extends AccessibilityNodeProvider {
                 add(result, view.resetBtn, "Effacer records et statistiques"); add(result, view.tutorialResetBtn, "Revoir le tutoriel");
                 break;
             case 4:
-                add(result, view.homeBtn, "Retour à l'accueil");
+                add(result, view.homeBtn, "Retour au jeu libre");
                 for(int family=0;family<view.familyTiles.length;family++) add(result,view.familyTiles[family],WorldCatalog.FAMILIES[family]+(view.familyOpen[family] ? ", réduire" : ", ouvrir")+", "+WorldCatalog.WORLDS[family].length+" mondes");
                 for (int i = 0; i < GameView.WORLD_COUNT; i++) add(result, view.themeTiles[i], view.themeName(i)+(view.theme==i && view.screen==4 ? ", sélectionné" : "")+", "+Integer.bitCount(view.albumMask(i))+" images découvertes");
                 break;
@@ -158,7 +162,7 @@ final class GameAccessibility extends AccessibilityNodeProvider {
             AccessibilityNodeInfo host = AccessibilityNodeInfo.obtain(view);
             view.onInitializeAccessibilityNodeInfo(host);
             host.setContentDescription("MémoMondes");
-            if (view.screen==0 || view.screen==3 || view.screen==4 || view.screen==7 || view.screen==5 && view.albumTab==2) {
+            if (view.screen==0 || view.screen==8 || view.screen==3 || view.screen==4 || view.screen==7 || view.screen==5 && view.albumTab==2) {
                 host.setScrollable(true);
                 host.addAction(AccessibilityNodeInfo.ACTION_SCROLL_FORWARD); host.addAction(AccessibilityNodeInfo.ACTION_SCROLL_BACKWARD);
             }

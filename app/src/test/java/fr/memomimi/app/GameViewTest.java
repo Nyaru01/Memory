@@ -49,7 +49,7 @@ public class GameViewTest {
         assertTrue(view.splashMascotArea.bottom < view.splashBadge.top);
         assertEquals(0, view.victoryMascot.animation.frame);
         assertTrue(view.welcomeScreen.hasArtwork());assertTrue(view.welcomeScreen.bytes()<=4*1024*1024);
-        view.splashStart = GameView.now()-1800;
+        view.splashStart = GameView.now()-5100;
         render(null, 320, 616);
         assertEquals(0, view.screen);
         assertEquals(0,view.welcomeScreen.bytes());
@@ -112,7 +112,7 @@ public class GameViewTest {
         render("mascot-touch-small", 320, 616);
         assertSame(message, view.celebration.message);
         click(view.homeBtn);
-        assertEquals(4, view.screen);
+        assertEquals(8, view.screen);
         view.screen = 2;
         click(view.play);
         assertEquals(1, view.screen);

@@ -1,4 +1,4 @@
-# MémoMondes 9.9 — V2
+# MémoMondes 9.10 — V2
 
 Jeu de mémoire Android pour les enfants de 5 à 8 ans. Le jeu fonctionne hors ligne ; une connexion sert à vérifier et télécharger les mises à jour GitHub.
 
@@ -15,6 +15,12 @@ Le dossier source original ayant été perdu, cette version a été reconstruite
 - [Fonctionnement et publication des mises à jour](docs/MISES_A_JOUR.md)
 
 Installer une fois la version 8.6 ou suivante pour activer les mises à jour depuis GitHub. Depuis la 8.11, le jeu vérifie au retour dans l'application et toutes les minutes tant qu'elle reste ouverte. Un correctif compatible est téléchargé en arrière-plan ; un panneau propose « Installer » ou « Plus tard », directement dans le jeu. Une partie en cours n'est pas interrompue par ce panneau : le bouton d'installation reste disponible dans le bandeau. La confirmation finale appartient à Android. Le jeu et la progression restent utilisables hors ligne.
+
+## Deux façons de jouer — 9.10
+
+L’accueil présente deux cartes illustrées : **Mon aventure**, pour voyager avec Lumi sur les 40 niveaux, et **Jeu libre**, pour choisir son monde et ses 6, 8, 10 ou 12 paires. La configuration libre a son écran et ses réglages mémorisés séparément. Les deux modes enrichissent l’album ; seules les victoires d’aventure débloquent le parcours. Album, musique et espace parents restent sur l’accueil.
+
+Le lancement accueille désormais Lumi pendant cinq secondes, avec un nouvel atlas de huit poses de coucou, une respiration douce et une réaction au toucher. [Architecture et navigation](docs/ACCUEIL-DEUX-MODES-9.10.md).
 
 ## Carte d’exploration 9.9
 

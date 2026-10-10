@@ -4,6 +4,14 @@ import org.junit.Test;
 import static org.junit.Assert.*;
 
 public class MascotAnimationTest {
+    @Test public void dedicatedWelcomeGreetsSlowlyThenSettlesAndCanReplay() {
+        assertEquals(5000,WelcomeMascot.DURATION_MS);
+        assertEquals(0,WelcomeMascot.pose(500,false));assertEquals(1,WelcomeMascot.pose(1000,false));
+        assertEquals(3,WelcomeMascot.pose(1500,false));assertEquals(4,WelcomeMascot.pose(1750,false));
+        assertEquals(6,WelcomeMascot.pose(2800,false));assertEquals(7,WelcomeMascot.pose(4200,false));
+        assertEquals(1,WelcomeMascot.pose(1000,false));
+        for(int t=0;t<=5000;t+=20)assertEquals(0,WelcomeMascot.pose(t,true));
+    }
     @Test public void loadingStaysGroundedWithOneBriefBlinkAndContinuousBreathing() {
         MascotAnimation animation=new MascotAnimation();float previous=1;
         for(long time=0;time<1750;time+=10){

@@ -65,9 +65,10 @@ public class V2AcceptanceTest {
     }
     @Test public void homeWorldSelectionDifficultyAndSwipeDoNotStartAccidentally() {
         view.screen=0; render("v2-home-small",320,480);
+        click(view.freePlayButton);render(null,320,480);
         for(int pairs:new int[]{6,8,10,12}) {
             click(pairs==6 ? view.easy : pairs==8 ? view.medium : pairs==10 ? view.hard : view.expert);
-            assertEquals(pairs,view.pairs); assertEquals(0,view.screen);
+            assertEquals(pairs,view.pairs); assertEquals(8,view.screen);
         }
         click(view.chooseTheme); render("v2-worlds-small",320,480);
         assertEquals(4,view.screen); assertEquals(20,GameView.WORLD_COUNT); assertEquals(2,view.worldColumns());
@@ -76,7 +77,7 @@ public class V2AcceptanceTest {
         assertEquals(4,view.screen); assertTrue(view.worldsScroll>0);
         while(view.scrollPage(true)) render(null,320,480);
         render("v2-worlds-last",320,480); click(view.themeTiles[17]);
-        assertEquals(17,view.theme); assertEquals(0,view.screen);
+        assertEquals(17,view.theme); assertEquals(8,view.screen);
         render(null,320,480); click(view.play); assertEquals(1,view.screen); assertEquals(24,view.cards.length);
     }
     @Test public void familiesCoverStableWorldIdsAndCollapsedWorldsCannotBeSelected() {
@@ -90,7 +91,7 @@ public class V2AcceptanceTest {
         click(view.familyTiles[0]); render(null,360,640);
         assertTrue(view.themeTiles[0].isEmpty()); assertEquals(4,view.screen);
         click(view.familyTiles[4]); render("v92-worlds-robots",360,640);
-        click(view.themeTiles[18]); assertEquals(18,view.theme); assertEquals(0,view.screen);
+        click(view.themeTiles[18]); assertEquals(18,view.theme); assertEquals(8,view.screen);
     }
     @Test public void newWorldsHaveTwelveCardsStoriesAndIndependentAlbumProgress() {
         for(int world=18;world<20;world++) {
@@ -136,6 +137,8 @@ public class V2AcceptanceTest {
         render(null,320,480);
         for(GameAccessibility.Target target:view.accessible.targets()) assertTrue(target.bounds.bottom>view.visibleTop(target.bounds));
         view.screen=0; view.homeScroll=0; render("v2-home",360,640);
+        assertTrue(view.accessible.targets().stream().anyMatch(t->t.label.contains("aventure")));
+        view.openFreePlay();render(null,360,640);
         assertTrue(view.accessible.targets().stream().anyMatch(t->t.label.contains("sélectionné")));
     }
     @Test public void completeAndReplayEveryDifficultyKeepsComparableRecords() {

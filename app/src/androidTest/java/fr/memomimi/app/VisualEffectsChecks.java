@@ -67,6 +67,7 @@ public final class VisualEffectsChecks extends Instrumentation {
             }
         }
         view.screen=0; render(view,"v2-device-home",360,640);
+        click(view,view.freePlayButton);render(view,"v2-device-free",360,640);
         click(view,view.chooseTheme); render(view,"v2-device-worlds",360,640);
         require(view.screen==4 && view.worldColumns()==3,"V2 normal world columns");
         for(int world=0;world<GameView.WORLD_COUNT;world++) require(view.themeSticker(world)!=null,"V2 existing artwork");
@@ -86,7 +87,7 @@ public final class VisualEffectsChecks extends Instrumentation {
         java.util.Arrays.fill(view.familyOpen,false); view.familyOpen[1]=true; view.worldsScroll=0;
         render(view,null,360,640);
         while(view.scrollPage(true)) render(view,null,360,640);
-        click(view,view.themeTiles[17]); require(view.screen==0 && view.theme==17,"V2 last world selection");
+        click(view,view.themeTiles[17]); require(view.screen==8 && view.theme==17,"V2 last world selection");
         view.screen=5; view.albumTab=2; view.albumScroll=0;
         render(view,"v2-device-album-worlds",360,640); click(view,view.themeTiles[1]);
         require(view.albumPage==1 && view.albumTab==0,"V2 album world selection");
@@ -261,7 +262,7 @@ public final class VisualEffectsChecks extends Instrumentation {
             render(view, null, 320, 616);
         }
         click(view, view.homeBtn);
-        require(view.screen == 4, "World choice usable during celebration");
+        require(view.screen == 8, "Free configuration usable during celebration");
         view.screen = 2;
         click(view, view.play);
         require(!view.celebration.active, "Replay clears mascot state");
@@ -356,7 +357,7 @@ public final class VisualEffectsChecks extends Instrumentation {
         runOnMainSync(() -> {
             GameView view=activity.game;
             require(!view.themeTiles[18].isEmpty() && view.themeTiles[0].isEmpty(),"Family hides other worlds");
-            click(view,view.themeTiles[18]); require(view.theme==18 && view.screen==0,"New world is selectable");
+            click(view,view.themeTiles[18]); require(view.theme==18 && view.screen==8,"New world is selectable");
             view.pairs=12; view.start(); view.tutorialActive=false;
             require(view.cards.length==24 && view.worldSheet(18)!=null,"New robot deck has twelve pairs");
             view.invalidate();
@@ -369,7 +370,7 @@ public final class VisualEffectsChecks extends Instrumentation {
         runOnMainSync(() -> {
             activity.game.screen=2;
             click(activity.game, activity.game.homeBtn);
-            require(activity.game.screen == 4, "Attached world button navigates");
+            require(activity.game.screen == 8, "Attached free configuration button navigates");
             activity.finish();
         });
     }

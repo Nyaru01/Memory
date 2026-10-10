@@ -77,4 +77,27 @@ public class AdventureTest {
         render(null,360,640);
         click(view.adventureMap.back);assertEquals(0,view.screen);assertEquals(0,view.adventureLevel);
     }
+    @Test public void illustratedHomeHasTwoEntrancesAndFreeConfigurationReturnsThroughWorlds() {
+        for(int[] size:new int[][]{{320,480},{360,640},{412,850}}){
+            view.screen=0;view.homeScroll=0;render(null,size[0],size[1]);
+            view.adventureMap.scenery.awaitReady();render("home-910-"+size[0],size[0],size[1]);
+            assertTrue(view.homeScreen.bytes()>0);assertTrue(view.homeScreen.bytes()<=12*1024*1024);
+            assertTrue(view.easy.isEmpty());assertTrue(view.chooseTheme.isEmpty());
+            assertTrue(view.adventureButton.height()>=48);assertTrue(view.freePlayButton.height()>=48);
+            click(view.adventureButton);assertEquals(7,view.screen);view.handleBack();assertEquals(0,view.screen);
+            render(null,size[0],size[1]);click(view.freePlayButton);assertEquals(8,view.screen);
+            render("free-910-"+size[0],size[0],size[1]);click(view.chooseTheme);assertEquals(4,view.screen);
+            view.handleBack();assertEquals(8,view.screen);view.handleBack();assertEquals(0,view.screen);
+        }
+    }
+    @Test public void freePreferencesSurviveAdventureAndBothModesRewardAlbumIndependently() {
+        view.openFreePlay();view.theme=18;view.choosePairs(12);view.remember();
+        view.startAdventure(1);finish();assertEquals(1,view.adventure.completed());assertEquals(63,view.albumMask(0));
+        view.openFreePlay();assertEquals(18,view.theme);assertEquals(12,view.pairs);assertEquals(0,view.adventureLevel);
+        render(null,360,640);click(view.play);finish();assertEquals(1,view.adventure.completed());assertEquals(4095,view.albumMask(18));
+        render(null,360,640);click(view.homeBtn);assertEquals(8,view.screen);
+        view.releaseAudio();view=new GameView(context);view.d=1;view.sound=false;view.calm=true;view.activityActive=false;
+        view.openFreePlay();assertEquals(18,view.theme);assertEquals(12,view.pairs);assertEquals(1,view.adventure.completed());
+        assertEquals(63,view.albumMask(0));assertEquals(4095,view.albumMask(18));
+    }
 }
