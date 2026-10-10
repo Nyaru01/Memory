@@ -11,8 +11,8 @@ android {
         minSdkVersion 23
         //noinspection ExpiringTargetSdkVersion,ExpiredTargetSdkVersion
         targetSdkVersion 35
-        versionCode 40
-        versionName "8.11"
+        versionCode 41
+        versionName "9.0"
         testInstrumentationRunner 'fr.memomimi.app.VisualEffectsChecks'
 
     }

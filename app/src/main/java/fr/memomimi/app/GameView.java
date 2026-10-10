@@ -44,6 +44,7 @@ class GameView extends View {
     final Path cardShinePath = new Path();
     int matchFeedbackGeneration;
     volatile AudioTrack activeSound;
+    final AudioFocus audioFocus;
     final java.util.concurrent.ThreadPoolExecutor soundExecutor = new java.util.concurrent.ThreadPoolExecutor(
             1, 1, 0L, java.util.concurrent.TimeUnit.MILLISECONDS,
             new java.util.concurrent.ArrayBlockingQueue<Runnable>(4),
@@ -72,11 +73,20 @@ class GameView extends View {
     static final String[] THEME_NAMES = {"ANIMAUX", "OCÉAN", "ESPACE", "DINOSAURES", "FERME", "VÉHICULES", "MAGIE", "SIRÈNES", "JUNGLE", "GOURMANDISES", "PIRATES", "BANQUISE", "MUSIQUE", "MÉTIERS", "FÉES", "MAISON", "LÉGUMES", "DÉTECTIVE"};
     static final long MATCH_DURATION_MS = 1050L;
     long pendingWinAt;
-    static final int ALBUM_TOTAL = 216;
-    static final int WORLD_COUNT = 18;
+    static final int IMAGES_PER_WORLD = 4 * 3;
+    static final int WORLD_COUNT = THEME_NAMES.length;
+    static final int ALBUM_TOTAL = WORLD_COUNT * IMAGES_PER_WORLD;
     final RectF[] themeTiles = new RectF[WORLD_COUNT];
     final Bitmap[] themeStickers = new Bitmap[WORLD_COUNT];
     final RectF worldsTab = new RectF();
+    final BoardLayout boardLayout = new BoardLayout();
+    final RectF uiScratch = new RectF();
+    float homeScroll, homeScrollMax, worldsScroll, worldsScrollMax, albumScroll, albumScrollMax, parentsScroll, parentsScrollMax;
+    float dragStartY, dragLastY;
+    boolean dragging;
+    long selectionAt, navigationAt;
+    int lastRenderedScreen = -1, albumFreshWorld = -1, albumFreshMask;
+    long albumFreshUntil;
     float H;
     float W;
     boolean activityActive;
@@ -156,6 +166,7 @@ class GameView extends View {
     int pairs;
     RectF parentBtn;
     boolean parentHolding;
+    final Runnable parentHoldAction = () -> m1lambda$onTouchEvent$3$frmemomimiappGameView();
     String parentNotice;
     RectF pirateTheme;
     RectF play;
@@ -178,6 +189,8 @@ class GameView extends View {
     int screen;
     int second;
     Bitmap[] sheets;
+    final long[] sheetUse = new long[WORLD_COUNT];
+    long sheetClock;
     RectF shortDelay;
     boolean showQuit;
     boolean showResetConfirm;
@@ -207,6 +220,7 @@ class GameView extends View {
 
     GameView(Context context) {
         super(context);
+        audioFocus = new AudioFocus(context, () -> { stopMusic(); stopEffectSound(); pauseNarration(); }, () -> { if(activityActive) updateMusic(); });
         this.victoryMascot.load(context);
         for (int index = 0; index < this.cardBounds.length; index++) this.cardBounds[index] = new RectF();
         for (int index = 0; index < this.albumImageBounds.length; index++) this.albumImageBounds[index] = new RectF();
@@ -261,6 +275,7 @@ class GameView extends View {
         this.calm = false;
         this.haptics = true;
         this.parentHolding = false;
+        removeCallbacks(parentHoldAction);
         this.tutorialActive = false;
         this.hintUsed = false;
         this.showQuit = false;
@@ -324,11 +339,11 @@ class GameView extends View {
         this.musicIndex = -1;
         this.musicAssets = new String[]{"music/mountain_kids.mp3", "music/kids_background.mp3", "music/sub_clair_kids.mp3", "music/gentle_lullaby.mp3", "music/star_garden.wav", "music/little_steps.wav"};
         this.parentNotice = "";
-        this.bg = Color.rgb(255, 248, 236);
-        this.ink = Color.rgb(61, 53, 64);
-        this.coral = Color.rgb(255, 112, 84);
-        this.mint = Color.rgb(92, 203, 174);
-        this.purple = Color.rgb(125, 102, 190);
+        this.bg = UiStyle.BACKGROUND;
+        this.ink = UiStyle.TEXT;
+        this.coral = UiStyle.PRIMARY;
+        this.mint = UiStyle.MINT;
+        this.purple = UiStyle.ACCENT;
         this.cheers = new String[]{"Bravo !", "Super !", "Bien joué !", "Youpi !"};
         this.d = getResources().getDisplayMetrics().density;
         setLayerType(View.LAYER_TYPE_SOFTWARE, null);
@@ -361,7 +376,7 @@ class GameView extends View {
         }
         this.resumeAvailable = z;
         this.showResumePrompt = z;
-        paint.setTypeface(Typeface.create("sans", Typeface.BOLD));
+        paint.setTypeface(UiStyle.FONT);
         setFocusable(true);
         setImportantForAccessibility(1);
         setContentDescription("MémoMondes, jeu de mémoire illustré");
@@ -398,10 +413,10 @@ class GameView extends View {
     }
 
     void label(Canvas canvas, String str, float f, float f2, float f3, int i, Paint.Align align) {
-        this.text.setTextSize(f3 * this.d);
+        this.text.setTextSize(f3 * this.d * fontScale());
         this.text.setColor(i);
         this.text.setTextAlign(align);
-        this.text.setTypeface(Typeface.create("sans", Typeface.BOLD));
+        this.text.setTypeface(UiStyle.FONT);
         canvas.drawText(str, f, f2 - ((this.text.ascent() + this.text.descent()) / 2.0f), this.text);
     }
 
@@ -410,12 +425,12 @@ class GameView extends View {
                 || rectF == this.storyBtn || rectF == this.soundBtn || rectF == this.parentBtn
                 || rectF == this.hintBtn || rectF == this.resumeBtn || rectF == this.newGameBtn
                 || rectF == this.quitConfirmBtn || rectF == this.quitContinueBtn;
-        if (action) f = 18f;
+        if (action) f = UiStyle.RADIUS;
         if (this.pressedTarget == rectF) i = blend(i, this.ink, 0.12f);
         color(i);
         Paint paint = this.p;
         float f2 = this.d;
-        paint.setShadowLayer(8.0f * f2, 0.0f, f2 * 4.0f, 570425344);
+        paint.setShadowLayer(3.0f * f2, 0.0f, f2 * 2.0f, 0x18000000);
         float f3 = this.d;
         canvas.drawRoundRect(rectF, f * f3, f * f3, this.p);
         this.p.clearShadowLayer();
@@ -438,6 +453,8 @@ class GameView extends View {
         }
         this.W = getWidth();
         this.H = getHeight();
+        if (screen != 5) albumFreshWorld = -1;
+        if (screen != lastRenderedScreen) { navigationAt = now(); lastRenderedScreen = screen; }
         drawWorldBackground(canvas, this.screen == 5 ? this.albumPage : this.theme);
         int i = this.screen;
         if (i == -1) {
@@ -458,6 +475,10 @@ class GameView extends View {
             drawAlbum(canvas);
         } else {
             drawStory(canvas);
+        }
+        if (!animationsReduced() && activityActive && now()-navigationAt < UiStyle.NAVIGATION_MS) {
+            color((this.bg & 0xffffff) | ((int)(70*(1-(now()-navigationAt)/(float)UiStyle.NAVIGATION_MS)) << 24));
+            canvas.drawRect(0, 0, W, H, p); p.setAlpha(255); postInvalidateOnAnimation();
         }
         this.accessible.drawFocus(canvas);
         long j = this.hideAt;
@@ -603,10 +624,10 @@ class GameView extends View {
     }
 
     void fitLabel(Canvas canvas, String str, float f, float f2, float f3, float f4, float f5, int i) {
-        this.text.setTypeface(Typeface.create("sans", Typeface.BOLD));
+        this.text.setTypeface(UiStyle.FONT);
         float f6 = f3;
         do {
-            this.text.setTextSize(this.d * f6);
+            this.text.setTextSize(this.d * f6 * fontScale());
             if (this.text.measureText(str) <= f5 || f6 <= f4) {
                 break;
             } else {
@@ -616,71 +637,80 @@ class GameView extends View {
         label(canvas, str, f, f2, f6, i, Paint.Align.CENTER);
     }
 
+    boolean scrollPage(boolean forward) {
+        float delta=(forward ? 1 : -1)*(H-systemTop()-systemBottom())*.65f;
+        float before;
+        if(screen==0) { before=homeScroll; homeScroll=Math.max(0,Math.min(homeScrollMax,homeScroll+delta)); if(before==homeScroll)return false; }
+        else if(screen==4) { before=worldsScroll; worldsScroll=Math.max(0,Math.min(worldsScrollMax,worldsScroll+delta)); if(before==worldsScroll)return false; }
+        else if(screen==3) { before=parentsScroll; parentsScroll=Math.max(0,Math.min(parentsScrollMax,parentsScroll+delta)); if(before==parentsScroll)return false; }
+        else if(screen==5 && albumTab==2) { before=albumScroll; albumScroll=Math.max(0,Math.min(albumScrollMax,albumScroll+delta)); if(before==albumScroll)return false; }
+        else return false;
+        invalidate(); accessible.changed(); return true;
+    }
+    float visibleTop(RectF bounds) {
+        if(bounds==homeBtn) return systemTop();
+        if(screen==4) return systemTop()+88*d;
+        if(screen==3) return systemTop()+92*d;
+        if(screen==5 && albumTab==2) for(RectF tile:themeTiles) if(bounds==tile)return systemTop()+222*d;
+        return systemTop();
+    }
+    float fontScale() { return Math.max(1f, Math.min(1.35f, getResources().getConfiguration().fontScale)); }
+    float systemBottom() {
+        WindowInsets insets = getRootWindowInsets();
+        return insets == null ? 16*d : Math.max(12*d, insets.getSystemWindowInsetBottom()+8*d);
+    }
+    String worldTitle(int world) {
+        String name = themeName(world).toLowerCase(Locale.FRENCH);
+        return name.substring(0, 1).toUpperCase(Locale.FRENCH)+name.substring(1);
+    }
+    void outline(Canvas canvas, RectF bounds, int color) {
+        p.setStyle(Paint.Style.STROKE); p.setStrokeWidth(2*d); p.setColor(color);
+        canvas.drawRoundRect(bounds, UiStyle.RADIUS*d, UiStyle.RADIUS*d, p);
+        p.setStyle(Paint.Style.FILL);
+    }
+    void progressBar(Canvas canvas, RectF area, int value, int total, int accent) {
+        round(canvas, area, 5, 0xffe5dfe9);
+        if (value > 0 && total > 0) {
+            uiScratch.set(area.left, area.top, area.left+area.width()*Math.min(1f,value/(float)total), area.bottom);
+            round(canvas, uiScratch, 5, accent);
+        }
+    }
+
     void drawHome(Canvas canvas) {
-        this.players = 1;
-        this.onePlayer.setEmpty();
-        this.coopPlayer.setEmpty();
-        this.twoPlayers.setEmpty();
-        this.mega.setEmpty();
-        color(861719470);
-        canvas.drawCircle(this.W * 0.08f, this.H * 0.12f, this.d * 44.0f, this.p);
-        color(872396373);
-        canvas.drawCircle(this.W * 0.94f, this.H * 0.23f, this.d * 58.0f, this.p);
-        color(578643646);
-        canvas.drawCircle(this.W * 0.04f, this.H * 0.8f, this.d * 54.0f, this.p);
-        label(canvas, "MémoMondes", this.W / 2.0f, 0.075f * this.H, 34.0f, this.ink, Paint.Align.CENTER);
-        label(canvas, "Explore, retourne, retrouve !", this.W / 2.0f, this.H * 0.12f, 14.0f, -8950152, Paint.Align.CENTER);
-        label(canvas, "Choisis ton aventure", this.W / 2.0f, this.H * 0.175f, 18.0f, this.ink, Paint.Align.CENTER);
-        float f = this.H * 0.205f;
-        RectF rectF = this.chooseTheme;
-        float f2 = this.d;
-        rectF.set(f2 * 22.0f, f, this.W - (22.0f * f2), (f2 * 106.0f) + f);
-        selectedThemeChoice(canvas, this.chooseTheme);
-        float f3 = (this.d * 31.0f) + this.chooseTheme.bottom;
-        label(canvas, "Combien de paires ?", this.W / 2.0f, f3, 17.0f, this.ink, Paint.Align.CENTER);
-        float f4 = this.d;
-        float f5 = f4 * 10.0f;
-        float f6 = ((this.W - (40.0f * f4)) - f5) / 2.0f;
-        float f7 = f3 + (25.0f * f4);
-        float f8 = 56.0f * f4;
-        float f9 = f7 + f8;
-        this.easy.set(f4 * 20.0f, f7, (f4 * 20.0f) + f6, f9);
-        this.medium.set(this.easy.right + f5, f7, this.W - (this.d * 20.0f), f9);
-        RectF rectF2 = this.hard;
-        float f10 = this.d * 20.0f;
-        float f11 = this.easy.bottom;
-        float f12 = this.d;
-        rectF2.set(f10, f11 + (f12 * 10.0f), (f12 * 20.0f) + f6, this.easy.bottom + (this.d * 10.0f) + f8);
-        this.expert.set(this.hard.right + f5, this.hard.top, this.W - (this.d * 20.0f), this.hard.bottom);
-        compactLevel(canvas, this.easy, "6 PAIRES", this.suggestedPairs == 6 ? "★ CONSEILLÉ" : "POUR COMMENCER", this.pairs == 6, this.mint);
-        compactLevel(canvas, this.medium, "8 PAIRES", this.suggestedPairs == 8 ? "★ CONSEILLÉ" : "JE M'ENTRAÎNE", this.pairs == 8, -18857);
-        compactLevel(canvas, this.hard, "10 PAIRES", this.suggestedPairs == 10 ? "★ CONSEILLÉ" : "JE PROGRESSE", this.pairs == 10, this.purple);
-        compactLevel(canvas, this.expert, "12 PAIRES", this.suggestedPairs != 12 ? "GRAND DÉFI" : "★ CONSEILLÉ", this.pairs == 12, this.coral);
-        float f13 = this.expert.bottom;
-        float f14 = this.d;
-        float f15 = f13 + (28.0f * f14);
-        this.play.set(f14 * 34.0f, f15, this.W - (34.0f * f14), (f14 * 60.0f) + f15);
-        round(canvas, this.play, 27.0f, this.coral);
-        label(canvas, "JOUER !   ▶", this.W / 2.0f, this.play.centerY(), 21.0f, -1, Paint.Align.CENTER);
-        float f16 = this.play.bottom;
-        float f17 = this.d;
-        float f18 = f16 + (24.0f * f17);
-        this.soundBtn.set(f17 * 26.0f, f18, (this.W / 2.0f) - (f17 * 5.0f), (f17 * 46.0f) + f18);
-        RectF rectF3 = this.albumBtn;
-        float f19 = this.W;
-        float f20 = this.d;
-        rectF3.set((f19 / 2.0f) + (5.0f * f20), f18, f19 - (26.0f * f20), (f20 * 46.0f) + f18);
-        round(canvas, this.soundBtn, 19.0f, this.sound ? -1968143 : -516);
-        round(canvas, this.albumBtn, 19.0f, -516);
-        label(canvas, this.sound ? "♪  MUSIQUE OUI" : "♪  MUSIQUE NON", this.soundBtn.centerX(), this.soundBtn.centerY(), 11.0f, this.sound ? -13530251 : -8950152, Paint.Align.CENTER);
-        label(canvas, "★  MON ALBUM  " + albumCount() + "/" + ALBUM_TOTAL, this.albumBtn.centerX(), this.albumBtn.centerY(), 10.0f, this.purple, Paint.Align.CENTER);
-        float f21 = this.soundBtn.bottom;
-        float f22 = this.d;
-        float f23 = f21 + (18.0f * f22);
-        RectF rectF4 = this.parentBtn;
-        float f24 = this.W;
-        rectF4.set((f24 / 2.0f) - (f22 * 100.0f), f23, (f24 / 2.0f) + (100.0f * f22), (f22 * 36.0f) + f23);
-        label(canvas, "⚙  Espace parents — maintenir", this.W / 2.0f, this.parentBtn.centerY(), 11.0f, -7107695, Paint.Align.CENTER);
+        players = 1; onePlayer.setEmpty(); coopPlayer.setEmpty(); twoPlayers.setEmpty(); mega.setEmpty();
+        float top = systemTop(), bottom = H-systemBottom();
+        float extra = Math.max(0, bottom-top-570*d);
+        homeScrollMax = Math.max(0, 570*d-(bottom-top));
+        homeScroll = Math.max(0, Math.min(homeScroll, homeScrollMax));
+        canvas.save(); canvas.clipRect(0, top, W, bottom);
+        float y = top+28*d-homeScroll;
+        fitLabel(canvas, "MémoMondes", W/2, y, 32, 26, W-32*d, ink);
+        fitLabel(canvas, "Explore, retourne, retrouve !", W/2, y+34*d, 15, 13, W-32*d, UiStyle.MUTED);
+        y += 62*d+extra*.18f;
+        chooseTheme.set(20*d,y,W-20*d,y+108*d); selectedThemeChoice(canvas,chooseTheme);
+        y = chooseTheme.bottom+26*d;
+        label(canvas,"Combien de paires ?",W/2,y,17,ink,Paint.Align.CENTER);
+        y += 19*d;
+        float mid = W/2, gap=5*d, height=54*d;
+        easy.set(20*d,y,mid-gap,y+height); medium.set(mid+gap,y,W-20*d,y+height);
+        y += height+8*d;
+        hard.set(20*d,y,mid-gap,y+height); expert.set(mid+gap,y,W-20*d,y+height);
+        compactLevel(canvas,easy,"6 paires","Facile",pairs==6,mint);
+        compactLevel(canvas,medium,"8 paires","Normal",pairs==8,mint);
+        compactLevel(canvas,hard,"10 paires","Difficile",pairs==10,mint);
+        compactLevel(canvas,expert,"12 paires","Expert",pairs==12,mint);
+        y += height+18*d+extra*.15f;
+        play.set(20*d,y,W-20*d,y+56*d); round(canvas,play,18,coral);
+        label(canvas,"JOUER !  ▶",play.centerX(),play.centerY(),22,-1,Paint.Align.CENTER);
+        y = play.bottom+16*d;
+        soundBtn.set(20*d,y,mid-gap,y+54*d); albumBtn.set(mid+gap,y,W-20*d,y+54*d);
+        round(canvas,soundBtn,18,UiStyle.SURFACE); round(canvas,albumBtn,18,UiStyle.SURFACE);
+        fitLabel(canvas,sound ? "♪ Musique : oui" : "♪ Musique : non",soundBtn.centerX(),soundBtn.centerY(),13,11,soundBtn.width()-12*d,UiStyle.SUCCESS);
+        label(canvas,"Mon album",albumBtn.centerX(),albumBtn.top+17*d,14,purple,Paint.Align.CENTER);
+        label(canvas,albumCount()+" / "+ALBUM_TOTAL+" images",albumBtn.centerX(),albumBtn.top+37*d,12,UiStyle.MUTED,Paint.Align.CENTER);
+        parentBtn.set(30*d,y+62*d,W-30*d,y+110*d);
+        fitLabel(canvas,"Espace parents · maintenir",parentBtn.centerX(),parentBtn.centerY(),13,11,parentBtn.width(),UiStyle.MUTED);
+        canvas.restore();
     }
 
     void modeChoice(Canvas canvas, RectF rectF, String str, boolean z, int i) {
@@ -709,27 +739,18 @@ class GameView extends View {
         return THEME_NAMES[i];
     }
 
-    void selectedThemeChoice(Canvas canvas, RectF rectF) {
-        int iThemeColor = themeColor(this.theme);
-        round(canvas, rectF, 27.0f, iThemeColor);
-        this.p.setStyle(Paint.Style.STROKE);
-        this.p.setStrokeWidth(this.d * 2.0f);
-        this.p.setColor(-1711276033);
-        RectF rectF2 = new RectF(rectF.left + (this.d * 4.0f), rectF.top + (this.d * 4.0f), rectF.right - (this.d * 4.0f), rectF.bottom - (this.d * 4.0f));
-        float f = this.d;
-        canvas.drawRoundRect(rectF2, f * 23.0f, f * 23.0f, this.p);
-        this.p.setStyle(Paint.Style.FILL);
-        RectF rectF3 = new RectF(rectF.left + (this.d * 10.0f), rectF.top + (this.d * 7.0f), rectF.left + (this.d * 10.0f) + ((rectF.height() - (this.d * 14.0f)) * 0.76f), rectF.bottom - (this.d * 7.0f));
-        round(canvas, new RectF(rectF3.left - (this.d * 2.0f), rectF3.top - (this.d * 2.0f), rectF3.right + (this.d * 2.0f), rectF3.bottom + (this.d * 2.0f)), 20.0f, 1157627903);
-        drawThemeSticker(canvas, this.theme, rectF3);
-        float f2 = ((rectF3.right + rectF.right) - (this.d * 48.0f)) / 2.0f;
-        label(canvas, "TON MONDE", f2, rectF.top + (this.d * 25.0f), 10.0f, -570425345, Paint.Align.CENTER);
-        fitLabel(canvas, themeName(this.theme), f2, (this.d * 52.0f) + rectF.top, 20.0f, 14.0f, (rectF.right - rectF3.right) - (this.d * 52.0f), -1);
-        label(canvas, "12 IMAGES À RETROUVER", f2, (this.d * 76.0f) + rectF.top, 9.0f, -285212673, Paint.Align.CENTER);
-        label(canvas, "TOUCHE POUR CHANGER", f2, (this.d * 94.0f) + rectF.top, 8.0f, -855638017, Paint.Align.CENTER);
-        color(-1);
-        canvas.drawCircle(rectF.right - (this.d * 25.0f), rectF.centerY(), this.d * 18.0f, this.p);
-        label(canvas, "›", rectF.right - (this.d * 25.0f), rectF.centerY() - (this.d * 2.0f), 27.0f, iThemeColor, Paint.Align.CENTER);
+    void selectedThemeChoice(Canvas canvas, RectF area) {
+        int accent = themeColor(theme);
+        round(canvas, area, UiStyle.RADIUS, UiStyle.SURFACE);
+        outline(canvas, area, blend(accent, -1, .35f));
+        RectF image = new RectF(area.left+8*d,area.top+8*d,area.left+90*d,area.bottom-8*d);
+        drawThemeSticker(canvas,theme,image);
+        float x=(image.right+area.right-16*d)/2, width=area.right-image.right-20*d;
+        fitLabel(canvas,worldTitle(theme),x,area.top+24*d,22,16,width,ink);
+        fitLabel(canvas,Integer.bitCount(albumMask(theme))+"/"+IMAGES_PER_WORLD+" images découvertes",x,area.top+52*d,12,10,width,UiStyle.MUTED);
+        uiScratch.set(image.right+8*d,area.top+66*d,area.right-16*d,area.top+72*d);
+        progressBar(canvas,uiScratch,Integer.bitCount(albumMask(theme)),IMAGES_PER_WORLD,UiStyle.SUCCESS);
+        fitLabel(canvas,"Changer de monde ›",x,area.top+91*d,13,11,width,purple);
     }
 
     void themeChoice(Canvas canvas, RectF rectF, int i, String str, int i2) {
@@ -764,22 +785,20 @@ class GameView extends View {
         }
     }
 
-    void compactLevel(Canvas canvas, RectF rectF, String str, String str2, boolean z, int i) {
-        round(canvas, rectF, 19.0f, z ? i : -1);
-        if (z) {
-            this.p.setStyle(Paint.Style.STROKE);
-            this.p.setStrokeWidth(this.d * 2.0f);
-            this.p.setColor(-1711276033);
-            RectF rectF2 = new RectF(rectF.left + (this.d * 4.0f), rectF.top + (this.d * 4.0f), rectF.right - (this.d * 4.0f), rectF.bottom - (this.d * 4.0f));
-            float f = this.d;
-            canvas.drawRoundRect(rectF2, f * 15.0f, f * 15.0f, this.p);
-            this.p.setStyle(Paint.Style.FILL);
+    void compactLevel(Canvas canvas, RectF area, String title, String subtitle, boolean selected, int accent) {
+        canvas.save();
+        long elapsed=now()-selectionAt;
+        if (selected && !animationsReduced() && elapsed < UiStyle.SELECT_MS) {
+            float scale=1-.035f*(float)Math.sin(Math.PI*elapsed/UiStyle.SELECT_MS);
+            canvas.scale(scale,scale,area.centerX(),area.centerY());
+            if (activityActive) postInvalidateOnAnimation();
         }
-        label(canvas, str, rectF.centerX(), rectF.top + (this.d * 20.0f), 15.0f, z ? -1 : this.ink, Paint.Align.CENTER);
-        label(canvas, str2, rectF.centerX(), (this.d * 42.0f) + rectF.top, 9.0f, z ? -1 : -7700085, Paint.Align.CENTER);
-        if (z) {
-            label(canvas, "✓", rectF.right - (this.d * 13.0f), (this.d * 12.0f) + rectF.top, 10.0f, -1, Paint.Align.CENTER);
-        }
+        round(canvas,area,UiStyle.RADIUS,selected ? 0xffddf1e9 : UiStyle.SURFACE);
+        if (selected) outline(canvas,area,UiStyle.SUCCESS);
+        label(canvas,title,area.centerX()-4*d,area.top+18*d,16,ink,Paint.Align.CENTER);
+        label(canvas,subtitle,area.centerX(),area.top+39*d,12,UiStyle.MUTED,Paint.Align.CENTER);
+        if (selected) label(canvas,"✓",area.right-13*d,area.top+13*d,12,UiStyle.SUCCESS,Paint.Align.CENTER);
+        canvas.restore();
     }
 
     void start() {
@@ -847,6 +866,8 @@ class GameView extends View {
         return getContext().getSharedPreferences("m", 0).getInt("best_" + this.pairs, 0);
     }
 
+    float gameHeaderHeight() { return (H/d<560 ? 154 : 170)*d; }
+
     void drawGame(Canvas canvas) {
         String str;
         String str2;
@@ -862,65 +883,31 @@ class GameView extends View {
         float fSystemTop = systemTop();
         RectF rectF = this.homeBtn;
         float f2 = this.d;
-        rectF.set(f2 * 16.0f, (f2 * 14.0f) + fSystemTop, f2 * 62.0f, (f2 * 58.0f) + fSystemTop);
+        rectF.set(f2 * 16.0f, (f2 * 4.0f) + fSystemTop, f2 * 64.0f, (f2 * 52.0f) + fSystemTop);
         round(canvas, this.homeBtn, 16.0f, -1);
         label(canvas, "‹", this.homeBtn.centerX(), this.homeBtn.centerY() - (this.d * 2.0f), 32.0f, this.ink, Paint.Align.CENTER);
-        drawInstruction(canvas, fSystemTop);
-        int i3 = this.players;
-        if (i3 == 2) {
-            drawDuelScore(canvas, fSystemTop);
-        } else {
-            StringBuilder sb = i3 == 3 ? new StringBuilder("♥  ") : new StringBuilder("★  ");
-            sb.append(this.found);
-            sb.append(" / ");
-            sb.append(this.pairs);
-            label(canvas, sb.toString(), this.W * 0.2f, (this.d * 80.0f) + fSystemTop, 16.0f, this.players == 3 ? this.coral : this.mint, Paint.Align.CENTER);
-            Canvas canvas2 = canvas;
-            label(canvas2, "Coups  " + this.moves, 0.5f * this.W, fSystemTop + (this.d * 80.0f), 15.0f, -8950152, Paint.Align.CENTER);
-            if (z2) {
-                RectF rectF2 = this.hintBtn;
-                float f3 = this.W;
-                float f4 = this.d;
-                rectF2.set(0.7f * f3, fSystemTop + (62.0f * f4), f3 - (12.0f * f4), (f4 * 99.0f) + fSystemTop);
-                round(canvas2, this.hintBtn, 15.0f, -6492);
-                fCenterX = this.hintBtn.centerX();
-                fCenterY = this.hintBtn.centerY();
-                i = this.purple;
-                align = Paint.Align.CENTER;
-                str2 = "★  AIDE";
-                f = 11.0f;
-            } else {
-                this.hintBtn.setEmpty();
-                int iBest = best();
-                if (iBest > 0) {
-                    str = "Record  " + iBest;
-                } else {
-                    str = "";
-                }
-                str2 = str;
-                fCenterX = 0.81f * this.W;
-                fCenterY = fSystemTop + (this.d * 80.0f);
-                i = this.purple;
-                align = Paint.Align.CENTER;
-                f = 13.0f;
-                canvas2 = canvas;
-            }
-            label(canvas2, str2, fCenterX, fCenterY, f, i, align);
+        fitLabel(canvas, worldTitle(theme)+" · "+pairs+" paires", (homeBtn.right+W-74*d)/2,
+                fSystemTop+27*d, 17, 11, W-homeBtn.right-82*d, ink);
+        float statsTop=fSystemTop+(H/d<560 ? 52 : 66)*d, statsWidth=(W-40*d)/3;
+        for (int stat=0; stat<3; stat++) {
+            uiScratch.set(12*d+stat*(statsWidth+8*d),statsTop,12*d+stat*(statsWidth+8*d)+statsWidth,statsTop+48*d);
+            round(canvas,uiScratch,14,UiStyle.SURFACE);
+            label(canvas,stat==0 ? "Paires" : stat==1 ? "Coups" : "Record",uiScratch.centerX(),statsTop+12*d,12,UiStyle.MUTED,Paint.Align.CENTER);
+            label(canvas,stat==0 ? found+"/"+pairs : stat==1 ? String.valueOf(moves) : best()>0 ? String.valueOf(best()) : "—",
+                    uiScratch.centerX(),statsTop+33*d,18,stat==0 ? UiStyle.SUCCESS : ink,Paint.Align.CENTER);
         }
-        int i4 = this.pairs >= 10 ? 7 : 9;
-        float f5 = this.d;
-        float f6 = i4 * f5;
-        float f7 = 14.0f * f5;
-        float f8 = fSystemTop + (112.0f * f5);
-        float f9 = f5 * 24.0f;
-        float f10 = this.W - (f7 * 2.0f);
-        int i5 = this.cols;
-        float f11 = (f10 - ((i5 - 1) * f6)) / i5;
-        float f12 = (this.H - f8) - f9;
-        int i6 = this.rows;
-        float fMin = Math.min((f12 - ((i6 - 1) * f6)) / i6, 1.18f * f11);
-        int i7 = this.rows;
-        float f13 = f8 + ((((this.H - f8) - f9) - ((i7 * fMin) + ((i7 - 1) * f6))) / 2.0f);
+        drawInstruction(canvas,fSystemTop+(H/d<560 ? 90 : 110)*d);
+        if (z2) {
+            hintBtn.set(W-64*d,fSystemTop+4*d,W-16*d,fSystemTop+52*d);
+            round(canvas,hintBtn,16,0xfff4e8bb);
+            label(canvas,"Aide",hintBtn.centerX(),hintBtn.centerY(),12,ink,Paint.Align.CENTER);
+        } else hintBtn.setEmpty();
+        float startY=fSystemTop+gameHeaderHeight();
+        if (players==2) { drawDuelScore(canvas,fSystemTop+88*d); startY+=36*d; }
+        boardLayout.fit(cards.length,W,Math.max(1,H-systemBottom()-startY),d,startY);
+        cols=boardLayout.columns; rows=boardLayout.rows;
+        float f6=boardLayout.gap, f7=boardLayout.left, f11=boardLayout.width,
+                fMin=boardLayout.height, f13=boardLayout.top;
         int i8 = 0;
         while (i8 < this.cards.length) {
             int i9 = this.cols;
@@ -940,7 +927,7 @@ class GameView extends View {
                 float f16 = this.d;
                 canvas.drawRoundRect(rectF4, f16 * 21.0f, f16 * 21.0f, this.p);
                 this.p.setStyle(Paint.Style.FILL);
-                postInvalidateDelayed(40L);
+                if (!animationsReduced() && activityActive) postInvalidateDelayed(40L);
             }
             jCurrentTimeMillis = j;
             i8 = i11 + 1;
@@ -955,10 +942,10 @@ class GameView extends View {
         if (!animationsReduced() && j2 < this.successUntil) {
             drawSuccessSparkles(canvas, j2, f7, f13, f11, f17, f6);
         }
-        if (j2 < this.successUntil || this.pendingWinAt > 0 || this.flipIndex >= 0 || this.closeA >= 0) {
+        if (activityActive && (j2 < this.successUntil || this.pendingWinAt > 0 || this.flipIndex >= 0 || this.closeA >= 0)) {
             postInvalidateOnAnimation();
         }
-        if (j2 < this.hintUntil) {
+        if (activityActive && j2 < this.hintUntil) {
             postInvalidateDelayed(40L);
         }
         if (!this.tutorialActive || this.tutorialStep < 2) {
@@ -1071,7 +1058,7 @@ class GameView extends View {
             message = this.tutorialStep == 0 ? "Touche la carte brillante" :
                     this.tutorialStep == 1 ? "Touche l'autre carte" : "Elles vont se cacher";
         } else if (now() < this.successUntil && this.first < 0 && !z) {
-            message = this.pendingWinAt > 0 ? "Toutes les paires ! Bravo !" : "Bravo, une paire retrouvée !";
+            message = this.pendingWinAt > 0 ? "Toutes les paires ! Bravo !" : cheers[found % cheers.length];
             accent = this.mint;
             background = blend(this.mint, -1, 0.9f);
         } else if (now() < this.hintUntil) {
@@ -1092,7 +1079,7 @@ class GameView extends View {
             message = "À toi de jouer !";
             accent = this.mint;
         }
-        RectF banner = new RectF(74.0f * this.d, f + (this.d * 14.0f),
+        RectF banner = new RectF(16.0f * this.d, f + (this.d * 14.0f),
                 this.W - (this.d * 16.0f), f + (this.d * 58.0f));
         round(canvas, banner, 16.0f, background);
         color(accent);
@@ -1154,7 +1141,7 @@ class GameView extends View {
         }
         if (z2) {
             boolean waitingMismatch = this.hideAt > 0 && (i == this.first || i == this.second);
-            round(canvas, rectF, 20.0f, this.matched[i] ? blend(this.mint, -1, 0.93f)
+            round(canvas, rectF, cardRadius(rectF), this.matched[i] ? blend(this.mint, -1, 0.93f)
                     : waitingMismatch ? blend(this.coral, -1, 0.94f) : -516);
             this.cardImageBounds.set(rectF.left + this.d * 5f, rectF.top + this.d * 5f, rectF.right - this.d * 5f, rectF.bottom - this.d * 5f);
             drawCardAnimal(canvas, this.cards[i], this.cardImageBounds, 16.0f);
@@ -1245,54 +1232,21 @@ class GameView extends View {
         return Color.rgb((int) (iRed + ((Color.red(i2) - iRed) * f)), (int) (iGreen + ((Color.green(i2) - iGreen) * f)), (int) (iBlue + ((Color.blue(i2) - iBlue) * f)));
     }
 
-    void drawBack(Canvas canvas, RectF rectF) {
-        int iThemeColor = themeColor(this.theme);
-        int iBlend = blend(iThemeColor, -1, 0.22f);
-        this.p.setStyle(Paint.Style.FILL);
-        this.p.setColor(-1);
-        this.p.setAlpha(255);
-        Paint paint = this.p;
-        float f = this.d;
-        paint.setShadowLayer(9.0f * f, 0.0f, f * 4.0f, 855638016);
-        this.p.setShader(new LinearGradient(rectF.left, rectF.top, rectF.right, rectF.bottom, iBlend, iThemeColor, Shader.TileMode.CLAMP));
-        float f2 = this.d;
-        canvas.drawRoundRect(rectF, f2 * 20.0f, f2 * 20.0f, this.p);
-        this.p.setShader(null);
-        this.p.setAlpha(255);
-        this.p.clearShadowLayer();
-        this.p.setStyle(Paint.Style.STROKE);
-        this.p.setStrokeWidth(this.d * 2.0f);
-        this.p.setColor(-1996488705);
-        RectF rectF2 = new RectF(rectF.left + (this.d * 5.0f), rectF.top + (this.d * 5.0f), rectF.right - (this.d * 5.0f), rectF.bottom - (this.d * 5.0f));
-        float f3 = this.d;
-        canvas.drawRoundRect(rectF2, f3 * 16.0f, f3 * 16.0f, this.p);
-        this.p.setStyle(Paint.Style.FILL);
-        color(587202559);
-        float f4 = rectF.top;
-        float f5 = this.d * 15.0f;
-        while (true) {
-            f4 += f5;
-            if (f4 >= rectF.bottom) {
-                color(-10390);
-                canvas.drawCircle(rectF.centerX(), rectF.centerY(), this.d * 18.0f, this.p);
-                color(1157627903);
-                float fCenterX = rectF.centerX() - (this.d * 5.0f);
-                float fCenterY = rectF.centerY();
-                float f6 = this.d;
-                canvas.drawCircle(fCenterX, fCenterY - (f6 * 6.0f), f6 * 6.0f, this.p);
-                label(canvas, new String[]{"●", "≈", "✦", "▲", "♦", "■", "✧", "♥", "❧", "•", "◆", "❄", "♪", "★", "✿", "⌂", "♥", "?"}[this.theme], rectF.centerX(), rectF.centerY() - (this.d * 1.0f), 18.0f, iThemeColor, Paint.Align.CENTER);
-                return;
-            }
-            float f7 = rectF.left;
-            float f8 = this.d * 15.0f;
-            while (true) {
-                f7 += f8;
-                if (f7 >= rectF.right) break;
-                canvas.drawCircle(f7, f4, this.d * 2.6f, this.p);
-                f8 = this.d * 22.0f;
-            }
-            f5 = this.d * 22.0f;
-        }
+    float cardRadius(RectF area) { return Math.min(UiStyle.RADIUS,Math.min(area.width(),area.height())/d*.2f); }
+    void drawBack(Canvas canvas, RectF area) {
+        int accent=themeColor(theme), back=blend(0xff9c89cc,accent,.12f);
+        float radius=cardRadius(area), inset=4*d;
+        round(canvas,area,radius,back);
+        cardBorderBounds.set(area.left+inset,area.top+inset,area.right-inset,area.bottom-inset);
+        p.setStyle(Paint.Style.STROKE); p.setStrokeWidth(1.5f*d); p.setColor(0xc0ffffff);
+        canvas.drawRoundRect(cardBorderBounds,Math.max(1,radius-3)*d,Math.max(1,radius-3)*d,p);
+        p.setStyle(Paint.Style.FILL);
+        float circle=Math.min(17*d,Math.min(area.width(),area.height())*.25f);
+        color(0xffffedc4); canvas.drawCircle(area.centerX(),area.centerY(),circle,p);
+        label(canvas,"✦",area.centerX(),area.centerY(),Math.min(19,circle/d*1.2f),UiStyle.ACCENT,Paint.Align.CENTER);
+        color(0x35ffffff);
+        canvas.drawCircle(area.left+area.width()*.24f,area.top+area.height()*.23f,2*d,p);
+        canvas.drawCircle(area.right-area.width()*.22f,area.bottom-area.height()*.20f,2*d,p);
     }
 
     void drawAnimal(Canvas canvas, int i, RectF rectF, float f) {
@@ -1303,12 +1257,18 @@ class GameView extends View {
         drawAnimal(canvas, i, rectF, f);
     }
 
-    void drawAnimalFrom(Canvas canvas, int i, int i2, RectF rectF, float f) {
-        Bitmap bitmapLoadAsset = this.sheets[i];
-        if (bitmapLoadAsset == null) {
-            bitmapLoadAsset = loadAsset(getContext(), this.assetNames[i]);
-            this.sheets[i] = bitmapLoadAsset;
+    Bitmap worldSheet(int world) {
+        sheetUse[world]=++sheetClock;
+        if(sheets[world]!=null) return sheets[world];
+        int loaded=0, oldest=-1;
+        for(int i=0;i<WORLD_COUNT;i++) if(sheets[i]!=null) {
+            loaded++; if(oldest<0 || sheetUse[i]<sheetUse[oldest]) oldest=i;
         }
+        if(loaded>=2 && oldest>=0) { sheets[oldest].recycle(); sheets[oldest]=null; }
+        return sheets[world]=loadAsset(getContext(),assetNames[world]);
+    }
+    void drawAnimalFrom(Canvas canvas, int i, int i2, RectF rectF, float f) {
+        Bitmap bitmapLoadAsset = worldSheet(i);
         if (bitmapLoadAsset == null) {
             return;
         }
@@ -1489,14 +1449,14 @@ class GameView extends View {
                 str4 = "Gagné ensemble !";
             } else {
                 String[] strArr = this.cheers;
-                str4 = strArr[this.moves % strArr.length];
+                str4 = "Bravo, tu as gagné !";
             }
         }
-        label(canvas, str4, this.W / 2.0f, this.H * 0.205f, z ? 27.0f : 31.0f, this.ink, Paint.Align.CENTER);
+        fitLabel(canvas,str4,W/2,H*.205f,23,18,W-48*d,ink);
         if (z) {
             str2 = "Bravo à vous deux !";
         } else {
-            str2 = this.newRecord ? "Nouveau record !" : "Toutes les paires sont retrouvées !";
+            str2 = this.newRecord ? "Nouveau record !" : this.pairs+" paires retrouvées";
         }
         label(canvas, str2, this.W / 2.0f, 0.255f * this.H, 14.0f, this.newRecord ? this.purple : -8950152, Paint.Align.CENTER);
         float f6 = this.d;
@@ -1534,7 +1494,7 @@ class GameView extends View {
         float f17 = ((rectF4.left + (this.d * 64.0f)) + rectF4.right) / 2.0f;
         if (this.earnedBadge.isEmpty()) {
             sb2 = new StringBuilder("CADEAU DU MONDE ");
-            strThemeName = themeName(this.theme);
+            strThemeName = worldTitle(this.theme);
         } else {
             sb2 = new StringBuilder("★  NOUVEAU BADGE : ");
             strThemeName = this.earnedBadge;
@@ -1545,12 +1505,12 @@ class GameView extends View {
         RectF rectF5 = this.play;
         float f18 = this.d;
         float f19 = this.H;
-        rectF5.set(f18 * 20.0f, 0.74f * f19, this.W - (f18 * 20.0f), f19 * 0.825f);
+        rectF5.set(f18 * 20.0f, 0.74f * f19, this.W - (f18 * 20.0f), Math.max(f19 * 0.825f, 0.74f*f19+48*d));
         round(canvas, this.play, 18.0f, this.coral);
-        label(canvas, "REJOUER  ↻", this.play.centerX(), this.play.centerY(), 19.0f, -1, Paint.Align.CENTER);
-        if (this.suggestedPairs > 0) {
+        label(canvas, "Rejouer  ↻", this.play.centerX(), this.play.centerY(), 19.0f, -1, Paint.Align.CENTER);
+        if (this.suggestedPairs > 0 || newUnlocks>0) {
             canvas2 = canvas;
-            label(canvas2, "★  Lumi propose ensuite : " + this.suggestedPairs + " paires", this.W / 2.0f, 0.843f * this.H, 10.0f, this.purple, Paint.Align.CENTER);
+            label(canvas2, newUnlocks>0 ? "Nouvelle image dans ton album !" : "Lumi propose : " + this.suggestedPairs + " paires", this.W / 2.0f, 0.843f * this.H, 10.0f, this.purple, Paint.Align.CENTER);
         } else {
             canvas2 = canvas;
         }
@@ -1563,10 +1523,12 @@ class GameView extends View {
         float f24 = this.albumBtn.right + f21;
         float f25 = this.H;
         rectF6.set(f24, 0.865f * f25, this.W - (this.d * 20.0f), f25 * 0.945f);
+        this.albumBtn.bottom=Math.max(albumBtn.bottom,albumBtn.top+48*d);
+        this.homeBtn.bottom=Math.max(homeBtn.bottom,homeBtn.top+48*d);
         round(canvas2, this.albumBtn, 18.0f, -1);
         round(canvas2, this.homeBtn, 18.0f, -1);
-        label(canvas2, "★  MON ALBUM", this.albumBtn.centerX(), this.albumBtn.centerY(), 12.0f, this.purple, Paint.Align.CENTER);
-        fitLabel(canvas, "CHOISIR UN MONDE", this.homeBtn.centerX(), this.homeBtn.centerY(), 12f, 9f, this.homeBtn.width() - 12f * this.d, this.ink);
+        label(canvas2, "Mon album", this.albumBtn.centerX(), this.albumBtn.centerY(), 12.0f, this.purple, Paint.Align.CENTER);
+        fitLabel(canvas, "Choisir un monde", this.homeBtn.centerX(), this.homeBtn.centerY(), 12f, 9f, this.homeBtn.width() - 12f * this.d, this.ink);
         if (animationsReduced() || !this.activityActive) {
             return;
         }
@@ -1577,7 +1539,7 @@ class GameView extends View {
         float fSystemTop = systemTop();
         RectF rectF = this.homeBtn;
         float f = this.d;
-        rectF.set(f * 18.0f, (8.0f * f) + fSystemTop, 66.0f * f, (f * 54.0f) + fSystemTop);
+        rectF.set(f * 18.0f, (8.0f * f) + fSystemTop, 66.0f * f, (f * 56.0f) + fSystemTop);
         round(canvas, this.homeBtn, 16.0f, -1);
         label(canvas, "‹", this.homeBtn.centerX(), this.homeBtn.centerY() - (this.d * 2.0f), 32.0f, this.ink, Paint.Align.CENTER);
         label(canvas, this.storyPlaying ? "Chut… écoute bien !" : "Prêt pour une histoire ?", (this.homeBtn.right + this.W) / 2.0f, (this.d * 31.0f) + fSystemTop, 21.0f, this.ink, Paint.Align.CENTER);
@@ -1629,7 +1591,7 @@ class GameView extends View {
             this.text.setTextAlign(Paint.Align.LEFT);
             canvas.drawText(str2, f, f2, this.text);
         }
-        this.text.setTypeface(Typeface.create("sans", Typeface.BOLD));
+        this.text.setTypeface(UiStyle.FONT);
     }
 
     /* JADX INFO: renamed from: lambda$toggleStory$0$fr-memomimi-app-GameView, reason: not valid java name */
@@ -1669,6 +1631,7 @@ class GameView extends View {
     }
 
     void toggleStory() {
+        if (!activityActive || !audioFocus.request()) return;
         if (this.storyPlaying) {
             stopNarration();
             return;
@@ -1769,7 +1732,7 @@ class GameView extends View {
     }
 
     int albumMask(int i) {
-        return getContext().getSharedPreferences("m", 0).getInt("album_" + i, 0);
+        return getContext().getSharedPreferences("m", 0).getInt("album_" + i, 0) & ((1 << IMAGES_PER_WORLD)-1);
     }
 
     int albumCount() {
@@ -1801,7 +1764,8 @@ class GameView extends View {
         this.newUnlocks = 0;
         int i = sharedPreferences.getInt("album_" + this.theme, 0);
         int i2 = 12;
-        int iMin = ((1 << Math.min(12, this.pairs)) - 1) | i;
+        if (!sharedPreferences.contains("album_seen_"+theme)) editorEdit.putInt("album_seen_"+theme,i);
+        int iMin = ((1 << Math.min(IMAGES_PER_WORLD, this.pairs)) - 1) | i;
         this.newUnlocks = Integer.bitCount(i ^ iMin);
         editorEdit.putInt("album_" + this.theme, iMin);
         int i3 = sharedPreferences.getInt("wins", 0) + 1;
@@ -1839,43 +1803,43 @@ class GameView extends View {
         float fSystemTop = systemTop();
         RectF rectF = this.homeBtn;
         float f = this.d;
-        rectF.set(18.0f * f, (8.0f * f) + fSystemTop, 66.0f * f, (f * 54.0f) + fSystemTop);
+        rectF.set(18.0f * f, (8.0f * f) + fSystemTop, 66.0f * f, (f * 56.0f) + fSystemTop);
         round(canvas, this.homeBtn, 16.0f, -1);
         label(canvas, "‹", this.homeBtn.centerX(), this.homeBtn.centerY() - (this.d * 2.0f), 32.0f, this.ink, Paint.Align.CENTER);
         label(canvas, "Mon album", this.W / 2.0f, fSystemTop + (this.d * 31.0f), 27.0f, this.ink, Paint.Align.CENTER);
         RectF rectF2 = this.albumPrev;
         float f2 = this.d;
-        rectF2.set(f2 * 20.0f, (f2 * 64.0f) + fSystemTop, f2 * 64.0f, (f2 * 106.0f) + fSystemTop);
+        rectF2.set(f2 * 20.0f, (f2 * 64.0f) + fSystemTop, f2 * 64.0f, (f2 * 112.0f) + fSystemTop);
         RectF rectF3 = this.albumNext;
         float f3 = this.W;
         float f4 = this.d;
-        rectF3.set(f3 - (f4 * 64.0f), (64.0f * f4) + fSystemTop, f3 - (20.0f * f4), (f4 * 106.0f) + fSystemTop);
+        rectF3.set(f3 - (f4 * 64.0f), (64.0f * f4) + fSystemTop, f3 - (20.0f * f4), (f4 * 112.0f) + fSystemTop);
         round(canvas, this.albumPrev, 15.0f, -1);
         round(canvas, this.albumNext, 15.0f, -1);
         label(canvas, "‹", this.albumPrev.centerX(), this.albumPrev.centerY() - (this.d * 2.0f), 28.0f, this.ink, Paint.Align.CENTER);
         label(canvas, "›", this.albumNext.centerX(), this.albumNext.centerY() - (this.d * 2.0f), 28.0f, this.ink, Paint.Align.CENTER);
-        label(canvas, themeName(this.albumPage) + "  " + Integer.bitCount(albumMask(this.albumPage)) + " / 12", this.W / 2.0f, (this.d * 85.0f) + fSystemTop, 16.0f, themeColor(this.albumPage), Paint.Align.CENTER);
+        fitLabel(canvas,worldTitle(albumPage)+" · "+Integer.bitCount(albumMask(albumPage))+"/"+IMAGES_PER_WORLD,W/2,85*d+fSystemTop,16,12,W-144*d,ink);
         float f5 = this.d;
         float f6 = fSystemTop + (118.0f * f5);
         float tabGap = 6.0f * f5;
         float tabWidth = (this.W - 2 * tabGap - 2 * (28.0f * f5)) / 3.0f;
-        this.worldsTab.set(28.0f * f5, f6, 28.0f * f5 + tabWidth, f6 + 42.0f * f5);
+        this.worldsTab.set(28.0f * f5, f6, 28.0f * f5 + tabWidth, f6 + 48.0f * f5);
         this.imagesTab.set(this.worldsTab.right + tabGap, f6,
-                this.worldsTab.right + tabGap + tabWidth, f6 + 42.0f * f5);
+                this.worldsTab.right + tabGap + tabWidth, f6 + 48.0f * f5);
         this.badgesTab.set(this.imagesTab.right + tabGap, f6,
-                this.imagesTab.right + tabGap + tabWidth, f6 + 42.0f * f5);
+                this.imagesTab.right + tabGap + tabWidth, f6 + 48.0f * f5);
         round(canvas, this.worldsTab, 16.0f, this.albumTab == 2 ? this.mint : -1);
         round(canvas, this.imagesTab, 16.0f, this.albumTab == 0 ? themeColor(this.albumPage) : -1);
         round(canvas, this.badgesTab, 16.0f, this.albumTab == 1 ? this.purple : -1);
-        label(canvas, "MONDES", this.worldsTab.centerX(), this.worldsTab.centerY(), 10.0f, this.albumTab == 2 ? -1 : this.ink, Paint.Align.CENTER);
-        label(canvas, "IMAGES", this.imagesTab.centerX(), this.imagesTab.centerY(), 10.0f, this.albumTab == 0 ? -1 : this.ink, Paint.Align.CENTER);
-        label(canvas, "BADGES", this.badgesTab.centerX(), this.badgesTab.centerY(), 10.0f, this.albumTab == 1 ? -1 : this.ink, Paint.Align.CENTER);
+        label(canvas, "Mondes", this.worldsTab.centerX(), this.worldsTab.centerY(), 10.0f, this.ink, Paint.Align.CENTER);
+        label(canvas, "Images", this.imagesTab.centerX(), this.imagesTab.centerY(), 10.0f, this.ink, Paint.Align.CENTER);
+        label(canvas, "Badges", this.badgesTab.centerX(), this.badgesTab.centerY(), 10.0f, this.albumTab == 1 ? -1 : this.ink, Paint.Align.CENTER);
         float f9 = f6 + (this.d * 56.0f);
         float f10 = this.d;
         RectF rectF5 = new RectF(f10 * 35.0f, f9, this.W - (35.0f * f10), (f10 * 12.0f) + f9);
         round(canvas, rectF5, 6.0f, -1580827);
         round(canvas, new RectF(rectF5.left, rectF5.top, rectF5.left + ((rectF5.width() * albumCount()) / ALBUM_TOTAL), rectF5.bottom), 6.0f, this.mint);
-        label(canvas, albumCount() + " / " + ALBUM_TOTAL + " images  •  " + badgeCount() + " / 4 badges", this.W / 2.0f, (this.d * 31.0f) + f9, 11.0f, -8950152, Paint.Align.CENTER);
+        label(canvas, albumCount() + " / " + ALBUM_TOTAL + " images découvertes", this.W / 2.0f, (this.d * 31.0f) + f9, 13.0f, UiStyle.MUTED, Paint.Align.CENTER);
         if (this.albumTab == 2) {
             drawAlbumWorlds(canvas, f9 + (this.d * 48.0f));
         } else if (this.albumTab == 0) {
@@ -1891,11 +1855,18 @@ class GameView extends View {
     void drawAlbumImages(Canvas canvas, float f) {
         GameView gameView = this;
         int iAlbumMask = gameView.albumMask(gameView.albumPage);
+        if (albumFreshWorld != albumPage) {
+            SharedPreferences prefs = progress.prefs();
+            albumFreshWorld = albumPage;
+            albumFreshMask = iAlbumMask & ~prefs.getInt("album_seen_"+albumPage,iAlbumMask);
+            albumFreshUntil = now()+2500;
+            prefs.edit().putInt("album_seen_"+albumPage,iAlbumMask).apply();
+        }
         float f4 = gameView.d;
         float f5 = f4 * 9.0f;
         float f7 = f4 * 22.0f;
         float f8 = ((gameView.W - (f7 * 2.0f)) - (2.0f * f5)) / 3.0f;
-        float fMin = Math.min(f8, f4 * 105.0f);
+        float fMin = Math.max(1,Math.min(f8, (H-systemBottom()-f-3*f5)/4));
         int i3 = 0;
         while (i3 < 12) {
             float f9 = ((i3 % 3) * (f8 + f5)) + f7;
@@ -1905,7 +1876,7 @@ class GameView extends View {
             if (((1 << i3) & iAlbumMask) != 0) {
                 gameView.round(canvas, rectF, 17.0f, -1);
                 gameView.drawAnimalFrom(canvas, gameView.albumPage, i3, new RectF(rectF.left + (gameView.d * 4.0f), rectF.top + (gameView.d * 4.0f), rectF.right - (gameView.d * 4.0f), rectF.bottom - (gameView.d * 4.0f)), 14.0f);
-                if (gameView.newUnlocks > 0 && gameView.albumPage == gameView.theme && now() - gameView.winAt < 120000) {
+                if ((albumFreshMask & (1<<i3)) != 0 && now()<albumFreshUntil) {
                     gameView.label(canvas, "✦", rectF.right - (gameView.d * 10.0f),
                             rectF.top + (gameView.d * 10.0f), 12.0f, -18881, Paint.Align.CENTER);
                 }
@@ -2002,64 +1973,44 @@ class GameView extends View {
     }
 
     void drawParents(Canvas canvas) {
-        float fSystemTop = systemTop();
-        RectF rectF = this.homeBtn;
-        float f = this.d;
-        rectF.set(f * 18.0f, (f * 8.0f) + fSystemTop, 66.0f * f, (f * 54.0f) + fSystemTop);
-        round(canvas, this.homeBtn, 16.0f, -1);
-        label(canvas, "‹", this.homeBtn.centerX(), this.homeBtn.centerY() - (this.d * 2.0f), 32.0f, this.ink, Paint.Align.CENTER);
-        label(canvas, "Espace Parents", this.W / 2.0f, fSystemTop + (this.d * 31.0f), 26.0f, this.ink, Paint.Align.CENTER);
-        label(canvas, "Tout reste sur cet appareil", this.W / 2.0f, fSystemTop + (this.d * 72.0f), 13.0f, -8950152, Paint.Align.CENTER);
-        float f2 = this.d;
-        float f3 = (92.0f * f2) + fSystemTop;
-        float f4 = 8.0f * f2;
-        float f5 = f4 * 2.0f;
-        float f6 = ((this.W - (f2 * 40.0f)) - f5) / 3.0f;
-        float f7 = this.d;
-        statCard(canvas, new RectF(f7 * 20.0f, f3, (f7 * 20.0f) + f6, (f7 * 62.0f) + f3), String.valueOf(this.progress.completedGames()), "PARTIES");
-        float f8 = this.d;
-        float f9 = (f8 * 20.0f) + f6 + f4;
-        float f10 = f6 * 2.0f;
-        statCard(canvas, new RectF(f9, f3, (f8 * 20.0f) + f10 + f4, (f8 * 62.0f) + f3), this.progress.exploredWorlds() + " / " + WORLD_COUNT, "MONDES");
-        float f11 = this.d;
-        statCard(canvas, new RectF((f11 * 20.0f) + f10 + f5, f3, this.W - (f11 * 20.0f), (f11 * 62.0f) + f3), albumCount() + " / " + ALBUM_TOTAL, "ALBUM");
-        label(canvas, "Niveau le plus joué : " + this.progress.preferredPairs() + " paires", this.W / 2.0f, fSystemTop + (this.d * 174.0f), 12.0f, this.purple, Paint.Align.CENTER);
-        label(canvas, "Les cartes différentes restent visibles", this.W / 2.0f, fSystemTop + (this.d * 212.0f), 14.0f, this.ink, Paint.Align.CENTER);
-        float f12 = this.W;
-        float f13 = this.d;
-        float f14 = ((f12 - (40.0f * f13)) - f5) / 3.0f;
-        float f15 = (235.0f * f13) + fSystemTop;
-        this.shortDelay.set(f13 * 20.0f, f15, (20.0f * f13) + f14, (f13 * 56.0f) + f15);
-        this.normalDelay.set(this.shortDelay.right + f4, f15, this.shortDelay.right + f4 + f14, (this.d * 56.0f) + f15);
-        this.longDelay.set(this.normalDelay.right + f4, f15, this.normalDelay.right + f4 + f14, (this.d * 56.0f) + f15);
-        parentChoice(canvas, this.shortDelay, "COURT", "0,8 s", this.mismatchDelay == 800);
-        parentChoice(canvas, this.normalDelay, "NORMAL", "1,3 s", this.mismatchDelay == 1300);
-        parentChoice(canvas, this.longDelay, "LONG", "2 s", this.mismatchDelay == 2000);
-        RectF rectF2 = this.calmBtn;
-        float f16 = this.d;
-        rectF2.set(f16 * 28.0f, (310.0f * f16) + fSystemTop, this.W - (f16 * 28.0f), (f16 * 363.0f) + fSystemTop);
-        round(canvas, this.calmBtn, 18.0f, this.calm ? this.mint : -1);
-        label(canvas, "☁  MODE CALME  ".concat(this.calm ? "OUI" : "NON"), this.calmBtn.centerX(), this.calmBtn.centerY(), 14.0f, this.calm ? -1 : this.ink, Paint.Align.CENTER);
-        RectF rectF3 = this.hapticBtn;
-        float f17 = this.d;
-        rectF3.set(f17 * 28.0f, (375.0f * f17) + fSystemTop, this.W - (f17 * 28.0f), (f17 * 428.0f) + fSystemTop);
-        round(canvas, this.hapticBtn, 18.0f, this.haptics ? this.purple : -1);
-        label(canvas, "✦  VIBRATIONS  ".concat(this.haptics ? "OUI" : "NON"), this.hapticBtn.centerX(), this.hapticBtn.centerY(), 14.0f, this.haptics ? -1 : this.ink, Paint.Align.CENTER);
-        RectF rectF4 = this.resetBtn;
-        float f18 = this.d;
-        rectF4.set(f18 * 32.0f, (448.0f * f18) + fSystemTop, this.W - (f18 * 32.0f), (f18 * 498.0f) + fSystemTop);
-        round(canvas, this.resetBtn, 18.0f, -1);
-        label(canvas, "EFFACER RECORDS ET STATISTIQUES", this.resetBtn.centerX(), this.resetBtn.centerY(), 11.0f, this.coral, Paint.Align.CENTER);
-        RectF rectF5 = this.tutorialResetBtn;
-        float f19 = this.d;
-        rectF5.set(f19 * 32.0f, (510.0f * f19) + fSystemTop, this.W - (32.0f * f19), (f19 * 560.0f) + fSystemTop);
-        round(canvas, this.tutorialResetBtn, 18.0f, -1);
-        label(canvas, "★  REVOIR LE TUTORIEL DE LUMI", this.tutorialResetBtn.centerX(), this.tutorialResetBtn.centerY(), 12.0f, this.purple, Paint.Align.CENTER);
-        if (now() < this.resetDoneUntil) {
-            label(canvas, "✓  " + this.parentNotice, this.W / 2.0f, (this.d * 588.0f) + fSystemTop, 12.0f, this.mint, Paint.Align.CENTER);
-            postInvalidateDelayed(200L);
+        float top=systemTop(), bottom=H-systemBottom();
+        homeBtn.set(16*d,top+4*d,64*d,top+52*d); round(canvas,homeBtn,18,UiStyle.SURFACE);
+        label(canvas,"‹",homeBtn.centerX(),homeBtn.centerY(),32,ink,Paint.Align.CENTER);
+        fitLabel(canvas,"Espace parents",(64*d+W)/2,top+28*d,23,18,W-88*d,ink);
+        label(canvas,"Tout reste sur cet appareil",W/2,top+70*d,14,UiStyle.MUTED,Paint.Align.CENTER);
+        parentsScrollMax=Math.max(0,510*d-(bottom-top-92*d));
+        parentsScroll=Math.max(0,Math.min(parentsScroll,parentsScrollMax));
+        canvas.save(); canvas.clipRect(0,top+92*d,W,bottom);
+        float y=top+94*d-parentsScroll, gap=8*d, width=(W-40*d-2*gap)/3;
+        for(int i=0;i<3;i++) {
+            uiScratch.set(20*d+i*(width+gap),y,20*d+i*(width+gap)+width,y+62*d);
+            statCard(canvas,uiScratch,i==0 ? String.valueOf(progress.completedGames()) : i==1 ? progress.exploredWorlds()+"/"+WORLD_COUNT : albumCount()+"/"+ALBUM_TOTAL,
+                    i==0 ? "Parties" : i==1 ? "Mondes" : "Album");
         }
-        label(canvas, "Sans compte  •  Sans publicité  •  Hors ligne", this.W / 2.0f, this.H - (this.d * 28.0f), 11.0f, -7107695, Paint.Align.CENTER);
+        y+=88*d;
+        fitLabel(canvas,"Temps pour regarder les cartes différentes",W/2,y,15,12,W-24*d,ink);
+        y+=20*d;
+        shortDelay.set(20*d,y,20*d+width,y+56*d); normalDelay.set(shortDelay.right+gap,y,shortDelay.right+gap+width,y+56*d);
+        longDelay.set(normalDelay.right+gap,y,W-20*d,y+56*d);
+        parentChoice(canvas,shortDelay,"Court","0,8 s",mismatchDelay==800);
+        parentChoice(canvas,normalDelay,"Normal","1,3 s",mismatchDelay==1300);
+        parentChoice(canvas,longDelay,"Long","2 s",mismatchDelay==2000);
+        y+=72*d;
+        calmBtn.set(20*d,y,W-20*d,y+52*d); round(canvas,calmBtn,18,UiStyle.SURFACE);
+        fitLabel(canvas,"Animations douces : "+(calm ? "réduites" : "oui"),W/2,calmBtn.centerY(),16,13,W-60*d,ink);
+        if(calm) outline(canvas,calmBtn,UiStyle.SUCCESS);
+        y+=64*d;
+        hapticBtn.set(20*d,y,W-20*d,y+52*d); round(canvas,hapticBtn,18,UiStyle.SURFACE);
+        label(canvas,"Vibrations : "+(haptics ? "oui" : "non"),W/2,hapticBtn.centerY(),16,ink,Paint.Align.CENTER);
+        y+=64*d;
+        resetBtn.set(20*d,y,W-20*d,y+52*d); round(canvas,resetBtn,18,UiStyle.SURFACE);
+        fitLabel(canvas,"Effacer records et statistiques",W/2,resetBtn.centerY(),14,12,W-64*d,coral);
+        y+=64*d;
+        tutorialResetBtn.set(20*d,y,W-20*d,y+52*d); round(canvas,tutorialResetBtn,18,UiStyle.SURFACE);
+        fitLabel(canvas,"Revoir le tutoriel de Lumi",W/2,tutorialResetBtn.centerY(),15,12,W-64*d,purple);
+        y+=76*d;
+        fitLabel(canvas,now()<resetDoneUntil ? parentNotice : "Sans compte · Sans publicité · Hors ligne",W/2,y,12,10,W-32*d,UiStyle.MUTED);
+        canvas.restore();
     }
 
     void statCard(Canvas canvas, RectF rectF, String str, String str2) {
@@ -2074,28 +2025,26 @@ class GameView extends View {
         label(canvas, str2, rectF.centerX(), (this.d * 43.0f) + rectF.top, 15.0f, z ? -1 : this.ink, Paint.Align.CENTER);
     }
 
+    int worldColumns() { return W/d < 350 || fontScale()>1.15f ? 2 : 3; }
     void drawThemesGrid(Canvas canvas) {
-        float topInset = systemTop();
-        float scale = this.d;
-        this.homeBtn.set(18 * scale, topInset + 8 * scale, 66 * scale, topInset + 54 * scale);
-        round(canvas, this.homeBtn, 16, -1);
-        label(canvas, "‹", this.homeBtn.centerX(), this.homeBtn.centerY() - 2 * scale, 32, this.ink, Paint.Align.CENTER);
-        label(canvas, "Choisis ton monde", this.W / 2, topInset + 32 * scale, 24, this.ink, Paint.Align.CENTER);
-        label(canvas, "18 aventures à découvrir", this.W / 2, topInset + 68 * scale, 13, -8950152, Paint.Align.CENTER);
-        float gap = 8 * scale;
-        float left = 16 * scale;
-        float width = (this.W - 2 * left - 2 * gap) / 3;
-        float startY = topInset + 88 * scale;
-        float bottomInset = getRootWindowInsets() == null ? 26 * scale :
-                Math.max(26 * scale, getRootWindowInsets().getSystemWindowInsetBottom() + 12 * scale);
-        float height = (this.H - startY - bottomInset - 5 * gap) / 6;
-        for (int world = 0; world < WORLD_COUNT; world++) {
-            float x = left + (world % 3) * (width + gap);
-            float y = startY + (world / 3) * (height + gap);
-            RectF tile = this.themeTiles[world];
-            tile.set(x, y, x + width, y + height);
-            drawThemeGridTile(canvas, tile, world);
+        float top=systemTop(), bottom=H-systemBottom();
+        homeBtn.set(16*d,top+4*d,64*d,top+52*d);
+        round(canvas,homeBtn,18,UiStyle.SURFACE);
+        label(canvas,"‹",homeBtn.centerX(),homeBtn.centerY(),32,ink,Paint.Align.CENTER);
+        fitLabel(canvas,"Choisis ton monde",(64*d+W)/2,top+28*d,22,17,W-88*d,ink);
+        label(canvas,WORLD_COUNT+" mondes à explorer",W/2,top+67*d,14,UiStyle.MUTED,Paint.Align.CENTER);
+        int columns=worldColumns(), rowCount=(WORLD_COUNT+columns-1)/columns;
+        float gap=8*d, left=16*d, width=(W-2*left-(columns-1)*gap)/columns;
+        float start=top+88*d, height=Math.max(108*d,Math.min(136*d,width*1.12f));
+        worldsScrollMax=Math.max(0,rowCount*(height+gap)-gap-(bottom-start));
+        worldsScroll=Math.max(0,Math.min(worldsScroll,worldsScrollMax));
+        canvas.save(); canvas.clipRect(0,start,W,bottom);
+        for (int world=0; world<WORLD_COUNT; world++) {
+            float x=left+world%columns*(width+gap), y=start+world/columns*(height+gap)-worldsScroll;
+            themeTiles[world].set(x,y,x+width,y+height);
+            if (y+height>start && y<bottom) drawThemeGridTile(canvas,themeTiles[world],world);
         }
+        canvas.restore();
     }
 
     void drawThemeGridTile(Canvas canvas, RectF tile, int world) {
@@ -2109,14 +2058,15 @@ class GameView extends View {
             canvas.drawRoundRect(tile, 17 * this.d, 17 * this.d, this.p);
             this.p.setStyle(Paint.Style.FILL);
         }
-        float imageSize = Math.min(tile.width() - 16 * this.d, tile.height() * 0.60f);
+        float imageSize = Math.min(tile.width() - 16 * this.d, tile.height() * 0.58f);
         RectF image = new RectF(tile.centerX() - imageSize / 2,
                 tile.top + 3 * this.d,
                 tile.centerX() + imageSize / 2,
                 tile.top + 3 * this.d + imageSize);
         drawThemeSticker(canvas, world, image);
-        fitLabel(canvas, themeName(world), tile.centerX(), tile.bottom - 13 * this.d,
-                10, 7.5f, tile.width() - 8 * this.d, this.ink);
+        fitLabel(canvas, worldTitle(world), tile.centerX(), tile.bottom - 30 * this.d,
+                13, 10, tile.width() - 8 * this.d, this.ink);
+        label(canvas,Integer.bitCount(albumMask(world))+"/"+IMAGES_PER_WORLD,tile.centerX(),tile.bottom-12*d,12,UiStyle.MUTED,Paint.Align.CENTER);
         if (selected) {
             color(accent);
             canvas.drawCircle(tile.right - 12 * this.d, tile.top + 12 * this.d, 9 * this.d, this.p);
@@ -2126,36 +2076,33 @@ class GameView extends View {
     }
 
     RectF albumWorldRect(int world, float top) {
-        float margin = 20.0f * this.d;
-        float gap = 8.0f * this.d;
-        float width = (this.W - 2 * margin - 2 * gap) / 3.0f;
-        float height = Math.min(84.0f * this.d,
-                (this.H - top - 22.0f * this.d - 5 * gap) / 6.0f);
-        float x = margin + (world % 3) * (width + gap);
-        float y = top + (world / 3) * (height + gap);
-        return new RectF(x, y, x + width, y + height);
+        int columns=worldColumns(); float margin=16*d, gap=8*d;
+        float width=(W-2*margin-(columns-1)*gap)/columns;
+        float height=Math.max(96*d, Math.min(120*d,width));
+        int rowCount=(WORLD_COUNT+columns-1)/columns;
+        albumScrollMax=Math.max(0,rowCount*(height+gap)-gap-(H-systemBottom()-top));
+        albumScroll=Math.max(0,Math.min(albumScroll,albumScrollMax));
+        float x=margin+world%columns*(width+gap), y=top+world/columns*(height+gap)-albumScroll;
+        return new RectF(x,y,x+width,y+height);
     }
-
     void drawAlbumWorlds(Canvas canvas, float top) {
-        for (int world = 0; world < WORLD_COUNT; world++) {
-            RectF tile = albumWorldRect(world, top);
-            round(canvas, tile, 16.0f, -1);
-            float imageSize = Math.min(48.0f * this.d, tile.height() * 0.59f);
-            RectF image = new RectF(tile.centerX() - imageSize / 2, tile.top + 3.0f * this.d,
-                    tile.centerX() + imageSize / 2, tile.top + 3.0f * this.d + imageSize);
-            drawThemeSticker(canvas, world, image);
-            fitLabel(canvas, themeName(world), tile.centerX(), tile.bottom - 17.0f * this.d,
-                    10.0f, 7.0f, tile.width() - 8.0f * this.d, this.ink);
-            label(canvas, Integer.bitCount(albumMask(world)) + " / 12", tile.centerX(),
-                    tile.bottom - 5.0f * this.d, 9.0f, themeColor(world), Paint.Align.CENTER);
+        canvas.save(); canvas.clipRect(0,top,W,H-systemBottom());
+        for (int world=0; world<WORLD_COUNT; world++) {
+            RectF tile=albumWorldRect(world,top); themeTiles[world].set(tile);
+            if (tile.bottom<top || tile.top>H-systemBottom()) continue;
+            round(canvas,tile,18,UiStyle.SURFACE);
+            float size=Math.min(tile.width()-20*d,tile.height()*.57f);
+            uiScratch.set(tile.centerX()-size/2,tile.top+3*d,tile.centerX()+size/2,tile.top+3*d+size);
+            drawThemeSticker(canvas,world,uiScratch);
+            fitLabel(canvas,worldTitle(world),tile.centerX(),tile.bottom-28*d,13,10,tile.width()-8*d,ink);
+            label(canvas,Integer.bitCount(albumMask(world))+"/"+IMAGES_PER_WORLD,tile.centerX(),tile.bottom-11*d,12,UiStyle.MUTED,Paint.Align.CENTER);
         }
+        canvas.restore();
     }
-
     int albumWorldAt(float x, float y) {
-        float top = systemTop() + (118.0f + 56.0f + 48.0f) * this.d;
-        for (int world = 0; world < WORLD_COUNT; world++) {
-            if (albumWorldRect(world, top).contains(x, y)) return world;
-        }
+        float top=systemTop()+222*d;
+        if (y<top || y>H-systemBottom()) return -1;
+        for (int world=0;world<WORLD_COUNT;world++) if (albumWorldRect(world,top).contains(x,y)) return world;
         return -1;
     }
 
@@ -2167,7 +2114,7 @@ class GameView extends View {
         float fSystemTop = systemTop();
         RectF rectF = this.homeBtn;
         float f = this.d;
-        rectF.set(f * 18.0f, (8.0f * f) + fSystemTop, 66.0f * f, (f * 54.0f) + fSystemTop);
+        rectF.set(f * 18.0f, (8.0f * f) + fSystemTop, 66.0f * f, (f * 56.0f) + fSystemTop);
         round(canvas, this.homeBtn, 16.0f, -1);
         label(canvas, "‹", this.homeBtn.centerX(), this.homeBtn.centerY() - (this.d * 2.0f), 32.0f, this.ink, Paint.Align.CENTER);
         label(canvas, "Choisis ton monde", this.W / 2.0f, fSystemTop + (this.d * 31.0f), 27.0f, this.ink, Paint.Align.CENTER);
@@ -2291,9 +2238,27 @@ class GameView extends View {
     @Override // android.view.View
     public boolean onTouchEvent(MotionEvent motionEvent) {
         int action = motionEvent.getActionMasked();
+        if (!showQuit && !showResetConfirm && !showResumePrompt && enlargedItem<0
+                && (screen==0 || screen==3 || screen==4 || screen==5 && albumTab==2)) {
+            if (action==MotionEvent.ACTION_DOWN) { dragStartY=dragLastY=motionEvent.getY(); dragging=false; }
+            if (action==MotionEvent.ACTION_MOVE) {
+                float delta=dragLastY-motionEvent.getY(); dragLastY=motionEvent.getY();
+                if (Math.abs(motionEvent.getY()-dragStartY)>8*d) dragging=true;
+                if (dragging) {
+                    if (screen==0) homeScroll=Math.max(0,Math.min(homeScrollMax,homeScroll+delta));
+                    else if (screen==4) worldsScroll=Math.max(0,Math.min(worldsScrollMax,worldsScroll+delta));
+                    else if (screen==3) parentsScroll=Math.max(0,Math.min(parentsScrollMax,parentsScroll+delta));
+                    else albumScroll=Math.max(0,Math.min(albumScrollMax,albumScroll+delta));
+                    parentHolding=false; removeCallbacks(parentHoldAction); pressedTarget=null; invalidate(); return true;
+                }
+            }
+            if (action==MotionEvent.ACTION_UP && dragging) { dragging=false; accessible.changed(); invalidate(); return true; }
+        }
         if (action == MotionEvent.ACTION_CANCEL) {
+            dragging=false;
             this.pressedTarget = null;
             this.parentHolding = false;
+            removeCallbacks(parentHoldAction);
             invalidate();
             return true;
         }
@@ -2368,17 +2333,13 @@ class GameView extends View {
         }
         if (i4 == 0 && motionEvent.getAction() == 0 && this.parentBtn.contains(x, y)) {
             this.parentHolding = true;
-            postDelayed(new Runnable() { // from class: fr.memomimi.app.GameView$$ExternalSyntheticLambda4
-                @Override // java.lang.Runnable
-                public final void run() {
-                    GameView.this.m1lambda$onTouchEvent$3$frmemomimiappGameView();
-                }
-            }, 2500L);
+            removeCallbacks(parentHoldAction); postDelayed(parentHoldAction,2500L);
             return true;
         }
         if (motionEvent.getAction() == 2) {
             if (this.parentHolding && !this.parentBtn.contains(x, y)) {
                 this.parentHolding = false;
+                removeCallbacks(parentHoldAction);
             }
             return true;
         }
@@ -2386,8 +2347,10 @@ class GameView extends View {
             return true;
         }
         this.parentHolding = false;
+        removeCallbacks(parentHoldAction);
         int i6 = this.screen;
         if (i6 == 3) {
+            if (y<systemTop()+92*d && !homeBtn.contains(x,y)) return true;
             if (this.homeBtn.contains(x, y)) {
                 this.screen = 0;
             } else {
@@ -2423,7 +2386,7 @@ class GameView extends View {
                     this.screen = 0;
                 } else {
                     for (int world = 0; world < WORLD_COUNT; world++) {
-                        if (this.themeTiles[world].contains(x, y)) {
+                        if (y >= systemTop()+88*d && y <= H-systemBottom() && this.themeTiles[world].contains(x, y)) {
                             this.theme = world;
                             remember();
                             stopMusic();
@@ -2518,7 +2481,7 @@ class GameView extends View {
                 } else if (this.albumTab == 0 && (iAlbumImageAt = albumImageAt(x, y)) >= 0) {
                     this.enlargedItem = iAlbumImageAt;
                 }
-                this.albumPage = (i2 + WORLD_COUNT) % WORLD_COUNT;
+                if (albumTab != 0 || albumWorldAt(x,y)<0) this.albumPage = (i2 + WORLD_COUNT) % WORLD_COUNT;
             }
             buzz(4);
             invalidate();
@@ -2715,6 +2678,7 @@ class GameView extends View {
     /* synthetic */ void m1lambda$onTouchEvent$3$frmemomimiappGameView() {
         if (this.parentHolding && this.screen == 0) {
             this.parentHolding = false;
+            removeCallbacks(parentHoldAction);
             this.screen = 3;
             buzz(0);
             announceForAccessibility("Espace Parents");
@@ -2742,6 +2706,7 @@ class GameView extends View {
     }
 
     void choosePairs(int i) {
+        selectionAt = now();
         this.pairs = i;
         if (this.suggestedPairs == i) {
             this.suggestedPairs = 0;
@@ -2997,10 +2962,12 @@ class GameView extends View {
     void pauseMusic() {
         this.activityActive = false;
         this.parentHolding = false;
+        removeCallbacks(parentHoldAction);
         this.pressedTarget = null;
         this.matchFeedbackGeneration++;
         stopEffectSound();
         stopMusic();
+        audioFocus.release();
     }
 
     void resumeMusic() {
@@ -3013,7 +2980,7 @@ class GameView extends View {
     synchronized void startMusic() {
         int i;
         int length;
-        if (this.backgroundMusic == null && this.sound && this.activityActive && !this.storyPlaying) {
+        if (this.backgroundMusic == null && this.sound && this.activityActive && !this.storyPlaying && audioFocus.request()) {
             int i2 = this.musicIndex;
             if (i2 < 0) {
                 i = this.theme;
@@ -3082,10 +3049,12 @@ class GameView extends View {
     protected void onDetachedFromWindow() {
         this.activityActive = false;
         this.parentHolding = false;
+        removeCallbacks(parentHoldAction);
         this.pressedTarget = null;
         this.matchFeedbackGeneration++;
         stopEffectSound();
         stopMusic();
+        audioFocus.release();
         super.onDetachedFromWindow();
     }
 
@@ -3093,7 +3062,7 @@ class GameView extends View {
         final int i2;
         final double[] dArr;
         final float f;
-        if (this.sound && this.activityActive && !this.soundExecutor.isShutdown()) {
+        if (this.sound && this.activityActive && !this.soundExecutor.isShutdown() && audioFocus.request()) {
             if (i >= 100) {
                 dArr = new double[]{523.25d, 659.25d, 783.99d, 1046.5d};
                 i2 = 105;

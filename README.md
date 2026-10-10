@@ -1,6 +1,6 @@
-# MémoMondes 8.11
+# MémoMondes 9.0 — V2
 
-Jeu de mémoire Android pour les enfants de 5 à 7 ans. Le jeu fonctionne hors ligne ; une connexion sert à vérifier et télécharger les mises à jour GitHub.
+Jeu de mémoire Android pour les enfants de 5 à 8 ans. Le jeu fonctionne hors ligne ; une connexion sert à vérifier et télécharger les mises à jour GitHub.
 
 Le dossier source original ayant été perdu, cette version a été reconstruite à partir de l'APK 7.2, puis remise en état de compilation. Les images, musiques et narrations antérieures ont été récupérées de cet APK. Le code Java reconstruit par décompilation peut contenir des noms de variables moins lisibles que le code original.
 
@@ -15,6 +15,10 @@ Le dossier source original ayant été perdu, cette version a été reconstruite
 - [Fonctionnement et publication des mises à jour](docs/MISES_A_JOUR.md)
 
 Installer une fois la version 8.6 ou suivante pour activer les mises à jour depuis GitHub. Depuis la 8.11, le jeu vérifie au retour dans l'application et toutes les minutes tant qu'elle reste ouverte. Un correctif compatible est téléchargé en arrière-plan ; un panneau propose « Installer » ou « Plus tard », directement dans le jeu. Une partie en cours n'est pas interrompue par ce panneau : le bouton d'installation reste disponible dans le bandeau. La confirmation finale appartient à Android. Le jeu et la progression restent utilisables hors ligne.
+
+## Version V2
+
+Accueil et mondes plus lisibles, plateau adapté aux quatre difficultés, victoire avec Lumi et progression réelle de l’album. Java/Canvas, les 18 mondes, les réglages et les sauvegardes sont conservés. Voir [le rapport V2](docs/V2.md) pour les décisions, critères et limites.
 
 ## Compiler
 

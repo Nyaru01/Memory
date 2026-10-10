@@ -15,7 +15,35 @@ public final class UpdateChecks {
         Bundle result = new Bundle();
         try {
             String mode = arguments == null ? "network" : arguments.getString("mode", "network");
-            if ("panel".equals(mode)) {
+            if ("v2before".equals(mode) || "v2after".equals(mode)) {
+                android.content.Intent intent=new android.content.Intent(getTargetContext(),MainActivity.class).addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK);
+                MainActivity activity=(MainActivity)host.startActivitySync(intent);
+                host.runOnMainSync(() -> {
+                    activity.updates.close(); GameView view=activity.game;
+                    view.sound=false; view.pauseMusic(); view.calm=true; view.screen=0; view.showResumePrompt=false; view.theme=1; view.pairs=6; view.invalidate();
+                });
+                String prefix=arguments.getString("capturePrefix", "v2before".equals(mode) ? "v2-before" : "v2-after");
+                capture(prefix+"-home.png");
+                host.runOnMainSync(() -> { activity.game.screen=4; activity.game.invalidate(); });
+                capture(prefix+"-worlds.png");
+                host.runOnMainSync(() -> { activity.game.screen=0; activity.game.pairs=12; activity.game.start(); activity.game.tutorialActive=false; activity.game.invalidate(); });
+                capture(prefix+"-board12.png");
+                host.runOnMainSync(() -> { activity.game.clearSavedGame(); activity.finish(); });
+                result.putString("stream","PASS: "+prefix+" real activity captures saved\n");
+            } else if ("v2seed".equals(mode)) {
+                if (!getTargetContext().getSharedPreferences("m",0).edit().putInt("theme",17).putInt("pairs",12)
+                        .putInt("album_17",63).putInt("best_12",19).putInt("data_version",5)
+                        .putBoolean("audio_default_v7",true).putBoolean("sound",false).putBoolean("calm",true)
+                        .putBoolean("tutorial_done",true).commit()) throw new AssertionError("Seed failed");
+                result.putString("stream","PASS: V2 upgrade data written on version "+UpdateManager.version(getTargetContext().getPackageManager().getPackageInfo("fr.memomimi.app",0))+"\n");
+            } else if ("v2verify".equals(mode)) {
+                android.content.SharedPreferences prefs=getTargetContext().getSharedPreferences("m",0);
+                if (UpdateManager.version(getTargetContext().getPackageManager().getPackageInfo("fr.memomimi.app",0))!=41
+                        || prefs.getInt("theme",-1)!=17 || prefs.getInt("pairs",-1)!=12 || prefs.getInt("album_17",0)!=63
+                        || prefs.getInt("best_12",0)!=19 || prefs.getBoolean("sound",true) || !prefs.getBoolean("calm",false))
+                    throw new AssertionError("Old data changed during upgrade");
+                result.putString("stream","PASS: signed upgrade 8.11 to V2, world, difficulty, album, record, sound and calm preserved\n");
+            } else if ("panel".equals(mode)) {
                 android.content.Intent intent = new android.content.Intent(getTargetContext(), MainActivity.class);
                 intent.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK);
                 MainActivity activity = (MainActivity) host.startActivitySync(intent);

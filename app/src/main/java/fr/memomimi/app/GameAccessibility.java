@@ -62,8 +62,8 @@ final class GameAccessibility extends AccessibilityNodeProvider {
         switch (view.screen) {
             case 0:
                 add(result, view.chooseTheme, "Choisir un monde : " + view.themeName(view.theme));
-                add(result, view.easy, "6 paires"); add(result, view.medium, "8 paires");
-                add(result, view.hard, "10 paires"); add(result, view.expert, "12 paires");
+                add(result, view.easy, "6 paires, Facile"+(view.pairs==6 ? ", sélectionné" : "")); add(result, view.medium, "8 paires, Normal"+(view.pairs==8 ? ", sélectionné" : ""));
+                add(result, view.hard, "10 paires, Difficile"+(view.pairs==10 ? ", sélectionné" : "")); add(result, view.expert, "12 paires, Expert"+(view.pairs==12 ? ", sélectionné" : ""));
                 add(result, view.onePlayer, "Jouer seul"); add(result, view.twoPlayers, "Duel à deux");
                 add(result, view.coopPlayer, "Jouer ensemble"); add(result, view.play, "Jouer");
                 add(result, view.albumBtn, "Mon album"); add(result, view.soundBtn, "Son : " + (view.sound ? "activé" : "désactivé"));
@@ -105,14 +105,14 @@ final class GameAccessibility extends AccessibilityNodeProvider {
                 break;
             case 4:
                 add(result, view.homeBtn, "Retour à l'accueil");
-                for (int i = 0; i < GameView.WORLD_COUNT; i++) add(result, view.themeTiles[i], view.themeName(i));
+                for (int i = 0; i < GameView.WORLD_COUNT; i++) add(result, view.themeTiles[i], view.themeName(i)+(view.theme==i && view.screen==4 ? ", sélectionné" : "")+", "+Integer.bitCount(view.albumMask(i))+" images découvertes");
                 break;
             case 5:
                 if (view.enlargedItem >= 0) { add(result, view.enlargedClose, "Fermer l'image"); return result; }
                 add(result, view.homeBtn, "Retour"); add(result, view.albumPrev, "Monde précédent");
                 add(result, view.albumNext, "Monde suivant"); add(result, view.worldsTab, "Mondes");
                 add(result, view.imagesTab, "Images"); add(result, view.badgesTab, "Badges");
-                if (view.albumTab == 2) for (int i = 0; i < GameView.WORLD_COUNT; i++) add(result, view.themeTiles[i], view.themeName(i));
+                if (view.albumTab == 2) for (int i = 0; i < GameView.WORLD_COUNT; i++) add(result, view.themeTiles[i], view.themeName(i)+(view.theme==i && view.screen==4 ? ", sélectionné" : "")+", "+Integer.bitCount(view.albumMask(i))+" images découvertes");
                 if (view.albumTab == 0) for (int i = 0; i < 12; i++) {
                     boolean unlocked = (view.albumMask(view.albumPage) & (1 << i)) != 0;
                     result.add(new Target(200 + i, view.albumImageBounds[i], "Image " + (i + 1) + ", "
@@ -123,6 +123,11 @@ final class GameAccessibility extends AccessibilityNodeProvider {
                 add(result, view.homeBtn, "Retour"); add(result, view.storyPlayBtn, view.storyPlaying ? "Mettre l'histoire en pause" : "Écouter l'histoire");
                 break;
             default: break;
+        }
+        java.util.Iterator<Target> visible = result.iterator();
+        while (visible.hasNext()) {
+            Target target = visible.next();
+            if (target.bounds.bottom <= view.visibleTop(target.bounds) || target.bounds.top >= view.H-view.systemBottom()) visible.remove();
         }
         return result;
     }
@@ -138,6 +143,10 @@ final class GameAccessibility extends AccessibilityNodeProvider {
             AccessibilityNodeInfo host = AccessibilityNodeInfo.obtain(view);
             view.onInitializeAccessibilityNodeInfo(host);
             host.setContentDescription("MémoMondes");
+            if (view.screen==0 || view.screen==3 || view.screen==4 || view.screen==5 && view.albumTab==2) {
+                host.setScrollable(true);
+                host.addAction(AccessibilityNodeInfo.ACTION_SCROLL_FORWARD); host.addAction(AccessibilityNodeInfo.ACTION_SCROLL_BACKWARD);
+            }
             for (Target target : targets()) host.addChild(view, target.id);
             return host;
         }
@@ -149,7 +158,9 @@ final class GameAccessibility extends AccessibilityNodeProvider {
         node.setClassName("android.widget.Button"); node.setContentDescription(target.label);
         node.setEnabled(target.enabled); node.setFocusable(true); node.setVisibleToUser(view.isShown());
         node.setClickable(target.enabled && !target.longPress); node.setLongClickable(target.longPress);
-        Rect bounds = new Rect(); target.bounds.roundOut(bounds); node.setBoundsInParent(bounds);
+        Rect bounds = new Rect(); target.bounds.roundOut(bounds);
+        bounds.top=Math.max(bounds.top,(int)view.visibleTop(target.bounds)); bounds.bottom=Math.min(bounds.bottom,(int)(view.H-view.systemBottom()));
+        node.setBoundsInParent(bounds);
         int[] location = new int[2]; view.getLocationOnScreen(location);
         bounds.offset(location[0], location[1]); node.setBoundsInScreen(bounds);
         node.setAccessibilityFocused(focused == id);
@@ -159,6 +170,8 @@ final class GameAccessibility extends AccessibilityNodeProvider {
     }
 
     @Override public boolean performAction(int id, int action, Bundle arguments) {
+        if(id==HOST_VIEW_ID && (action==AccessibilityNodeInfo.ACTION_SCROLL_FORWARD || action==AccessibilityNodeInfo.ACTION_SCROLL_BACKWARD))
+            return view.scrollPage(action==AccessibilityNodeInfo.ACTION_SCROLL_FORWARD);
         Target target = find(id);
         if (target == null) return false;
         if (action == AccessibilityNodeInfo.ACTION_ACCESSIBILITY_FOCUS) {

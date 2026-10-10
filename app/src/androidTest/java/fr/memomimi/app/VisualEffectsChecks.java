@@ -37,6 +37,7 @@ public final class VisualEffectsChecks extends Instrumentation {
                     verify(view, 2, false);
                     verify(view, 3, false);
                     verify(view, 1, true);
+                    verifyV2(view);
                 } finally {
                     view.pauseMusic();
                     view.releaseNarration();
@@ -49,6 +50,33 @@ public final class VisualEffectsChecks extends Instrumentation {
             result.putString("stream", "FAIL: " + failure + "\n");
             finish(0, result);
         }
+    }
+
+    private void verifyV2(GameView view) {
+        float previousDensity=view.d; view.d=1; view.sound=false; view.haptics=false; view.activityActive=false;
+        for(int[] size:new int[][]{{320,480},{360,640},{412,850}}) for(int pairs:new int[]{6,8,10,12}) {
+            view.pairs=pairs; view.start(); view.tutorialActive=false;
+            render(view,"v2-device-board-"+pairs+"-"+size[0],size[0],size[1]);
+            require(view.cards.length==pairs*2,"V2 deck size");
+            for(int i=0;i<view.cards.length;i++) {
+                android.graphics.RectF rect=view.cardBounds[i];
+                require(rect.top>=view.systemTop()+view.gameHeaderHeight() && rect.bottom<=size[1]-view.systemBottom()+.1f,"V2 board bounds");
+                require(Math.min(rect.width(),rect.height())>=48,"V2 48dp card");
+                require(view.hitCard(rect.centerX(),rect.centerY())==i,"V2 hit geometry");
+            }
+        }
+        view.screen=0; render(view,"v2-device-home",360,640);
+        click(view,view.chooseTheme); render(view,"v2-device-worlds",360,640);
+        require(view.screen==4 && view.worldColumns()==3,"V2 normal world columns");
+        for(int world=0;world<GameView.WORLD_COUNT;world++) require(view.themeSticker(world)!=null,"V2 existing artwork");
+        while(view.scrollPage(true)) render(view,null,360,640);
+        click(view,view.themeTiles[17]); require(view.screen==0 && view.theme==17,"V2 last world selection");
+        view.screen=5; view.albumTab=2; view.albumScroll=0;
+        render(view,"v2-device-album-worlds",360,640); click(view,view.themeTiles[1]);
+        require(view.albumPage==1 && view.albumTab==0,"V2 album world selection");
+        render(view,"v2-device-album-images",360,640);
+        view.screen=3; render(view,"v2-device-parents",360,640);
+        view.d=previousDensity;
     }
 
     private void require(boolean condition, String message) {

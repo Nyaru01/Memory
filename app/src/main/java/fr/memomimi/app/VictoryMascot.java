@@ -88,12 +88,12 @@ final class VictoryMascot {
         canvas.drawText(state.message, cx, bubble.centerY()-(paint.ascent()+paint.descent())/2, paint);
         fill(0xfff5f0ff);
         canvas.drawCircle(cx+size*.30f, bubble.bottom, 5, paint);
-        if (!reduced && elapsed < 3200) {
+        if (!reduced && elapsed < UiStyle.CONFETTI_MS) {
             for (int i = 0; i < 14; i++) {
-                float progress = (elapsed + i*117) / 2100f;
+                float progress = (elapsed + i*117) / 1800f;
                 float x = area.left + area.width()*((i*37%97)/97f);
                 float y = area.top + area.height()*(progress % 1);
-                int alpha = (int)(160*Math.min(1, (3200-elapsed)/650f));
+                int alpha = (int)(160*Math.min(1, (UiStyle.CONFETTI_MS-elapsed)/450f));
                 int color = (CONFETTI[i%4] & 0xffffff) | (alpha << 24);
                 if (i%3 == 0) star(canvas, x, y, 4, color);
                 else oval(canvas, x, y, 2, 3, color);
