@@ -1,5 +1,13 @@
 # Changements
 
+## 9.8 — 10 octobre 2026
+
+- Carte illustrée jusqu’au bas de l’écran, sous Continuer et sa marge de sécurité ; fin du parcours cadrée sans bande vide.
+- Fondu doux entre l’en-tête et le paysage, sans nouvel asset ni calque bitmap.
+- Chargement recomposé : fond lumineux crème/menthe, titre, Lumi au centre, texte et barre discrets ; suppression de la grande carte blanche.
+- Accueil de Lumi posé au sol : respiration légère, bref clignement, aucune bascule vers une pose inclinée ni rebond artificiel.
+- Même durée de démarrage, mêmes options sonores et réduction des animations ; progression inchangée.
+
 ## 9.7 — 10 octobre 2026
 
 - Illustrations HD conservées ; raccords fondus au contour organique, préparés en arrière-plan et mis en cache.
