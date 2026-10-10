@@ -105,6 +105,7 @@ final class GameAccessibility extends AccessibilityNodeProvider {
                 break;
             case 4:
                 add(result, view.homeBtn, "Retour à l'accueil");
+                for(int family=0;family<view.familyTiles.length;family++) add(result,view.familyTiles[family],WorldCatalog.FAMILIES[family]+(view.familyOpen[family] ? ", réduire" : ", ouvrir")+", "+WorldCatalog.WORLDS[family].length+" mondes");
                 for (int i = 0; i < GameView.WORLD_COUNT; i++) add(result, view.themeTiles[i], view.themeName(i)+(view.theme==i && view.screen==4 ? ", sélectionné" : "")+", "+Integer.bitCount(view.albumMask(i))+" images découvertes");
                 break;
             case 5:

@@ -26,9 +26,9 @@ final class StoryLibrary {
         "Zoé aimait jouer à la détective dans son jardin. Un soir, elle trouva une petite étoile de papier près de la porte. À côté, trois empreintes menaient vers le vieux chêne. Zoé prit sa loupe et son carnet. Sous le chêne, une enveloppe bleue l'attendait. Elle contenait un dessin de hibou et un petit morceau de puzzle. Le hibou, perché plus haut, lui montra du bec le sentier des fleurs. Zoé suivit le chemin sans courir, car un bon détective prend le temps de regarder. Près des fleurs, elle trouva une clé dorée. Mais aucune porte n'était fermée. Elle observa encore les alentours et remarqua un petit coffre derrière un pot. La clé l'ouvrit. À l'intérieur, il y avait d'autres étoiles de papier, un dessin de ses amis et une invitation à une soirée d'observation du ciel. Zoé rit : le grand mystère était une surprise ! Quand ses amis arrivèrent avec des couvertures, elle leur raconta tous les indices. Ensemble, ils assemblèrent le puzzle : il montrait la constellation qu'ils allaient chercher. Zoé comprit que les meilleures enquêtes se terminent parfois par un moment à partager."
     };
 
-    static String title(int world) { return world < 14 ? TITLES[world] : EXTRA_TITLES[world - 14]; }
-    static String summary(int world) { return world < 14 ? SUMMARIES[world] : EXTRA_SUMMARIES[world - 14]; }
-    static String text(int world) { return world < 14 ? TEXTS[world] : EXTRA_TEXTS[world - 14]; }
+    static String title(int world) { return world >= 18 ? NewWorldStories.TITLES[world-18] : world < 14 ? TITLES[world] : EXTRA_TITLES[world - 14]; }
+    static String summary(int world) { return world >= 18 ? NewWorldStories.SUMMARIES[world-18] : world < 14 ? SUMMARIES[world] : EXTRA_SUMMARIES[world - 14]; }
+    static String text(int world) { return world >= 18 ? NewWorldStories.TEXTS[world-18] : world < 14 ? TEXTS[world] : EXTRA_TEXTS[world - 14]; }
 
     static String assetName(int i) {
         return "stories/story_" + i + ".mp3";

@@ -69,6 +69,21 @@ public final class VisualEffectsChecks extends Instrumentation {
         click(view,view.chooseTheme); render(view,"v2-device-worlds",360,640);
         require(view.screen==4 && view.worldColumns()==3,"V2 normal world columns");
         for(int world=0;world<GameView.WORLD_COUNT;world++) require(view.themeSticker(world)!=null,"V2 existing artwork");
+        for(int world=18;world<GameView.WORLD_COUNT;world++) {
+            require(StoryLibrary.text(world).length()>1200,"New original story is present");
+            Bitmap preview=Bitmap.createBitmap(480,480,Bitmap.Config.ARGB_8888);
+            Canvas cards=new Canvas(preview); cards.drawColor(0xfffff8ec);
+            for(int item=0;item<12;item++) {
+                android.graphics.RectF cell=new android.graphics.RectF(item%4*120,item/4*160,item%4*120+120,item/4*160+160);
+                view.drawAnimalFrom(cards,world,item,cell,12);
+            }
+            try(FileOutputStream out=new FileOutputStream(new File(getTargetContext().getExternalFilesDir(null),"v92-new-cards-"+world+".png"))) {
+                preview.compress(Bitmap.CompressFormat.PNG,100,out);
+            } catch(Exception failure) { throw new AssertionError(failure); }
+            preview.recycle();
+        }
+        java.util.Arrays.fill(view.familyOpen,false); view.familyOpen[1]=true; view.worldsScroll=0;
+        render(view,null,360,640);
         while(view.scrollPage(true)) render(view,null,360,640);
         click(view,view.themeTiles[17]); require(view.screen==0 && view.theme==17,"V2 last world selection");
         view.screen=5; view.albumTab=2; view.albumScroll=0;
@@ -271,6 +286,28 @@ public final class VisualEffectsChecks extends Instrumentation {
         });
         Thread.sleep(400); liveScreenshot("mascot-live-touch-8.11");
         runOnMainSync(() -> {
+            GameView view=activity.game; view.celebration.reactionAt=-1;
+            view.celebration.startedAt=GameView.now()-4500; view.theme=18; view.invalidate();
+        });
+        Thread.sleep(200); liveScreenshot("v92-victory-readable");
+        runOnMainSync(() -> {
+            GameView view=activity.game; view.screen=4; view.worldsScroll=0;
+            java.util.Arrays.fill(view.familyOpen,false); view.familyOpen[4]=true; view.invalidate();
+        });
+        Thread.sleep(200); liveScreenshot("v92-worlds-robots");
+        runOnMainSync(() -> {
+            GameView view=activity.game;
+            require(!view.themeTiles[18].isEmpty() && view.themeTiles[0].isEmpty(),"Family hides other worlds");
+            click(view,view.themeTiles[18]); require(view.theme==18 && view.screen==0,"New world is selectable");
+            view.pairs=12; view.start(); view.tutorialActive=false;
+            require(view.cards.length==24 && view.worldSheet(18)!=null,"New robot deck has twelve pairs");
+            view.invalidate();
+        });
+        Thread.sleep(200); liveScreenshot("v92-robots-board");
+        runOnMainSync(() -> { activity.game.theme=19; activity.game.start(); activity.game.tutorialActive=false; activity.game.invalidate(); });
+        Thread.sleep(200); liveScreenshot("v92-garden-board");
+        runOnMainSync(() -> {
+            activity.game.screen=2;
             click(activity.game, activity.game.homeBtn);
             require(activity.game.screen == 4, "Attached world button navigates");
             activity.finish();

@@ -10,6 +10,9 @@ final class MascotAnimation {
     float scaleX = 1, scaleY = 1, lift, tilt;
     static final long APPEAR_MS = 1080, VICTORY_MS = 2700, TOUCH_MS = 1440;
     static final long WELCOME_HOLD_MS = 650, WELCOME_BLEND_MS = 450;
+    private static float smooth(float t) {
+        t=Math.max(0,Math.min(1,t)); return t*t*(3-2*t);
+    }
 
     void sampleLoading(long elapsed, boolean reduced) {
         state = State.IDLE;
@@ -45,8 +48,8 @@ final class MascotAnimation {
             lift = .09f * (float)Math.sin(t * Math.PI);
             scaleX = 1 + .06f * (float)Math.sin(t*Math.PI*4);
             scaleY = 1 / scaleX;
-            previousFrame = frame == 18 ? 18 : frame-1;
-            blend = Math.min(1, (local%160)/50f);
+            previousFrame = frame == 18 ? 0 : frame-1;
+            blend = smooth((local%160)/160f);
         } else if (elapsed < 720) {
             state = State.APPEAR; local = elapsed;
             frame = 6 + Math.min(5, (int)(local / 120));
@@ -55,34 +58,32 @@ final class MascotAnimation {
             scaleX = 1 + .12f*(float)Math.cos(t*Math.PI*4)*(1-t);
             scaleY = 1 / scaleX;
             previousFrame = frame == 6 ? 6 : frame-1;
-            blend = Math.min(1, (local%120)/45f);
+            blend = smooth((local%120)/120f);
         } else if (elapsed < 2520) {
             state = State.VICTORY; local = (elapsed - 720) % 900;
             frame = 12 + Math.min(5, (int)(local / 150));
             float t = local / 900f;
-            lift = .16f * (float)Math.sin(t*Math.PI);
-            tilt = (float)Math.sin(t*Math.PI*2)*5;
-            scaleX = 1 + .09f*(float)Math.cos(t*Math.PI*2);
+            float arc=(float)Math.sin(t*Math.PI);
+            lift = .14f * arc*arc;
+            tilt = (float)Math.sin(t*Math.PI*2)*4*arc;
+            scaleX = 1 + .07f*(float)Math.sin(t*Math.PI*2)*arc;
             scaleY = 1 / scaleX;
             previousFrame = frame == 12 ? (elapsed < 870 ? 11 : 17) : frame-1;
-            blend = Math.min(1, (local%150)/50f);
+            blend = smooth((local%150)/150f);
         } else {
             local = elapsed - 2520;
             long cycle = local % 5400;
             if (cycle >= 3800 && cycle < 4100) {
                 state = State.BLINK;
                 frame = cycle < 3880 || cycle >= 4020 ? 4 : 5;
-                previousFrame = cycle < 3880 ? 2 : cycle < 4020 ? 4 : 5;
-                blend = Math.min(1, (cycle-(cycle < 3880 ? 3800 : cycle < 4020 ? 3880 : 4020))/40f);
+                previousFrame = cycle < 3880 ? 0 : cycle < 4020 ? 4 : 5;
+                blend = smooth((cycle-(cycle < 3880 ? 3800 : cycle < 4020 ? 3880 : 4020))/(cycle < 3880 ? 80f : cycle < 4020 ? 140f : 80f));
             } else {
                 state = State.IDLE;
-                // Long holds avoid constant swapping; the body breathes between pose changes.
-                frame = cycle < 1700 ? 0 : cycle < 3000 ? 1 : cycle < 4300 ? 2 : 3;
-                long poseStart = frame == 0 ? 0 : frame == 1 ? 1700 : frame == 2 ? 3000 : 4300;
-                previousFrame = frame == 0 ? 3 : frame-1;
-                if (cycle >= 4100 && cycle < 4300) { previousFrame = 4; poseStart = 4100; }
-                if (elapsed < 2640) previousFrame = 17;
-                blend = Math.min(1, (cycle-poseStart)/120f);
+                // A stable silhouette breathes continuously; no constant unrelated pose swaps.
+                frame = 0; previousFrame = 0;
+                if (local<360) { previousFrame=17; blend=smooth(local/360f); }
+                else if(cycle>=4100 && cycle<4280) { previousFrame=4; blend=smooth((cycle-4100)/180f); }
             }
             scaleY = 1 + .025f*(float)Math.sin(local/850d);
             scaleX = 1 - (scaleY-1)*.55f;

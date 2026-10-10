@@ -70,13 +70,49 @@ public class V2AcceptanceTest {
             assertEquals(pairs,view.pairs); assertEquals(0,view.screen);
         }
         click(view.chooseTheme); render("v2-worlds-small",320,480);
-        assertEquals(4,view.screen); assertEquals(18,GameView.WORLD_COUNT); assertEquals(2,view.worldColumns());
+        assertEquals(4,view.screen); assertEquals(20,GameView.WORLD_COUNT); assertEquals(2,view.worldColumns());
+        view.familyOpen[0]=false; view.familyOpen[1]=true; render(null,320,480);
         event(MotionEvent.ACTION_DOWN,150,420); event(MotionEvent.ACTION_MOVE,150,200); event(MotionEvent.ACTION_UP,150,200);
         assertEquals(4,view.screen); assertTrue(view.worldsScroll>0);
         while(view.scrollPage(true)) render(null,320,480);
         render("v2-worlds-last",320,480); click(view.themeTiles[17]);
         assertEquals(17,view.theme); assertEquals(0,view.screen);
         render(null,320,480); click(view.play); assertEquals(1,view.screen); assertEquals(24,view.cards.length);
+    }
+    @Test public void familiesCoverStableWorldIdsAndCollapsedWorldsCannotBeSelected() {
+        boolean[] seen=new boolean[GameView.WORLD_COUNT];
+        for(int family=0;family<WorldCatalog.WORLDS.length;family++) for(int world:WorldCatalog.WORLDS[family]) {
+            assertFalse(seen[world]); seen[world]=true; assertEquals(family,WorldCatalog.familyOf(world));
+        }
+        for(boolean exists:seen) assertTrue(exists);
+        view.screen=4; render("v92-worlds",360,640);
+        assertTrue(view.themeTiles[18].isEmpty());
+        click(view.familyTiles[0]); render(null,360,640);
+        assertTrue(view.themeTiles[0].isEmpty()); assertEquals(4,view.screen);
+        click(view.familyTiles[4]); render("v92-worlds-robots",360,640);
+        click(view.themeTiles[18]); assertEquals(18,view.theme); assertEquals(0,view.screen);
+    }
+    @Test public void newWorldsHaveTwelveCardsStoriesAndIndependentAlbumProgress() {
+        for(int world=18;world<20;world++) {
+            assertEquals(0,view.albumMask(world)); view.theme=world; view.pairs=12; view.start(); view.tutorialActive=false;
+            render("v92-new-world-"+world,360,640);
+            assertEquals(24,view.cards.length); assertNotNull(view.worldSheet(world)); assertNotNull(view.themeSticker(world));
+            assertTrue(StoryLibrary.text(world).length()>1200); assertFalse(StoryLibrary.title(world).isEmpty());
+            view.calm=true;
+            for(int i=0;i<24;i++) view.cards[i]=i/2;
+            for(int i=0;i<24;i+=2) { click(view.cardBounds[i]); click(view.cardBounds[i+1]); }
+            assertEquals(12,view.found); assertEquals(4095,view.albumMask(world));
+            view.pendingWinAt=GameView.now()-1; render("v92-victory-"+world,360,640);
+            assertEquals(2,view.screen); assertTrue(view.celebration.active);
+            view.celebration.startedAt=GameView.now()-4500; view.winAt=view.celebration.startedAt;
+            view.d=3; context.getResources().getConfiguration().fontScale=1.3f;
+            render("v92-victory-dense-"+world,1080,1920);
+            assertTrue(view.victoryMascot.bounds.bottom<view.storyBtn.top);
+            view.d=1; context.getResources().getConfiguration().fontScale=1; render(null,360,640);
+            click(view.play); assertEquals(1,view.screen);
+        }
+        assertEquals(24,view.albumCount()); assertEquals(240,GameView.ALBUM_TOTAL);
+        assertEquals(0,view.albumMask(17));
     }
     @Test public void oldProgressRecordsAndPreferencesSurviveRecreation() {
         view.releaseAudio(); SharedPreferences prefs=context.getSharedPreferences("m",0);

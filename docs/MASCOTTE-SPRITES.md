@@ -57,3 +57,7 @@ Séquence dédiée de six poses, indices 0, 1, 19, 22, 23, 0, environ 290 ms par
 ## Accueil ralenti — 9.1
 
 La séquence de chargement tient la pose 0 pendant 650 ms, effectue un seul fondu smoothstep de 450 ms vers la pose 19 (salut), puis conserve cette pose. La respiration est limitée à 1,2 % avec période de 7,5 s environ ; le balancement à 1,2 degré avec période de 8,8 s environ. Aucun saut ni retour cyclique entre poses pendant le chargement. Délai total de démarrage inchangé : 1750 ms. Le mode calme utilise toujours la pose fixe 0.
+
+## Transitions 9.2
+
+Fondus smoothstep sur toute la pose et rendu synchronisé avec l'écran. L'attente conserve la pose 0, respiration et balancement, avec un clignement périodique via les poses 4/5. Les anciennes rotations de quatre poses idle sont supprimées. Les sauts reviennent vers une transformation neutre sans rupture à l'atterrissage. La bulle respecte la densité et la préférence de police.

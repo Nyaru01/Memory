@@ -41,6 +41,7 @@ final class VictoryMascot {
     private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG | Paint.FILTER_BITMAP_FLAG);
     private final Path star = new Path();
     private final RectF bubble = new RectF();
+    private String wrappedMessage, firstLine, secondLine;
     private static final int INK = Color.rgb(71, 62, 99);
     private static final int[] CONFETTI = {0xffefadc4, 0xffa7ddce, 0xffc3b0ef, 0xffefce86};
 
@@ -67,25 +68,28 @@ final class VictoryMascot {
 
     void draw(Canvas canvas, RectF area, VictoryCelebration state, long now,
               boolean reduced, int accessoryColor, int world) {
+        draw(canvas, area, state, now, reduced, accessoryColor, world, 1, 1);
+    }
+    void draw(Canvas canvas, RectF area, VictoryCelebration state, long now,
+              boolean reduced, int accessoryColor, int world, float density, float fontScale) {
         if (!state.active) { bounds.setEmpty(); return; }
         long elapsed = Math.max(0, now - state.startedAt);
         long touch = state.reactionAt < 0 ? -1 : Math.max(0, now - state.reactionAt);
         animation.sample(elapsed, touch, state.reaction, reduced);
-        float size = Math.min(area.height() * .72f, area.width() * .54f);
+        float size = Math.min(area.height() * .66f, area.width() * .54f);
         float cx = area.centerX(), floor = area.bottom - size * .07f;
-        bounds.set(cx-size*.55f, area.top+area.height()*.24f, cx+size*.55f, area.bottom);
+        bounds.set(cx-size*.55f, area.top+area.height()*.34f, cx+size*.55f, area.bottom);
         canvas.save();
         // Entrance and particles stay inside the reserved illustration zone.
         canvas.clipRect(area);
-        bubble.set(area.left + 8, area.top + 2, area.right - 8, area.top + area.height()*.23f);
+        bubble.set(area.left + 4*density, area.top + 2*density, area.right - 4*density,
+                area.top + area.height()*.34f);
         fill(0xfff5f0ff);
-        canvas.drawRoundRect(bubble, 18, 18, paint);
+        canvas.drawRoundRect(bubble, 12*density, 12*density, paint);
         paint.setTextAlign(Paint.Align.CENTER);
-        paint.setTextSize(Math.min(17, area.height()*.10f));
-        float measured = paint.measureText(state.message);
-        if (measured > bubble.width()-16) paint.setTextSize(paint.getTextSize()*(bubble.width()-16)/measured);
+        paint.setTextSize(18*density*fontScale);
         fill(INK);
-        canvas.drawText(state.message, cx, bubble.centerY()-(paint.ascent()+paint.descent())/2, paint);
+        drawMessage(canvas, state.message, cx, density);
         fill(0xfff5f0ff);
         canvas.drawCircle(cx+size*.30f, bubble.bottom, 5, paint);
         if (!reduced && elapsed < UiStyle.CONFETTI_MS) {
@@ -119,6 +123,28 @@ final class VictoryMascot {
             }
         }
         canvas.restore();
+    }
+    private void drawMessage(Canvas canvas, String message, float cx, float density) {
+        float width=bubble.width()-16*density;
+        if(paint.measureText(message)<=width) {
+            canvas.drawText(message,cx,bubble.centerY()-(paint.ascent()+paint.descent())/2,paint);
+            return;
+        }
+        if(!message.equals(wrappedMessage)) {
+            wrappedMessage=message;
+            int split=message.lastIndexOf(' ',message.length()/2);
+            if(split<0) split=message.indexOf(' ');
+            if(split<0) split=message.length()/2;
+            firstLine=message.substring(0,split).trim(); secondLine=message.substring(split).trim();
+        }
+        float widest=Math.max(paint.measureText(firstLine),paint.measureText(secondLine));
+        // Two lines preserve readable letters instead of shrinking the entire sentence.
+        float lineHeight=Math.min(paint.getTextSize()*1.14f,(bubble.height()-4*density)/2);
+        if(widest>width) paint.setTextSize(paint.getTextSize()*width/widest);
+        if(paint.getTextSize()>lineHeight) paint.setTextSize(lineHeight);
+        float baseline=bubble.centerY()-(paint.ascent()+paint.descent())/2;
+        canvas.drawText(firstLine,cx,baseline-lineHeight/2,paint);
+        canvas.drawText(secondLine,cx,baseline+lineHeight/2,paint);
     }
     void drawLoading(Canvas canvas, RectF area, long elapsed, boolean reduced, int accent) {
         animation.sampleLoading(elapsed, reduced);

@@ -70,13 +70,15 @@ class GameView extends View {
     final RectF cardImageBounds = new RectF();
     final RectF cardBorderBounds = new RectF();
     int[] themeColors;
-    static final String[] THEME_NAMES = {"ANIMAUX", "OCÉAN", "ESPACE", "DINOSAURES", "FERME", "VÉHICULES", "MAGIE", "SIRÈNES", "JUNGLE", "GOURMANDISES", "PIRATES", "BANQUISE", "MUSIQUE", "MÉTIERS", "FÉES", "MAISON", "LÉGUMES", "DÉTECTIVE"};
+    static final String[] THEME_NAMES = {"ANIMAUX", "OCÉAN", "ESPACE", "DINOSAURES", "FERME", "VÉHICULES", "MAGIE", "SIRÈNES", "JUNGLE", "GOURMANDISES", "PIRATES", "BANQUISE", "MUSIQUE", "MÉTIERS", "FÉES", "MAISON", "LÉGUMES", "DÉTECTIVE", "ROBOTS RIGOLOS", "JARDIN MINIATURE"};
     static final long MATCH_DURATION_MS = 1050L;
     long pendingWinAt;
     static final int IMAGES_PER_WORLD = 4 * 3;
     static final int WORLD_COUNT = THEME_NAMES.length;
     static final int ALBUM_TOTAL = WORLD_COUNT * IMAGES_PER_WORLD;
     final RectF[] themeTiles = new RectF[WORLD_COUNT];
+    final RectF[] familyTiles = new RectF[WorldCatalog.FAMILIES.length];
+    final boolean[] familyOpen = new boolean[WorldCatalog.FAMILIES.length];
     final Bitmap[] themeStickers = new Bitmap[WORLD_COUNT];
     final RectF worldsTab = new RectF();
     final BoardLayout boardLayout = new BoardLayout();
@@ -229,8 +231,9 @@ class GameView extends View {
         this.text = paint;
         this.rng = new Random();
         this.sheets = new Bitmap[WORLD_COUNT];
-        this.assetNames = new String[]{"animals.png", "ocean.png", "space.png", "dinosaurs.png", "farm.png", "vehicles.png", "magic.png", "mermaids.png", "jungle.png", "treats.png", "pirates.png", "arctic.png", "music_world.png", "jobs.png", "fairies.png", "home_world.png", "vegetables.png", "detective.png"};
+        this.assetNames = new String[]{"animals.png", "ocean.png", "space.png", "dinosaurs.png", "farm.png", "vehicles.png", "magic.png", "mermaids.png", "jungle.png", "treats.png", "pirates.png", "arctic.png", "music_world.png", "jobs.png", "fairies.png", "home_world.png", "vegetables.png", "detective.png", "robots.png", "mini_garden.png"};
         for (int tile = 0; tile < WORLD_COUNT; tile++) this.themeTiles[tile] = new RectF();
+        for(int family=0;family<familyTiles.length;family++) familyTiles[family]=new RectF();
         boolean z = false;
         this.theme = 0;
         this.albumPage = 0;
@@ -359,6 +362,7 @@ class GameView extends View {
         this.players = 1;
         sharedPreferencesPrefs.edit().putInt("players", 1).apply();
         this.theme = Math.max(0, Math.min(WORLD_COUNT - 1, sharedPreferencesPrefs.getInt("theme", 0)));
+        familyOpen[WorldCatalog.familyOf(this.theme)]=true;
         int i = sharedPreferencesPrefs.getInt("pairs", 6);
         this.pairs = i;
         if (i != 6 && i != 8 && i != 10 && i != 12) {
@@ -731,7 +735,7 @@ class GameView extends View {
     }
 
     int themeColor(int i) {
-        if (this.themeColors == null) this.themeColors = new int[]{this.mint, -12013624, this.purple, -1008827, -8537246, -1414047, -2263628, -11159117, -10901413, -1475427, -12617560, -9912368, -1989061, -11625599, -5417494, -10042165, -12684698, -9411760};
+        if (this.themeColors == null) this.themeColors = new int[]{this.mint, -12013624, this.purple, -1008827, -8537246, -1414047, -2263628, -11159117, -10901413, -1475427, -12617560, -9912368, -1989061, -11625599, -5417494, -10042165, -12684698, -9411760, 0xff487ea1, 0xff537e57};
         return this.themeColors[i];
     }
 
@@ -1438,7 +1442,7 @@ class GameView extends View {
             canvas.scale(scale, scale, this.W / 2f, this.H * 0.1f);
         }
         label(canvas, "★", (this.W / 2.0f) - (this.d * 48.0f), this.H * 0.1f, 38.0f, -14249, Paint.Align.CENTER);
-        label(canvas, "★", this.W / 2.0f, this.H * 0.085f, 46.0f, this.coral, Paint.Align.CENTER);
+        label(canvas, "★", this.W / 2.0f, this.H * 0.085f, 46.0f, 0xffe3b95f, Paint.Align.CENTER);
         label(canvas, "★", (this.W / 2.0f) + (this.d * 48.0f), this.H * 0.1f, 38.0f, this.mint, Paint.Align.CENTER);
         canvas.restore();
         float f4 = this.d;
@@ -1462,7 +1466,7 @@ class GameView extends View {
         float f6 = this.d;
         float f7 = this.H;
         RectF rectF = new RectF(f6 * 48.0f, 0.285f * f7, this.W - (f6 * 48.0f), f7 * 0.345f);
-        round(canvas, rectF, 18.0f, z ? -1185542 : -5918);
+        round(canvas, rectF, 18.0f, z ? -1185542 : 0xffeff8f5);
         if (z) {
             sb = new StringBuilder("J1  ★ ");
             sb.append(this.score1);
@@ -1477,11 +1481,11 @@ class GameView extends View {
             str3 = " coups";
         }
         sb.append(str3);
-        label(canvas, sb.toString(), rectF.centerX(), rectF.centerY(), 15.0f, z ? this.purple : this.coral, Paint.Align.CENTER);
+        label(canvas, sb.toString(), rectF.centerX(), rectF.centerY(), 15.0f, z ? this.purple : UiStyle.REPLAY_TEXT, Paint.Align.CENTER);
         this.victoryArea.set(this.d * 30f, this.H * .36f,
                 this.W - this.d * 30f, this.H * .58f);
         this.victoryMascot.draw(canvas, this.victoryArea, this.celebration, now(),
-                animationsReduced(), themeColor(this.theme), this.theme);
+                animationsReduced(), themeColor(this.theme), this.theme, this.d, fontScale());
         float f15 = this.d;
         float f16 = this.H;
         RectF rectF4 = new RectF(f15 * 20.0f, 0.60f * f16, this.W - (f15 * 20.0f), f16 * 0.72f);
@@ -1506,8 +1510,8 @@ class GameView extends View {
         float f18 = this.d;
         float f19 = this.H;
         rectF5.set(f18 * 20.0f, 0.74f * f19, this.W - (f18 * 20.0f), Math.max(f19 * 0.825f, 0.74f*f19+48*d));
-        round(canvas, this.play, 18.0f, this.coral);
-        label(canvas, "Rejouer  ↻", this.play.centerX(), this.play.centerY(), 19.0f, -1, Paint.Align.CENTER);
+        round(canvas, this.play, 18.0f, UiStyle.REPLAY);
+        label(canvas, "Rejouer  ↻", this.play.centerX(), this.play.centerY(), 19.0f, UiStyle.REPLAY_TEXT, Paint.Align.CENTER);
         if (this.suggestedPairs > 0 || newUnlocks>0) {
             canvas2 = canvas;
             label(canvas2, newUnlocks>0 ? "Nouvelle image dans ton album !" : "Lumi propose : " + this.suggestedPairs + " paires", this.W / 2.0f, 0.843f * this.H, 10.0f, this.purple, Paint.Align.CENTER);
@@ -1532,7 +1536,7 @@ class GameView extends View {
         if (animationsReduced() || !this.activityActive) {
             return;
         }
-        postInvalidateDelayed(33L);
+        postInvalidateOnAnimation();
     }
 
     void drawStory(Canvas canvas) {
@@ -1894,7 +1898,7 @@ class GameView extends View {
         GameView gameView = this;
         Canvas canvas2 = canvas;
         String[] strArr = {"PREMIÈRE VICTOIRE", "GRAND EXPLORATEUR", "SUPER MÉMOIRE", "AMI DE TOUS"};
-        String[] strArr2 = {"Termine une partie", "Explore 3 mondes", "Gagne 5 parties", "Explore les 18 mondes"};
+        String[] strArr2 = {"Termine une partie", "Explore 3 mondes", "Gagne 5 parties", "Explore les "+WORLD_COUNT+" mondes"};
         String[] strArr3 = {"badge_first", "badge_explorer", "badge_five", "badge_mega"};
         SharedPreferences sharedPreferencesPrefs = gameView.progress.prefs();
         float f2 = gameView.d;
@@ -2032,17 +2036,36 @@ class GameView extends View {
         round(canvas,homeBtn,18,UiStyle.SURFACE);
         label(canvas,"‹",homeBtn.centerX(),homeBtn.centerY(),32,ink,Paint.Align.CENTER);
         fitLabel(canvas,"Choisis ton monde",(64*d+W)/2,top+28*d,22,17,W-88*d,ink);
-        label(canvas,WORLD_COUNT+" mondes à explorer",W/2,top+67*d,14,UiStyle.MUTED,Paint.Align.CENTER);
-        int columns=worldColumns(), rowCount=(WORLD_COUNT+columns-1)/columns;
+        label(canvas,WORLD_COUNT+" mondes · ouvre une famille",W/2,top+67*d,14,UiStyle.MUTED,Paint.Align.CENTER);
+        int columns=worldColumns();
         float gap=8*d, left=16*d, width=(W-2*left-(columns-1)*gap)/columns;
         float start=top+88*d, height=Math.max(108*d,Math.min(136*d,width*1.12f));
-        worldsScrollMax=Math.max(0,rowCount*(height+gap)-gap-(bottom-start));
+        float content=0;
+        for(int family=0;family<familyTiles.length;family++) {
+            content+=56*d;
+            if(familyOpen[family]) content+=((WorldCatalog.WORLDS[family].length+columns-1)/columns)*(height+gap);
+        }
+        worldsScrollMax=Math.max(0,content-(bottom-start));
         worldsScroll=Math.max(0,Math.min(worldsScroll,worldsScrollMax));
+        for(RectF tile:themeTiles) tile.setEmpty();
+        float y=start-worldsScroll;
         canvas.save(); canvas.clipRect(0,start,W,bottom);
-        for (int world=0; world<WORLD_COUNT; world++) {
-            float x=left+world%columns*(width+gap), y=start+world/columns*(height+gap)-worldsScroll;
-            themeTiles[world].set(x,y,x+width,y+height);
-            if (y+height>start && y<bottom) drawThemeGridTile(canvas,themeTiles[world],world);
+        for(int family=0;family<familyTiles.length;family++) {
+            RectF header=familyTiles[family]; header.set(left,y,W-left,y+48*d);
+            round(canvas,header,16,UiStyle.SURFACE);
+            fitLabel(canvas,WorldCatalog.FAMILIES[family],header.centerX()-14*d,header.centerY(),16,14,header.width()-72*d,ink);
+            label(canvas,familyOpen[family] ? "−" : "+",header.right-24*d,header.centerY(),24,purple,Paint.Align.CENTER);
+            y+=56*d;
+            if(familyOpen[family]) {
+                int[] worlds=WorldCatalog.WORLDS[family];
+                for(int index=0;index<worlds.length;index++) {
+                    int world=worlds[index]; float x=left+index%columns*(width+gap);
+                    float tileY=y+index/columns*(height+gap);
+                    themeTiles[world].set(x,tileY,x+width,tileY+height);
+                    if(tileY+height>start && tileY<bottom) drawThemeGridTile(canvas,themeTiles[world],world);
+                }
+                y+=((worlds.length+columns-1)/columns)*(height+gap);
+            }
         }
         canvas.restore();
     }
@@ -2385,6 +2408,12 @@ class GameView extends View {
                 if (this.homeBtn.contains(x, y)) {
                     this.screen = 0;
                 } else {
+                    for(int family=0;family<familyTiles.length;family++) {
+                        if(y>=systemTop()+88*d && y<=H-systemBottom() && familyTiles[family].contains(x,y)) {
+                            familyOpen[family]=!familyOpen[family];
+                            invalidate(); accessible.changed(); return true;
+                        }
+                    }
                     for (int world = 0; world < WORLD_COUNT; world++) {
                         if (y >= systemTop()+88*d && y <= H-systemBottom() && this.themeTiles[world].contains(x, y)) {
                             this.theme = world;

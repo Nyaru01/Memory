@@ -1,5 +1,14 @@
 # Changements
 
+## 9.2 — 10 octobre 2026
+
+- Rejouer turquoise avec texte sombre, résultats menthe et étoiles dorées.
+- Félicitations de Lumi adaptées à la densité, agrandies et réparties sur deux lignes au besoin.
+- Transitions de sprites progressives, atterrissages continus, attente stable ; rafraîchissement de victoire synchronisé avec l'écran.
+- Robots rigolos et Jardin miniature : 24 nouvelles illustrations et deux histoires originales (voix française Android).
+- 20 mondes en cinq familles repliables ; identifiants et progression des 18 mondes existants conservés.
+
+
 ## 9.1 — 10 octobre 2026
 
 - Chargement : pose initiale tenue 650 ms, un seul salut avec transition douce de 450 ms, puis pose conservée.

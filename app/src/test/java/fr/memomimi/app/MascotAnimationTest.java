@@ -56,6 +56,17 @@ public class MascotAnimationTest {
         assertEquals(MascotAnimation.State.IDLE, animation.state);
     }
 
+    @Test public void transitionsUseWholePoseDurationAndLandWithoutTransformJumps() {
+        MascotAnimation a=new MascotAnimation();
+        a.sample(1080+112,-1,0,false);
+        assertTrue(a.blend>.45f && a.blend<.55f);
+        for(int end:new int[]{2430,3780}) {
+            a.sample(end-1,-1,0,false); float lift=a.lift, tilt=a.tilt, scale=a.scaleX;
+            a.sample(end,-1,0,false);
+            assertEquals(lift,a.lift,.002f); assertEquals(tilt,a.tilt,.02f); assertEquals(scale,a.scaleX,.002f);
+        }
+        for(int t=4400;t<9400;t+=33) { a.sample(t,-1,0,false); assertEquals(0,a.frame); }
+    }
     @Test public void reducedMotionHasNoTransformsOrTimeDependentPose() {
         MascotAnimation animation = new MascotAnimation();
         animation.sample(1, -1, 0, true);
