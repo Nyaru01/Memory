@@ -1,4 +1,4 @@
-# MémoMondes 9.1 — V2
+# MémoMondes 9.2 — V2
 
 Jeu de mémoire Android pour les enfants de 5 à 8 ans. Le jeu fonctionne hors ligne ; une connexion sert à vérifier et télécharger les mises à jour GitHub.
 
@@ -18,7 +18,7 @@ Installer une fois la version 8.6 ou suivante pour activer les mises à jour dep
 
 ## Version V2
 
-Accueil et mondes plus lisibles, plateau adapté aux quatre difficultés, victoire avec Lumi et progression réelle de l’album. Java/Canvas, les 18 mondes, les réglages et les sauvegardes sont conservés. Voir [le rapport V2](docs/V2.md) pour les décisions, critères et limites.
+Accueil et mondes plus lisibles, plateau adapté aux quatre difficultés, victoire avec Lumi et progression réelle de l’album. Java/Canvas, les 18 mondes originaux, les réglages et les sauvegardes sont conservés. La 9.2 ajoute Robots rigolos et Jardin miniature, et regroupe les 20 mondes en cinq familles repliables. Voir [victoire et mondes 9.2](docs/VICTOIRE-MONDES-9.2.md). Voir [le rapport V2](docs/V2.md) pour les décisions, critères et limites.
 
 ## Compiler
 
@@ -67,11 +67,11 @@ Les dossiers `.gradle/`, `build/` et `app/build/` contiennent des fichiers gén�
 - Préférence Android de réduction des animations respectée ; commandes et cartes accessibles via TalkBack.
 - Horloge monotone, géométrie des cartes réutilisée et file de sons bornée.
 
-- 18 mondes visibles sur un seul écran, dont Fées, Maison, Légumes et Détective ; 12 images à découvrir par monde.
+- 20 mondes organisés en cinq familles repliables, dont Robots rigolos et Jardin miniature ; 12 images à découvrir par monde.
 - Les illustrations conservent leurs proportions sur les tuiles, les cartes et dans l'album.
 - Les vignettes de choix du monde sont détourées, sans rectangle crème autour des personnages ; l'ours blanc et le pompier utilisent des détourages transparents dédiés.
 - Un album réorganisé avec vue des mondes, images et badges.
-- 18 histoires narrées, dont les 4 nouvelles produites avec ElevenLabs ; lecture vocale Android de secours.
+- 18 histoires préenregistrées et deux nouvelles histoires originales lues avec la voix française Android ; lecture vocale de secours pour les autres.
 - 6 musiques, dont 2 compositions originales générées par `tools/generate_music.py`.
 
 Les éléments du compte ElevenLabs ne sont pas inclus dans le projet. Le script `tools/generate_narrations.py` lit la clé depuis la variable d'environnement `ELEVENLABS_API_KEY` si une nouvelle génération est souhaitée.
