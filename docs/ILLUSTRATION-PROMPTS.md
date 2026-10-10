@@ -1,5 +1,13 @@
 # Prompts finaux des illustrations de carte (outil imagegen intégré)
 
+## wildlife-atlas.png — 9.7
+
+Outil imagegen intégré, nouvelle planche assortie à creatures-atlas.png comme référence de style. PNG transparent reçu1254×1254, inspecté puis copié sans modification dans app/src/main/assets/adventure/wildlife-atlas.png. Quatre colonnes/quatre lignes : lapin, oiseau, faon, grenouille, quatre poses chacune ; sous-échantillonnage×2 dans Android. Les vingt paysages9.6 restent inchangés.
+
+```text
+Use case illustration-story animation spritesheet. Create a NEW companion wildlife sheet for MémoMondes, using attached sheet ONLY as soft pastel painterly 3D style reference. EXACT grid FOUR COLUMNS FOUR ROWS, equal square cells, sixteen separate centered poses, transparent background everywhere, NO scenery NO text NO labels NO borders. Each row one creature FOUR animation poses with same ground baseline, body scale and center and generous transparent padding 15percent. Row1 tiny adorable cream bunny, ears upright / ears dipping eyes halfclosed / eyes closed smiling ears low / eyes open ears rising. Row2 tiny round golden bluebird, wing flap open / half / closed / half, facing left. Row3 adorable baby fawn with tiny white spots, head neutral / head slightleft / smiling blink / head neutral, standing four feet planted. Row4 tiny mint green frog, breathing squat / blink / gentle tiny hop with legs extended / landing squat. Strong visible pose differences while body silhouette stable. Friendly children age5-7. Crisp clean alpha edge, warm bright pastel colors, match existing butterflies. Resolution square1536x1536 ideally. Strict4x4 grid no cell overlap.
+```
+
 
 ## Paysages individuels HD — 9.6
 

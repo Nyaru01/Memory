@@ -1,5 +1,14 @@
 # Changements
 
+## 9.7 — 10 octobre 2026
+
+- Illustrations HD conservées ; raccords fondus au contour organique, préparés en arrière-plan et mis en cache.
+- Quarante repères placés dans les paysages ; sentier de petites pierres aux couleurs du terrain, mêmes courbes pour Lumi.
+- En-tête compact, titres uniques, bouton Continuer plus léger avec cible48dp.
+- Victoire : Avancer avec Lumi ouvre la carte, trajet vers la prochaine étape et célébration d'arrivée ; Continuer reste utilisable immédiatement.
+- Ombre de Lumi, réactions au toucher, seize poses de lapin/oiseau/faon/grenouille et petits reflets sur les rivières.
+- Mode calme, réduction système, progression et sauvegardes conservés ; cache toujours limité aux décors proches.
+
 ## 9.6 — 10 octobre 2026
 
 - Vingt paysages recréés individuellement en haute résolution, au lieu de vignettes de 280 pixels agrandies ; recadrage sans déformation.
