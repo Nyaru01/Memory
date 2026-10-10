@@ -4,17 +4,30 @@ import org.junit.Test;
 import static org.junit.Assert.*;
 
 public class MascotAnimationTest {
-    @Test public void loadingChangesPoseWithinItsShortDurationAndRespectsCalm() {
+    @Test public void loadingGivesOneSlowGreetingWithoutHopOrPoseLoop() {
         MascotAnimation animation = new MascotAnimation();
-        int[] seen = new int[6];
-        for (int i = 0; i < 6; i++) {
-            animation.sampleLoading(i*290+140, false);
-            seen[i] = animation.frame;
+        for (long time=0;time<650;time+=50) {
+            animation.sampleLoading(time, false);
+            assertEquals(0, animation.frame);
         }
-        assertEquals(0, seen[0]); assertEquals(19, seen[2]);
-        assertEquals(22, seen[3]); assertEquals(0, seen[5]);
+        float previousBlend = 0;
+        for (long time=650;time<=1100;time+=50) {
+            animation.sampleLoading(time, false);
+            assertEquals(19, animation.frame);
+            assertEquals(0, animation.previousFrame);
+            assertTrue(animation.blend>=previousBlend);
+            assertEquals(0f, animation.lift, 0f);
+            assertTrue(Math.abs(animation.tilt)<=1.2f);
+            assertTrue(Math.abs(animation.scaleY-1)<=.0121f);
+            previousBlend=animation.blend;
+        }
+        for (long time : new long[]{1100, 1749, 5000, 20000}) {
+            animation.sampleLoading(time, false);
+            assertEquals(19, animation.frame);
+            assertEquals(1f, animation.blend, 0f);
+        }
         animation.sampleLoading(1000, false);
-        assertTrue(animation.lift > 0);
+        assertEquals(0f, animation.lift, 0f);
         animation.sampleLoading(1000, true);
         assertEquals(0, animation.frame);
         assertEquals(0f, animation.lift, 0f);

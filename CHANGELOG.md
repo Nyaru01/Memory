@@ -1,5 +1,10 @@
 # Changements
 
+## 9.1 — 10 octobre 2026
+
+- Chargement : pose initiale tenue 650 ms, un seul salut avec transition douce de 450 ms, puis pose conservée.
+- Respiration et balancement plus lents et légers ; démarrage toujours à 1750 ms, mode calme conservé.
+
 ## 9.0 — V2 — 10 octobre 2026
 
 - Accueil : carte du monde et progression réelle, difficultés 6/8/10/12 clairement sélectionnées, action Jouer et commandes secondaires lisibles.

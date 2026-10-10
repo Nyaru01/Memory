@@ -9,24 +9,21 @@ final class MascotAnimation {
     float blend = 1;
     float scaleX = 1, scaleY = 1, lift, tilt;
     static final long APPEAR_MS = 1080, VICTORY_MS = 2700, TOUCH_MS = 1440;
-    private static final int[] WELCOME_FRAMES = {0, 1, 19, 22, 23, 0};
+    static final long WELCOME_HOLD_MS = 650, WELCOME_BLEND_MS = 450;
 
     void sampleLoading(long elapsed, boolean reduced) {
         state = State.IDLE;
         scaleX = scaleY = 1; lift = tilt = 0; blend = 1;
         if (reduced) { frame = previousFrame = 0; return; }
         long local = Math.max(0, elapsed);
-        int index = Math.min(5, (int)(local/290));
-        frame = WELCOME_FRAMES[index];
-        previousFrame = WELCOME_FRAMES[Math.max(0, index-1)];
-        blend = Math.min(1, (local%290)/90f);
-        float wave = (float)Math.sin(Math.PI*Math.min(1f, local/1750f));
-        tilt = (float)Math.sin(local/330d)*4f*wave;
-        scaleY = 1+.035f*(float)Math.sin(local/250d)*wave;
+        // One unhurried greeting, then hold. Never squeeze a full joy cycle into startup.
+        frame = local < WELCOME_HOLD_MS ? 0 : 19;
+        previousFrame = 0;
+        float progress = Math.max(0, Math.min(1, (local-WELCOME_HOLD_MS)/(float)WELCOME_BLEND_MS));
+        blend = frame == 0 ? 1 : progress*progress*(3-2*progress);
+        tilt = (float)Math.sin(local/1400d)*1.2f;
+        scaleY = 1+.012f*(float)Math.sin(local/1200d);
         scaleX = 1-(scaleY-1)*.6f;
-        if (index == 3) {
-            lift = .075f*(float)Math.sin(Math.PI*(local%290)/290f);
-        }
     }
 
     void sample(long elapsed, long reactionElapsed, int reaction, boolean reduced) {
