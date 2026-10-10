@@ -1,4 +1,4 @@
-# MémoMondes 9.2 — V2
+# MémoMondes 9.3 — V2
 
 Jeu de mémoire Android pour les enfants de 5 à 8 ans. Le jeu fonctionne hors ligne ; une connexion sert à vérifier et télécharger les mises à jour GitHub.
 
@@ -15,6 +15,10 @@ Le dossier source original ayant été perdu, cette version a été reconstruite
 - [Fonctionnement et publication des mises à jour](docs/MISES_A_JOUR.md)
 
 Installer une fois la version 8.6 ou suivante pour activer les mises à jour depuis GitHub. Depuis la 8.11, le jeu vérifie au retour dans l'application et toutes les minutes tant qu'elle reste ouverte. Un correctif compatible est téléchargé en arrière-plan ; un panneau propose « Installer » ou « Plus tard », directement dans le jeu. Une partie en cours n'est pas interrompue par ce panneau : le bouton d'installation reste disponible dans le bandeau. La confirmation finale appartient à Android. Le jeu et la progression restent utilisables hors ligne.
+
+## Carte d’aventure 9.3
+
+Mon aventure propose 40 niveaux sur cinq îles. Le niveau 1 est ouvert au départ, puis chaque partie terminée débloque la suivante. Reprise et progression sauvegardées ; jeu libre et albums conservés. Voir [la carte et ses règles](docs/AVENTURE.md).
 
 ## Version V2
 
