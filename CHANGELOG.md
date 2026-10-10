@@ -1,5 +1,13 @@
 # Changements
 
+## 9.6 — 10 octobre 2026
+
+- Vingt paysages recréés individuellement en haute résolution, au lieu de vignettes de 280 pixels agrandies ; recadrage sans déformation.
+- Carte Canvas accélérée par le GPU ; fond masqué et ombres floutées inutiles supprimés du rendu répété.
+- Décodage des paysages et créatures sur un thread dédié, préchargement à l'accueil, cache de trois sections plafonné à 16 MiB ; chargements obsolètes annulés à la pause.
+- Repos animé à 30 images/s, défilement et réactions synchronisés avec l'écran. Les 40 niveaux et sauvegardes conservent leurs règles.
+- Comparaison instrumentée sur l'activité attachée en 1080 pixels de large, régression des assets HD et des cycles de chargement/libération.
+
 ## 9.5 — 10 octobre 2026
 
 - Correction du plantage au premier accès à Mon aventure avec les animations actives : l'absence de victoire précédente ne déclenche plus un trajet depuis le niveau0 inexistant.
