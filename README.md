@@ -1,4 +1,4 @@
-# MémoMondes 9.8 — V2
+# MémoMondes 9.9 — V2
 
 Jeu de mémoire Android pour les enfants de 5 à 8 ans. Le jeu fonctionne hors ligne ; une connexion sert à vérifier et télécharger les mises à jour GitHub.
 
@@ -16,9 +16,9 @@ Le dossier source original ayant été perdu, cette version a été reconstruite
 
 Installer une fois la version 8.6 ou suivante pour activer les mises à jour depuis GitHub. Depuis la 8.11, le jeu vérifie au retour dans l'application et toutes les minutes tant qu'elle reste ouverte. Un correctif compatible est téléchargé en arrière-plan ; un panneau propose « Installer » ou « Plus tard », directement dans le jeu. Une partie en cours n'est pas interrompue par ce panneau : le bouton d'installation reste disponible dans le bandeau. La confirmation finale appartient à Android. Le jeu et la progression restent utilisables hors ligne.
 
-## Carte d’exploration 9.8
+## Carte d’exploration 9.9
 
-La9.8 prolonge le paysage sous le bouton Continuer et ajoute un fondu sous l’en-tête. Le chargement accueille Lumi sur une composition lumineuse, avec une respiration douce et un clignement naturel. Voir [la finition de l’accueil et de la carte](docs/ACCUEIL-CARTE-9.8.md).
+La9.9 prolonge aussi le paysage derrière l’en-tête, avec un voile translucide. Le lancement accueille Lumi dans une clairière illustrée dédiée, avec une respiration discrète et un clignement. Voir [l’accueil illustré et la carte plein écran](docs/ACCUEIL-IMMERSIF-9.9.md).
 
 Mon aventure propose 40 niveaux traversant vingt paysages illustrés distincts. Lumi et les petites créatures sont animés ; glissement avec inertie et raccourci vers le niveau actuel. Le niveau 1 est ouvert au départ, puis chaque partie terminée débloque la suivante. Reprise et progression sauvegardées ; jeu libre et albums conservés. Voir [la carte et ses règles](docs/AVENTURE.md).
 
