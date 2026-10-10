@@ -4,35 +4,18 @@ import org.junit.Test;
 import static org.junit.Assert.*;
 
 public class MascotAnimationTest {
-    @Test public void loadingGivesOneSlowGreetingWithoutHopOrPoseLoop() {
-        MascotAnimation animation = new MascotAnimation();
-        for (long time=0;time<650;time+=50) {
-            animation.sampleLoading(time, false);
-            assertEquals(0, animation.frame);
+    @Test public void loadingStaysGroundedWithOneBriefBlinkAndContinuousBreathing() {
+        MascotAnimation animation=new MascotAnimation();float previous=1;
+        for(long time=0;time<1750;time+=10){
+            animation.sampleLoading(time,false);
+            assertEquals(time>=1050 && time<1190?4:0,animation.frame);
+            assertEquals(animation.frame,animation.previousFrame);
+            assertEquals(0,animation.lift,0);assertEquals(0,animation.tilt,0);
+            assertTrue(Math.abs(animation.scaleY-1)<=.0061f);
+            assertTrue(Math.abs(animation.scaleY-previous)<.0001f);previous=animation.scaleY;
         }
-        float previousBlend = 0;
-        for (long time=650;time<=1100;time+=50) {
-            animation.sampleLoading(time, false);
-            assertEquals(19, animation.frame);
-            assertEquals(0, animation.previousFrame);
-            assertTrue(animation.blend>=previousBlend);
-            assertEquals(0f, animation.lift, 0f);
-            assertTrue(Math.abs(animation.tilt)<=1.2f);
-            assertTrue(Math.abs(animation.scaleY-1)<=.0121f);
-            previousBlend=animation.blend;
-        }
-        for (long time : new long[]{1100, 1749, 5000, 20000}) {
-            animation.sampleLoading(time, false);
-            assertEquals(19, animation.frame);
-            assertEquals(1f, animation.blend, 0f);
-        }
-        animation.sampleLoading(1000, false);
-        assertEquals(0f, animation.lift, 0f);
-        animation.sampleLoading(1000, true);
-        assertEquals(0, animation.frame);
-        assertEquals(0f, animation.lift, 0f);
-        assertEquals(0f, animation.tilt, 0f);
-        assertEquals(1f, animation.scaleY, 0f);
+        animation.sampleLoading(1100,true);assertEquals(0,animation.frame);
+        assertEquals(1,animation.scaleY,0);assertEquals(0,animation.tilt,0);
     }
     @Test public void timelineSelectsEveryPoseAndReturnsToIdle() {
         MascotAnimation animation = new MascotAnimation();

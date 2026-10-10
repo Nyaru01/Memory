@@ -151,8 +151,9 @@ final class VictoryMascot {
         float size = Math.min(area.height(), area.width()*.76f);
         float cx = area.centerX(), floor = area.bottom-size*.09f;
         canvas.save(); canvas.clipRect(area);
-        oval(canvas, cx, area.centerY(), size*.49f, size*.46f, (accent & 0xffffff) | 0x10000000);
-        oval(canvas, cx, floor, size*.25f, size*.025f, 0x186f598f);
+        oval(canvas, cx, floor+size*.075f, size*.25f, size*.022f, 0x1b556960);
+        // Register the closed-eye drawing to the same feet as the neutral drawing.
+        if(animation.frame==4)canvas.translate(size*.035f,size*.008f);
         drawSprite(canvas, cx, floor, size);
         canvas.restore();
     }

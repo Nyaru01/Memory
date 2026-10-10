@@ -47,7 +47,7 @@ public class GameViewTest {
         assertEquals(-1, view.screen);
         assertFalse(view.celebration.active);
         assertTrue(view.splashMascotArea.bottom < view.splashBadge.top);
-        assertEquals(19, view.victoryMascot.animation.frame);
+        assertEquals(0, view.victoryMascot.animation.frame);
         view.splashStart = GameView.now()-1800;
         render(null, 320, 616);
         assertEquals(0, view.screen);

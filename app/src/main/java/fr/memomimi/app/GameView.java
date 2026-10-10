@@ -32,6 +32,7 @@ class GameView extends View {
     static long now() { return android.os.SystemClock.uptimeMillis(); }
     final VictoryCelebration celebration = new VictoryCelebration();
     final VictoryMascot victoryMascot = new VictoryMascot();
+    final WelcomeScreen welcomeScreen = new WelcomeScreen();
     final RectF victoryArea = new RectF();
     final RectF splashPanel = new RectF(), splashMascotArea = new RectF();
     final RectF splashBadge = new RectF(), splashBar = new RectF(), splashFill = new RectF();
@@ -468,7 +469,7 @@ class GameView extends View {
         int desiredLayer=screen==7 ? View.LAYER_TYPE_NONE : View.LAYER_TYPE_SOFTWARE;
         if(getLayerType()!=desiredLayer)setLayerType(desiredLayer,null);
         if(screen==7)canvas.drawColor(0xffe3f0e7);
-        else drawWorldBackground(canvas, this.screen == 5 ? this.albumPage : this.theme);
+        else if(screen!=-1)drawWorldBackground(canvas, this.screen == 5 ? this.albumPage : this.theme);
         if(activityActive && screen<=0 && W>0)adventureMap.prewarm(this);
         int i = this.screen;
         if (i == -1) {
@@ -526,31 +527,7 @@ class GameView extends View {
     void drawSplash(Canvas canvas) {
         long elapsed = Math.max(0, now()-this.splashStart);
         float progress = Math.min(1f, elapsed/1750f);
-        float top = systemTop()+22f*this.d;
-        this.splashPanel.set(20f*this.d, top, this.W-20f*this.d, this.H*.80f);
-        round(canvas, this.splashPanel, 34f, -134218244);
-        float height = this.splashPanel.height();
-        int accent = themeColor(this.theme);
-        this.splashMascotArea.set(this.splashPanel.left+12f*this.d, top+height*.035f,
-                this.splashPanel.right-12f*this.d, top+height*.50f);
-        this.victoryMascot.drawLoading(canvas, this.splashMascotArea, elapsed, animationsReduced(), accent);
-        fitLabel(canvas, "MémoMondes", this.W/2f, top+height*.61f, 37f, 24f,
-                this.splashPanel.width()-24f*this.d, this.ink);
-        fitLabel(canvas, "Éveille ta mémoire en t'amusant", this.W/2f, top+height*.70f, 14f, 10f,
-                this.splashPanel.width()-24f*this.d, -8950152);
-        this.splashBadge.set(this.W/2f-82f*this.d, top+height*.77f,
-                this.W/2f+82f*this.d, top+height*.84f);
-        round(canvas, this.splashBadge, 15f, (accent & 0xffffff) | 0x22000000);
-        label(canvas, "★  " + WORLD_COUNT + " MONDES À EXPLORER", this.W/2f,
-                this.splashBadge.centerY(), 10f, accent, Paint.Align.CENTER);
-        this.splashBar.set(this.splashPanel.left+35f*this.d, top+height*.92f,
-                this.splashPanel.right-35f*this.d, top+height*.92f+12f*this.d);
-        round(canvas, this.splashBar, 8f, -1580827);
-        this.splashFill.set(this.splashBar);
-        this.splashFill.right = this.splashBar.left+this.splashBar.width()*progress;
-        if (progress > 0) round(canvas, this.splashFill, 8f, this.mint);
-        label(canvas, progress < .92f ? "Lumi prépare les aventures…" : "C'est prêt !",
-                this.W/2f, this.splashPanel.bottom+this.H*.06f, 12f, accent, Paint.Align.CENTER);
+        welcomeScreen.draw(canvas,this,elapsed,progress);
         if (progress < 1f) {
             if (animationsReduced()) postInvalidateDelayed(120L);
             else postInvalidateOnAnimation();

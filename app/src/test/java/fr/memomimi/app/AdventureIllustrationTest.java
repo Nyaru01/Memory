@@ -6,6 +6,18 @@ import static org.junit.Assert.*;
 
 /** Meaningful renderer regressions in addition to the full progression scenarios. */
 public class AdventureIllustrationTest extends AdventureTest {
+    @Test public void landscapeFillsBottomAtStartAndEndWithSoftHeader() {
+        view.openAdventure();render(null,360,640);
+        for(int level:new int[]{1,40}){
+            view.adventureMap.focus(level,view.adventureMap.bottom-view.adventureMap.top,1);render(null,360,640);
+            Bitmap image=Bitmap.createBitmap(360,640,Bitmap.Config.ARGB_8888);view.onDraw(new Canvas(image));
+            assertNotEquals(0xffe3f0e7,image.getPixel(2,638));
+            int edge=image.getPixel(2,(int)view.adventureMap.top+1);
+            assertTrue(Math.abs(Color.red(edge)-227)<12);assertTrue(Math.abs(Color.green(edge)-240)<12);
+            if(level==40)assertTrue(view.adventureMap.nodes[39].centerY()<view.adventureMap.continueButton.top);
+            image.recycle();
+        }
+    }
     @Test public void posesStayOpaqueAndNeverDoubleTheFace() {
         Bitmap sheet=Bitmap.createBitmap(16,8,Bitmap.Config.ARGB_8888);sheet.eraseColor(Color.RED);new Canvas(sheet).drawColor(Color.RED);Paint blue=new Paint();blue.setColor(Color.BLUE);new Canvas(sheet).drawRect(8,0,16,8,blue);
         Bitmap output=Bitmap.createBitmap(8,8,Bitmap.Config.ARGB_8888);

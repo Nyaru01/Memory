@@ -19,14 +19,13 @@ final class MascotAnimation {
         scaleX = scaleY = 1; lift = tilt = 0; blend = 1;
         if (reduced) { frame = previousFrame = 0; return; }
         long local = Math.max(0, elapsed);
-        // One unhurried greeting, then hold. Never squeeze a full joy cycle into startup.
-        frame = local < WELCOME_HOLD_MS ? 0 : 19;
-        previousFrame = 0;
-        float progress = Math.max(0, Math.min(1, (local-WELCOME_HOLD_MS)/(float)WELCOME_BLEND_MS));
-        blend = frame == 0 ? 1 : progress*progress*(3-2*progress);
-        tilt = (float)Math.sin(local/1400d)*1.2f;
-        scaleY = 1+.012f*(float)Math.sin(local/1200d);
-        scaleX = 1-(scaleY-1)*.6f;
+        // A grounded welcome. The old greeting swapped to a tilted, unrelated pose.
+        long cycle=local%6200;
+        frame=previousFrame=cycle>=1050 && cycle<1190 ? 4 : 0;
+        state=frame==4?State.BLINK:State.IDLE;
+        scaleY=1+.006f*(float)Math.sin(local*Math.PI*2/5200d);
+        scaleX=1-(scaleY-1)*.35f;
+        tilt=0;lift=0;
     }
 
     void sample(long elapsed, long reactionElapsed, int reaction, boolean reduced) {
