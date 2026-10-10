@@ -157,14 +157,15 @@ final class VictoryMascot {
         canvas.restore();
     }
 
-    void drawMap(Canvas canvas, RectF area, long elapsed, long reaction, boolean reduced, boolean travelling) {
+    void drawMap(Canvas canvas, RectF area, long elapsed, long reaction, boolean reduced, boolean travelling,long arrival) {
         // Reuse actual atlas pose sequences, including blinks and occasional waves.
         long wave=elapsed%11000;
         long touch=reaction>=0 && reaction<1440 ? reaction : wave>=8500 && wave<9940 ? wave-8500 : -1;
-        animation.sample(travelling ? 1300+elapsed%2100 : 6000+elapsed, touch, 0, reduced);
+        animation.sample(arrival>=0 ? MascotAnimation.APPEAR_MS+arrival : travelling ? 1300+elapsed%2100 : 6000+elapsed, touch, 0, reduced);
         float size=Math.min(area.height()*.93f,area.width());
         canvas.save();
-        oval(canvas,area.centerX(),area.bottom-3,size*.24f,size*.025f,0x35645380);
+        float shadow=Math.max(.65f,1-animation.lift*1.5f);
+        oval(canvas,area.centerX(),area.bottom-size*.015f,size*.24f*shadow,size*.038f,0x3d544934);
         drawSprite(canvas,area.centerX(),area.bottom-size*.10f,size);
         canvas.restore();
     }
@@ -178,13 +179,8 @@ final class VictoryMascot {
         destination.set(-size*.5f, -size*.88f, size*.5f, size*.12f);
         fill(Color.WHITE);
         if (atlas != null) {
-            if (animation.blend < 1 && animation.previousFrame != animation.frame) {
-                paint.setAlpha((int)(255*(1-animation.blend)));
-                canvas.drawBitmap(atlas, frames[animation.previousFrame], destination, paint);
-            }
-            paint.setAlpha(animation.previousFrame == animation.frame ? 255 : (int)(255*animation.blend));
-            canvas.drawBitmap(atlas, frames[animation.frame], destination, paint);
-            paint.setAlpha(255);
+            SpritePose.draw(canvas,atlas,frames[animation.previousFrame],frames[animation.frame],destination,
+                    animation.previousFrame==animation.frame?1:animation.blend,paint);
         } else {
             oval(canvas, 0, -size*.32f, size*.28f, size*.30f, 0xffb9e7dc);
             star(canvas, 0, -size*.35f, size*.14f, 0xffffedaf);

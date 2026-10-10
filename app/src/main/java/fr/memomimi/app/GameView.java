@@ -1543,7 +1543,7 @@ class GameView extends View {
         rectF5.set(f18 * 20.0f, 0.74f * f19, this.W - (f18 * 20.0f), Math.max(f19 * 0.825f, 0.74f*f19+48*d));
         round(canvas, this.play, 18.0f, UiStyle.REPLAY);
         if(adventureLevel>0 && adventureLevel<AdventureStore.LEVEL_COUNT) nextLevelButton.set(play);
-        label(canvas,nextLevelButton.isEmpty() ? "Rejouer  ↻" : "Niveau suivant  ▶",play.centerX(),play.centerY(),19,UiStyle.REPLAY_TEXT,Paint.Align.CENTER);
+        fitLabel(canvas,nextLevelButton.isEmpty() ? "Rejouer  ↻" : "Avancer avec Lumi  ▶",play.centerX(),play.centerY(),19,15,play.width()-20*d,UiStyle.REPLAY_TEXT);
         if (this.suggestedPairs > 0 || newUnlocks>0) {
             canvas2 = canvas;
             label(canvas2, newUnlocks>0 ? "Nouvelle image dans ton album !" : "Lumi propose : " + this.suggestedPairs + " paires", this.W / 2.0f, 0.843f * this.H, 10.0f, this.purple, Paint.Align.CENTER);
@@ -2606,7 +2606,7 @@ class GameView extends View {
             }
             if (!this.storyBtn.contains(x, y)) {
                 if (this.play.contains(x, y)) {
-                    if(adventureLevel>0) startAdventure(nextLevelButton.isEmpty() ? adventureLevel : adventureLevel+1);
+                    if(adventureLevel>0) {if(nextLevelButton.isEmpty())startAdventure(adventureLevel);else openAdventure();}
                     else start();
                 } else {
                     if (this.albumBtn.contains(x, y)) {

@@ -117,7 +117,7 @@ public final class VisualEffectsChecks extends Instrumentation {
         require(view.adventure.completed()==1,"Real complete board unlocks exactly level two");
         require(!view.startAdventure(3),"Cannot skip next level");
         view.pendingWinAt=GameView.now()-1;render(view,"adventure-device-win",360,640);
-        click(view,view.play);require(view.adventureLevel==2 && view.screen==1,"Next level button starts level two");
+        click(view,view.play);require(view.screen==7 && view.adventure.current()==2,"Victory continues through Lumi journey map");render(view,null,360,640);click(view,view.adventureMap.continueButton);require(view.adventureLevel==2 && view.screen==1,"Continue starts level two");
         view.saveForPause();GameView restored=new GameView(getTargetContext());restored.sound=false;
         try {restored.loadGame();require(restored.adventureLevel==2 && restored.pairs==6,"Resume keeps adventure level");} finally {restored.releaseAudio();}
         view.openAdventure();render(view,"adventure-device-unlocked",360,640);
@@ -126,6 +126,7 @@ public final class VisualEffectsChecks extends Instrumentation {
             view.adventureMap.focus(level,488,1);render(view,level==13?"adventure-illustrated-ocean":level==21?"adventure-illustrated-space":null,360,640);
             require(view.adventureMap.scenery.retainedTiles()<=3,"Illustrated tile cache bounded");
             require(view.adventureMap.scenery.retainedBytes()+view.adventureMap.decor.bytes()<6*1024*1024,"Map bitmap memory bounded");
+            require(view.adventureMap.scenery.seamBytes()<=AdventureScenery.MAX_SEAM_BYTES,"Join strip cache bounded");
         }
         require(view.adventureMap.decor.bytes()>0,"Animated creatures bundled");
         view.openAdventure();render(view,"adventure-illustrated-device",360,640);

@@ -72,7 +72,7 @@ public class AdventureTest {
         }
     }
     @Test public void victoryNextButtonStartsExactlyNextLevelAndMapReturns() {
-        view.startAdventure(1);finish();assertFalse(view.nextLevelButton.isEmpty());click(view.play);assertEquals(2,view.adventureLevel);assertEquals(1,view.screen);
+        view.startAdventure(1);finish();assertFalse(view.nextLevelButton.isEmpty());click(view.play);assertEquals(7,view.screen);render(null,360,640);click(view.adventureMap.continueButton);assertEquals(2,view.adventureLevel);assertEquals(1,view.screen);
         finish();click(view.homeBtn);assertEquals(7,view.screen);assertEquals(2,view.adventure.completed());
         render(null,360,640);
         click(view.adventureMap.back);assertEquals(0,view.screen);assertEquals(0,view.adventureLevel);

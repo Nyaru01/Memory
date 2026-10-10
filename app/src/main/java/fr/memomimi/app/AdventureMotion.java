@@ -2,7 +2,7 @@ package fr.memomimi.app;
 
 /** Map-only animation state. It never writes or unlocks progression. */
 final class AdventureMotion {
-    static final long TRAVEL_MS=2200;
+    static final long DEPART_MS=480,MOVE_MS=2600,TRAVEL_MS=DEPART_MS+MOVE_MS,CELEBRATE_MS=1900;
     int pendingFrom, from, to;
     long startedAt, reactionAt=-1, lastFrame;
     float velocity;
@@ -13,10 +13,11 @@ final class AdventureMotion {
         if(reduced)from=to;
     }
     float progress(long now) {
-        float t=Math.max(0,Math.min(1,(now-startedAt)/(float)TRAVEL_MS));
+        float t=Math.max(0,Math.min(1,(now-startedAt-DEPART_MS)/(float)MOVE_MS));
         return t*t*(3-2*t);
     }
     boolean travelling(long now) {return from>=1 && to==from+1 && to<=40 && now-startedAt<TRAVEL_MS;}
+    long arrival(long now){return from>=1 && to==from+1 && to<=40 && now-startedAt>=TRAVEL_MS && now-startedAt<TRAVEL_MS+CELEBRATE_MS ? now-startedAt-TRAVEL_MS : -1;}
     void cancelTravel() {from=to;}
     void stop() {velocity=0;cancelTravel();}
 }

@@ -20,7 +20,7 @@ final class MapProfile {
             android.content.Intent intent=new android.content.Intent(host.getTargetContext(),MainActivity.class).addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK);
             activity=(MainActivity)host.startActivitySync(intent);MainActivity live=activity;
             int previous=host.getTargetContext().getSharedPreferences("m",0).getInt("adventure_completed",0);
-            host.runOnMainSync(()->{live.updates.close();live.game.sound=false;live.game.pauseMusic();live.game.calm=false;live.game.systemReducedMotion=false;host.getTargetContext().getSharedPreferences("m",0).edit().putInt("adventure_completed",0).commit();live.game.openAdventure();});
+            host.runOnMainSync(()->{live.updates.close();live.game.sound=false;live.game.pauseMusic();live.game.activityActive=true;live.game.calm=false;live.game.systemReducedMotion=false;host.getTargetContext().getSharedPreferences("m",0).edit().putInt("adventure_completed",0).commit();live.game.openAdventure();});
             Thread.sleep(1800);
             Bitmap capture=host.getUiAutomation().takeScreenshot();
             String prefix=args.getString("capturePrefix","map-profile");
@@ -43,6 +43,7 @@ final class MapProfile {
             Long[] drawValues; synchronized(draws){drawValues=draws.toArray(new Long[0]);}Arrays.sort(drawValues);
             report+=String.format(Locale.ROOT,"Canvas recording: median=%.2fms p95=%.2fms; actual hardware canvas=%s; tile memory=%dB, creatures=%dB. Total duration includes synchronization and is not a phone FPS guarantee.\n",drawValues[drawValues.length/2]/1e6,drawValues[(int)(drawValues.length*.95)]/1e6,live.game.adventureMap.hardwareCanvas,live.game.adventureMap.scenery.retainedBytes(),live.game.adventureMap.decor.bytes());
             if(!live.game.adventureMap.hardwareCanvas)throw new AssertionError("Map is not hardware rendered");
+            report+="Join cache="+live.game.adventureMap.scenery.seamBytes()+"B; ambient animation and inertia enabled.\n";
             try(FileWriter out=new FileWriter(new File(host.getTargetContext().getExternalFilesDir(null),prefix+".txt"))){out.write(report);}
             host.runOnMainSync(()->{if(live.game.screen!=7)throw new AssertionError("Map navigated unexpectedly");host.getTargetContext().getSharedPreferences("m",0).edit().putInt("adventure_completed",previous).commit();live.finish();});
             result.putString("stream",report);

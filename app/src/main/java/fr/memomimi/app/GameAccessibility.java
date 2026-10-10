@@ -91,7 +91,7 @@ final class GameAccessibility extends AccessibilityNodeProvider {
                 }
                 break;
             case 2:
-                add(result, view.play,view.nextLevelButton.isEmpty() ? "Rejouer" : "Niveau suivant");
+                add(result, view.play,view.nextLevelButton.isEmpty() ? "Rejouer" : "Avancer avec Lumi vers le niveau "+view.adventure.current());
                 add(result, view.storyBtn, "Écouter une histoire"); add(result, view.albumBtn, "Mon album");
                 add(result, view.homeBtn,view.adventureLevel>0 ? "Voir la carte" : "Choisir un monde");
                 add(result, view.victoryMascot.bounds, "Lumi, touche pour jouer avec moi");
@@ -130,7 +130,7 @@ final class GameAccessibility extends AccessibilityNodeProvider {
                     RectF node=view.adventureMap.nodes[level-1];
                     if(node.bottom<=view.adventureMap.top || node.top>=view.adventureMap.bottom) continue;
                     boolean unlocked=view.adventure.unlocked(level);
-                    result.add(new Target(400+level,node,"Niveau "+level+", "+view.worldTitle(AdventureStore.world(level))+", "+AdventureStore.pairs(level)+" paires, "+
+                    result.add(new Target(400+level,node,"Niveau "+level+", "+AdventureRoute.landmark(level)+", "+view.worldTitle(AdventureStore.world(level))+", "+AdventureStore.pairs(level)+" paires, "+
                         (level<=view.adventure.completed() ? "terminé" : unlocked ? "disponible" : "verrouillé"),unlocked,false));
                 }
                 break;
