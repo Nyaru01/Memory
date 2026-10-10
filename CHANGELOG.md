@@ -1,5 +1,12 @@
 # Changements
 
+## 8.9 — 10 octobre 2026
+
+- Refonte visuelle complète de Lumi : compagnon menthe et lilas avec volumes doux, grands yeux et expressions illustrées.
+- Atlas transparent de 24 poses : idle, blink, appear, victory et touch reaction, animé sur Canvas sans bibliothèque supplémentaire.
+- Timeline déterministe, fondus de poses, squash/stretch, deux bonds de victoire, respiration et effets de toucher.
+- Tests des états, de la mémoire, des modes de jeu et captures de la vue réellement affichée sur Android.
+
 ## 8.8 — 10 octobre 2026
 
 - Panneaux de mise à jour et d’autorisation Android harmonisés : cartes crème arrondies, boutons corail/violet et rappel de progression conservée.

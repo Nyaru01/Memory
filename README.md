@@ -1,4 +1,4 @@
-# MémoMondes 8.8
+# MémoMondes 8.9
 
 Jeu de mémoire Android pour les enfants de 5 à 7 ans. Le jeu fonctionne hors ligne ; une connexion sert à vérifier et télécharger les mises à jour GitHub.
 
@@ -53,6 +53,9 @@ Pour une exécution sans fenêtre : `.\tools\start-emulator.ps1 -Headless`. Le l
 Les dossiers `.gradle/`, `build/` et `app/build/` contiennent des fichiers générés et sont ignorés par Git. Les signatures issues de la décompilation sont conservées dans `releases/archive/`. Les anciens APK distribuables sont supprimés pour ne conserver que la version finale actuelle.
 
 ## Contenu
+
+- Lumi en spritesheet : 24 poses illustrées, cinq états d’animation, squash/stretch, rebonds, expressions et réactions au toucher. Voir [MASCOTTE-SPRITES.md](docs/MASCOTTE-SPRITES.md).
+
 
 - Paires réussies : impulsion douce, halo, particules et coches permanentes ; mode calme respecté.
 - Dernière paire visible avant l'écran de victoire ; étoiles et confettis améliorés.

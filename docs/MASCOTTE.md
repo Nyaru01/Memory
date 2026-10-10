@@ -32,3 +32,8 @@ En mode animé, rafraîchissement ciblé à environ 30 images/s, uniquement sur 
 ## Validation
 
 Voir `VALIDATION.md` pour les résultats de la livraison. Les tests de dessin sur émulateur ne constituent pas une validation de fluidité sur un téléphone d'entrée de gamme. Un essai sur matériel modeste et une observation de l'animation complète restent nécessaires pour confirmer ce critère en conditions réelles.
+
+
+## Refonte 8.9
+
+Le rendu vectoriel décrit ci-dessus a été remplacé par un personnage illustré en spritesheet. Consulter [MASCOTTE-SPRITES.md](MASCOTTE-SPRITES.md) pour l'architecture actuelle et la liste des frames.

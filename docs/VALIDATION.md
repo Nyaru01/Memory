@@ -112,3 +112,24 @@ Le build release utilise actuellement la signature de démonstration Android. La
 Architecture et comparaison Rive/Lottie/sprites : `MASCOTTE.md`.
 - APK final 8.8 (code 37) publié par tools/publish-apk.ps1 après validation ; empreinte identique à app-release.apk. Signature vérifiée : certificat fixe SHA-256 07d349ca3a7002952bdf75068a8dcff47c77409393cf24b11d1d6a986197d0a7.
 - APK release final installé ensuite sur l'émulateur : 74 vérifications Android réussies également sur cette version ; mesure renderer release médiane 0,25 ms, p95 0,58 ms, maximum 1,54 ms.
+
+## Refonte spritesheets — 8.9 — 10 octobre 2026
+
+- Nouvelle ressource `app/src/main/assets/mascot/lumi-atlas.png` : 1536 × 1024 RGBA, 24 cellules de 256 × 256. Vérification alpha extérieure et présence de pixels opaques dans chacune des 24 cellules. Atlas décodé de 6 291 456 octets (6 Mio).
+- `tools/build.ps1` : 48 tests locaux réussis, dont 26 GameView (API 28/35), 3 MascotAnimation, 1 VictoryCelebration et 18 tests de mise à jour. Sélection de chaque frame, cinq états, réduction des mouvements, cycle long, réinitialisation et mémoire contrôlés.
+- Lint release : 0 erreur, 25 avertissements existants. `git diff --check` : aucune erreur d'espacement.
+- `tools/check-device.ps1 -SkipBuild` : 83 contrôles Android réussis sur emulator-5554, solo/duel/coopération/calme. Atlas embarqué et budget mémoire inclus.
+- Captures GPU de la vraie vue attachée à MainActivity : apparition, victoire, idle et toucher. Les captures de victoire, idle et toucher ont été inspectées ; les résultats et boutons restent lisibles. La vue attachée a été touchée puis le bouton Choisir un monde a ouvert l'écran attendu.
+- Vidéo de démonstration de 10 secondes enregistrée avec Android screenrecord : `releases/validation/lumi-animation-8.9.mp4`. La vidéo n'a pas été examinée en lecture intégrale ; les captures Android des phases ont été examinées.
+- Mesure du renderer Canvas logiciel isolé : debug p95 0,91 ms ; release médiane 0,27 ms, p95 0,63 ms, maximum 1,22 ms sur 180 images après chauffe. Pas une mesure FPS/GPU de l'écran complet ni un essai sur téléphone modeste.
+- Release 8.9/code 38 compilée et publiée via tools/publish-apk.ps1 après les validations. APK/MemoMondes.apk identique à app-release.apk. Installation du final puis nouvelle instrumentation : PASS, 83 contrôles. Rapport : `releases/validation/mascot-release-8.9.txt`.
+- Signature vérifiée avec le certificat fixe SHA-256 07d349ca3a7002952bdf75068a8dcff47c77409393cf24b11d1d6a986197d0a7. Aucune clé régénérée. Un seul APK dans APK/, aucun APK à la racine ou sous releases/.
+- Aucun framework ou runtime tiers ajouté. Images produites par l'outil imagegen intégré, final stocké dans le projet sur D:. SDK, caches de build et fichiers de travail locaux restent sur D:.
+- Limites : fluidité sur Android d'entrée de gamme, parcours vocal TalkBack et évaluation par des enfants non réalisés. Les deux images blink ont les yeux fermés ; les fondus avec les poses ouvertes adoucissent la fermeture/réouverture. Les accessoires par monde restent des ornements Canvas séparés ; des overlays illustrés peuvent les remplacer.
+
+Direction artistique, liste des frames, architecture et prompt final : `MASCOTTE-SPRITES.md`.
+## Publication GitHub 8.9
+
+- Release v8.9 publiée et vérifiée comme dernière release publique. Manifeste public versionCode 38 et SHA-256 identique à APK/MemoMondes.apk.
+- Correctifs depuis 8.6, 8.7 et 8.8 reconstruits à l'identique avant publication. Correctif depuis la 8.8 officielle : 2 419 142 octets.
+- Test Android contre les assets publics GitHub, avec l'APK officiel 8.8 comme base : téléchargement HTTPS réussi, reconstruction exacte de 73 310 610 octets et contrôles package/version/signature réussis. Rapport : releases/validation/github-update-8.8-to-8.9.txt. Confirmation d'installation Android non répétée dans ce test.

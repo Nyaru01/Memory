@@ -51,3 +51,8 @@ Voir MISES_A_JOUR.md pour le protocole, les contraintes et les publications suiv
 ## Mascotte 8.8
 
 VictoryCelebration sépare le cycle de victoire du rendu VictoryMascot. GameView orchestre les entrées, sons et préférences. Voir MASCOTTE.md pour les alternatives, les points d'extension et les limites de validation.
+
+
+## Mascotte 8.9
+
+MascotAnimation sélectionne les cinq états, les cellules d'atlas et les transitions. VictoryMascot conserve un seul bitmap de 6 Mio et rend les poses et effets sur Canvas. VictoryCelebration reste indépendant du rendu. Voir MASCOTTE-SPRITES.md.
