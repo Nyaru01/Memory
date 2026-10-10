@@ -133,3 +133,18 @@ Direction artistique, liste des frames, architecture et prompt final : `MASCOTTE
 - Release v8.9 publiée et vérifiée comme dernière release publique. Manifeste public versionCode 38 et SHA-256 identique à APK/MemoMondes.apk.
 - Correctifs depuis 8.6, 8.7 et 8.8 reconstruits à l'identique avant publication. Correctif depuis la 8.8 officielle : 2 419 142 octets.
 - Test Android contre les assets publics GitHub, avec l'APK officiel 8.8 comme base : téléchargement HTTPS réussi, reconstruction exacte de 73 310 610 octets et contrôles package/version/signature réussis. Rapport : releases/validation/github-update-8.8-to-8.9.txt. Confirmation d'installation Android non répétée dans ce test.
+
+## Chargement et fluidité — 8.10 — 10 octobre 2026
+
+- Lumi : timeline ralentie à 2/3 de la vitesse 8.9 (durées +50 %) ; apparition 1080 ms, joie 2700 ms, toucher 1440 ms, attente 8100 ms. Réemploi du même atlas sur l'accueil de chargement, sans célébration ni allocation de bitmap supplémentaire.
+- Chargement : disposition proportionnelle sur petit écran, personnage, titre, sous-titre, badge et barre. Délai de démarrage inchangé (1750 ms). En animations réduites, pose statique et rafraîchissement de barre espacé.
+- Cartes : ouverture 280 ms, fermeture 320 ms, largeur en cosinus d'une interpolation smoothstep, léger soulèvement et reflet blanc à faible opacité. Aucun shader ni bitmap ajouté. Dessin synchronisé par postInvalidateOnAnimation.
+- Durées partagées par CardMotion entre le rendu, les gestes et le fournisseur TalkBack ; une touche à 200 ms ne remplace pas un retournement en cours, une touche après 280 ms est acceptée. En mode réduit, sélection immédiate. Délai parental des erreurs conservé.
+- `tools/build.ps1` : 55 tests locaux réussis (GameView API 28/35, timeline, géométrie de retournement, mises à jour). Vérifications du chargement sans victoire, fermeture/ouverture, gestes rapides et restauration de Paint.
+- Android emulator-5554 : 86 contrôles réussis, solo/duel/coopération/calme et chargement de la vue réellement attachée. PNG du chargement live et du retournement à 170 ms inspectés, ainsi que le chargement local 320 × 616. Textes, résultats et commandes dégagés.
+- Mesure isolée du renderer de mascotte sur émulateur : médiane 0,39 ms, p95 0,82 ms, maximum 1,26 ms (180 images). Aucune mesure de FPS complet des cartes ni essai sur téléphone modeste.
+- Lint : 0 erreur, 25 avertissements existants. La fluidité complète en mouvement n'a pas été observée manuellement ; seules les captures et le fonctionnement Android ont été vérifiés.
+- Une copie de l'APK de base de test récupérée automatiquement par check-device a été retirée de releases/validation ; les bases nécessaires aux correctifs restent exclusivement dans app/build/update-bases.
+- APK final 8.10/code39 installé sur l'émulateur : 86 contrôles réussis ; renderer isolé p95 0,64 ms. Signature fixe vérifiée par le script de publication.
+- Release GitHub v8.10 publiée. Manifeste public latest/download vérifié (code39, empreinte correspondant au final). Un bref délai de propagation a d'abord renvoyé le manifeste précédent ; nouvelle lecture réussie.
+- Test Android contre le flux public latest avec base 8.9 : téléchargement de 81 453 octets, reconstruction exacte de 73 311 148 octets et signature/package/version vérifiés. Correctifs 8.8, 8.7 et 8.6 reconstruits avant publication. Confirmation d'installation système non répétée dans ce test réseau.

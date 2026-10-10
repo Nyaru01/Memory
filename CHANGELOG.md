@@ -1,5 +1,12 @@
 # Changements
 
+## 8.10 — 10 octobre 2026
+
+- Animations de Lumi ralenties de 50 % : apparition 1,08 s, joie 2,7 s, réaction 1,44 s ; attente plus tranquille.
+- Lumi accueille le joueur dans le chargement, avec une mise en page proportionnelle et sans prolonger le délai de démarrage.
+- Retournement des cartes adouci : rotation simulée, accélération/ralentissement, légère élévation et reflet doux ; rendu synchronisé aux images Android.
+- Durées partagées entre le dessin, les gestes et TalkBack pour éviter l'interruption d'un retournement par une touche rapide. Mode calme conservé.
+
 ## 8.9 — 10 octobre 2026
 
 - Refonte visuelle complète de Lumi : compagnon menthe et lilas avec volumes doux, grands yeux et expressions illustrées.

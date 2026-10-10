@@ -44,3 +44,8 @@ Prompt de correction final envoyé à l'outil intégré :
 Les contrôles incluent l'intégration d'un atlas réel, le budget mémoire, toutes les frames d'apparition/victoire/réaction, le clignement, une minute de timeline, les modes de jeu, la navigation et la réduction des animations. Les captures de la vue Android attachée complètent les rendus de test hors écran. Résultats et limites de la livraison dans `VALIDATION.md`.
 
 Un atlas de 6 poses par action avec fondus ne remplace pas une animation dessinée frame par frame à 30 poses/s. L'identité, les expressions et les poses constituent ici une vraie refonte ; la fluidité sur matériel d'entrée de gamme reste à confirmer sur un téléphone réel.
+
+
+## Ajustements 8.10
+
+La timeline est jouée à deux tiers de sa vitesse précédente (durées multipliées par 1,5) : apparition 1080 ms, victoire 2700 ms, toucher 1440 ms, cycle idle 8100 ms. Le chargement réutilise l'atlas et le dessin de sprite en mode attente, sans état de victoire ni bulle de félicitations. Le démarrage reste de 1750 ms. Aucun second bitmap n'est créé.
