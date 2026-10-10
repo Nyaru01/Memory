@@ -38,6 +38,7 @@ public final class VisualEffectsChecks extends Instrumentation {
                     verify(view, 3, false);
                     verify(view, 1, true);
                     verifyV2(view);
+                    verifyAdventure(view);
                 } finally {
                     view.pauseMusic();
                     view.releaseNarration();
@@ -97,6 +98,25 @@ public final class VisualEffectsChecks extends Instrumentation {
     private void require(boolean condition, String message) {
         if (!condition) throw new AssertionError(message);
         checks++;
+    }
+    private void verifyAdventure(GameView view) {
+        getTargetContext().getSharedPreferences("m",0).edit().remove("adventure_completed").commit();
+        view.calm=true;view.d=1;view.layout(0,0,360,640);view.openAdventure();render(view,"adventure-device-start",360,640);
+        require(!view.startAdventure(2),"Locked level cannot start");
+        require(view.startAdventure(1),"Level one available");view.tutorialActive=false;
+        for(int i=0;i<view.cards.length;i++)view.cards[i]=i/2;
+        render(view,null,360,640);
+        for(int i=0;i<view.cards.length;i+=2){click(view,view.cardBounds[i]);click(view,view.cardBounds[i+1]);}
+        require(view.adventure.completed()==1,"Real complete board unlocks exactly level two");
+        require(!view.startAdventure(3),"Cannot skip next level");
+        view.pendingWinAt=GameView.now()-1;render(view,"adventure-device-win",360,640);
+        click(view,view.play);require(view.adventureLevel==2 && view.screen==1,"Next level button starts level two");
+        view.saveForPause();GameView restored=new GameView(getTargetContext());restored.sound=false;
+        try {restored.loadGame();require(restored.adventureLevel==2 && restored.pairs==6,"Resume keeps adventure level");} finally {restored.releaseAudio();}
+        view.openAdventure();render(view,"adventure-device-unlocked",360,640);
+        while(view.scrollPage(true))render(view,null,360,640);
+        render(view,"adventure-device-end",360,640);require(view.adventureMap.nodes[39].top<view.adventureMap.bottom,"Map reaches level forty");
+        view.clearSavedGame();view.adventureLevel=0;
     }
 
     private void render(GameView view, String name) {
@@ -306,6 +326,8 @@ public final class VisualEffectsChecks extends Instrumentation {
         Thread.sleep(200); liveScreenshot("v92-robots-board");
         runOnMainSync(() -> { activity.game.theme=19; activity.game.start(); activity.game.tutorialActive=false; activity.game.invalidate(); });
         Thread.sleep(200); liveScreenshot("v92-garden-board");
+        runOnMainSync(() -> {activity.game.openAdventure();});
+        Thread.sleep(200); liveScreenshot("adventure-live-map");
         runOnMainSync(() -> {
             activity.game.screen=2;
             click(activity.game, activity.game.homeBtn);

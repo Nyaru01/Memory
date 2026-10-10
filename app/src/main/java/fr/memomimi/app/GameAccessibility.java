@@ -61,6 +61,7 @@ final class GameAccessibility extends AccessibilityNodeProvider {
         }
         switch (view.screen) {
             case 0:
+                add(result,view.adventureButton,"Mon aventure, niveau "+view.adventure.current());
                 add(result, view.chooseTheme, "Choisir un monde : " + view.themeName(view.theme));
                 add(result, view.easy, "6 paires, Facile"+(view.pairs==6 ? ", sélectionné" : "")); add(result, view.medium, "8 paires, Normal"+(view.pairs==8 ? ", sélectionné" : ""));
                 add(result, view.hard, "10 paires, Difficile"+(view.pairs==10 ? ", sélectionné" : "")); add(result, view.expert, "12 paires, Expert"+(view.pairs==12 ? ", sélectionné" : ""));
@@ -90,9 +91,9 @@ final class GameAccessibility extends AccessibilityNodeProvider {
                 }
                 break;
             case 2:
-                add(result, view.play, "Rejouer");
+                add(result, view.play,view.nextLevelButton.isEmpty() ? "Rejouer" : "Niveau suivant");
                 add(result, view.storyBtn, "Écouter une histoire"); add(result, view.albumBtn, "Mon album");
-                add(result, view.homeBtn, "Choisir un monde");
+                add(result, view.homeBtn,view.adventureLevel>0 ? "Voir la carte" : "Choisir un monde");
                 add(result, view.victoryMascot.bounds, "Lumi, touche pour jouer avec moi");
                 break;
             case 3:
@@ -120,6 +121,17 @@ final class GameAccessibility extends AccessibilityNodeProvider {
                             + view.themeName(view.albumPage) + (unlocked ? ", agrandir" : ", à découvrir"), unlocked, false));
                 }
                 break;
+            case 7:
+                add(result,view.adventureMap.back,"Accueil et jeu libre");
+                add(result,view.adventureMap.continueButton,"Continuer le niveau "+view.adventure.current());
+                for(int level=1;level<=AdventureStore.LEVEL_COUNT;level++) {
+                    RectF node=view.adventureMap.nodes[level-1];
+                    if(node.bottom<=view.adventureMap.top || node.top>=view.adventureMap.bottom) continue;
+                    boolean unlocked=view.adventure.unlocked(level);
+                    result.add(new Target(400+level,node,"Niveau "+level+", "+view.worldTitle(AdventureStore.world(level))+", "+AdventureStore.pairs(level)+" paires, "+
+                        (level<=view.adventure.completed() ? "terminé" : unlocked ? "disponible" : "verrouillé"),unlocked,false));
+                }
+                break;
             case 6:
                 add(result, view.homeBtn, "Retour"); add(result, view.storyPlayBtn, view.storyPlaying ? "Mettre l'histoire en pause" : "Écouter l'histoire");
                 break;
@@ -144,7 +156,7 @@ final class GameAccessibility extends AccessibilityNodeProvider {
             AccessibilityNodeInfo host = AccessibilityNodeInfo.obtain(view);
             view.onInitializeAccessibilityNodeInfo(host);
             host.setContentDescription("MémoMondes");
-            if (view.screen==0 || view.screen==3 || view.screen==4 || view.screen==5 && view.albumTab==2) {
+            if (view.screen==0 || view.screen==3 || view.screen==4 || view.screen==7 || view.screen==5 && view.albumTab==2) {
                 host.setScrollable(true);
                 host.addAction(AccessibilityNodeInfo.ACTION_SCROLL_FORWARD); host.addAction(AccessibilityNodeInfo.ACTION_SCROLL_BACKWARD);
             }

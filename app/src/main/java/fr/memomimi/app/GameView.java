@@ -82,6 +82,11 @@ class GameView extends View {
     final Bitmap[] themeStickers = new Bitmap[WORLD_COUNT];
     final RectF worldsTab = new RectF();
     final BoardLayout boardLayout = new BoardLayout();
+    final AdventureMap adventureMap=new AdventureMap();
+    final RectF adventureButton=new RectF(), nextLevelButton=new RectF();
+    final AdventureStore adventure;
+    int adventureLevel;
+    String mapHint="";
     final RectF uiScratch = new RectF();
     float homeScroll, homeScrollMax, worldsScroll, worldsScrollMax, albumScroll, albumScrollMax, parentsScroll, parentsScrollMax;
     float dragStartY, dragLastY;
@@ -350,6 +355,7 @@ class GameView extends View {
         this.cheers = new String[]{"Bravo !", "Super !", "Bien joué !", "Youpi !"};
         this.d = getResources().getDisplayMetrics().density;
         setLayerType(View.LAYER_TYPE_SOFTWARE, null);
+        this.adventure=new AdventureStore(context);
         ProgressStore progressStore = new ProgressStore(context);
         this.progress = progressStore;
         SharedPreferences sharedPreferencesPrefs = progressStore.prefs();
@@ -475,6 +481,8 @@ class GameView extends View {
             drawParents(canvas);
         } else if (i == 4) {
             drawThemes(canvas);
+        } else if (i == 7) {
+            adventureMap.draw(canvas,this);
         } else if (i == 5) {
             drawAlbum(canvas);
         } else {
@@ -645,6 +653,7 @@ class GameView extends View {
         float delta=(forward ? 1 : -1)*(H-systemTop()-systemBottom())*.65f;
         float before;
         if(screen==0) { before=homeScroll; homeScroll=Math.max(0,Math.min(homeScrollMax,homeScroll+delta)); if(before==homeScroll)return false; }
+        else if(screen==7) { if(!adventureMap.scrollBy(delta))return false; }
         else if(screen==4) { before=worldsScroll; worldsScroll=Math.max(0,Math.min(worldsScrollMax,worldsScroll+delta)); if(before==worldsScroll)return false; }
         else if(screen==3) { before=parentsScroll; parentsScroll=Math.max(0,Math.min(parentsScrollMax,parentsScroll+delta)); if(before==parentsScroll)return false; }
         else if(screen==5 && albumTab==2) { before=albumScroll; albumScroll=Math.max(0,Math.min(albumScrollMax,albumScroll+delta)); if(before==albumScroll)return false; }
@@ -653,6 +662,7 @@ class GameView extends View {
     }
     float visibleTop(RectF bounds) {
         if(bounds==homeBtn) return systemTop();
+        if(screen==7 && bounds!=adventureMap.back && bounds!=adventureMap.continueButton) return adventureMap.top;
         if(screen==4) return systemTop()+88*d;
         if(screen==3) return systemTop()+92*d;
         if(screen==5 && albumTab==2) for(RectF tile:themeTiles) if(bounds==tile)return systemTop()+222*d;
@@ -683,14 +693,17 @@ class GameView extends View {
     void drawHome(Canvas canvas) {
         players = 1; onePlayer.setEmpty(); coopPlayer.setEmpty(); twoPlayers.setEmpty(); mega.setEmpty();
         float top = systemTop(), bottom = H-systemBottom();
-        float extra = Math.max(0, bottom-top-570*d);
-        homeScrollMax = Math.max(0, 570*d-(bottom-top));
+        float extra = Math.max(0, bottom-top-640*d);
+        homeScrollMax = Math.max(0, 640*d-(bottom-top));
         homeScroll = Math.max(0, Math.min(homeScroll, homeScrollMax));
         canvas.save(); canvas.clipRect(0, top, W, bottom);
         float y = top+28*d-homeScroll;
         fitLabel(canvas, "MémoMondes", W/2, y, 32, 26, W-32*d, ink);
         fitLabel(canvas, "Explore, retourne, retrouve !", W/2, y+34*d, 15, 13, W-32*d, UiStyle.MUTED);
         y += 62*d+extra*.18f;
+        adventureButton.set(20*d,y,W-20*d,y+56*d); round(canvas,adventureButton,18,UiStyle.REPLAY);
+        label(canvas,"Mon aventure · Niveau "+adventure.current(),W/2,adventureButton.centerY(),18,UiStyle.REPLAY_TEXT,Paint.Align.CENTER);
+        y+=70*d;
         chooseTheme.set(20*d,y,W-20*d,y+108*d); selectedThemeChoice(canvas,chooseTheme);
         y = chooseTheme.bottom+26*d;
         label(canvas,"Combien de paires ?",W/2,y,17,ink,Paint.Align.CENTER);
@@ -705,7 +718,7 @@ class GameView extends View {
         compactLevel(canvas,expert,"12 paires","Expert",pairs==12,mint);
         y += height+18*d+extra*.15f;
         play.set(20*d,y,W-20*d,y+56*d); round(canvas,play,18,coral);
-        label(canvas,"JOUER !  ▶",play.centerX(),play.centerY(),22,-1,Paint.Align.CENTER);
+        label(canvas,"JEU LIBRE  ▶",play.centerX(),play.centerY(),22,-1,Paint.Align.CENTER);
         y = play.bottom+16*d;
         soundBtn.set(20*d,y,mid-gap,y+54*d); albumBtn.set(mid+gap,y,W-20*d,y+54*d);
         round(canvas,soundBtn,18,UiStyle.SURFACE); round(canvas,albumBtn,18,UiStyle.SURFACE);
@@ -805,7 +818,19 @@ class GameView extends View {
         canvas.restore();
     }
 
+    void openAdventure() {
+        showResumePrompt=false; mapHint=""; screen=7;
+        adventureMap.focus(adventure.current(),Math.max(200*d,H-200*d),d);
+        accessible.changed(); invalidate();
+    }
+    boolean startAdventure(int level) {
+        if(!adventure.unlocked(level)) return false;
+        theme=AdventureStore.world(level); pairs=AdventureStore.pairs(level); players=1;
+        start(); adventureLevel=level; saveGame(); invalidate(); return true;
+    }
+
     void start() {
+        adventureLevel=0;
         this.celebration.reset();
         this.victoryMascot.bounds.setEmpty();
         this.matchFeedbackGeneration++;
@@ -890,7 +915,7 @@ class GameView extends View {
         rectF.set(f2 * 16.0f, (f2 * 4.0f) + fSystemTop, f2 * 64.0f, (f2 * 52.0f) + fSystemTop);
         round(canvas, this.homeBtn, 16.0f, -1);
         label(canvas, "‹", this.homeBtn.centerX(), this.homeBtn.centerY() - (this.d * 2.0f), 32.0f, this.ink, Paint.Align.CENTER);
-        fitLabel(canvas, worldTitle(theme)+" · "+pairs+" paires", (homeBtn.right+W-74*d)/2,
+        fitLabel(canvas, (adventureLevel>0 ? "Niveau "+adventureLevel : worldTitle(theme))+" · "+pairs+" paires", (homeBtn.right+W-74*d)/2,
                 fSystemTop+27*d, 17, 11, W-homeBtn.right-82*d, ink);
         float statsTop=fSystemTop+(H/d<560 ? 52 : 66)*d, statsWidth=(W-40*d)/3;
         for (int stat=0; stat<3; stat++) {
@@ -1415,6 +1440,7 @@ class GameView extends View {
     }
 
     void drawWin(Canvas canvas) {
+        nextLevelButton.setEmpty();
         int i;
         String str;
         String str2;
@@ -1453,7 +1479,7 @@ class GameView extends View {
                 str4 = "Gagné ensemble !";
             } else {
                 String[] strArr = this.cheers;
-                str4 = "Bravo, tu as gagné !";
+                str4 = adventureLevel>0 ? "Niveau "+adventureLevel+" terminé !" : "Bravo, tu as gagné !";
             }
         }
         fitLabel(canvas,str4,W/2,H*.205f,23,18,W-48*d,ink);
@@ -1511,7 +1537,8 @@ class GameView extends View {
         float f19 = this.H;
         rectF5.set(f18 * 20.0f, 0.74f * f19, this.W - (f18 * 20.0f), Math.max(f19 * 0.825f, 0.74f*f19+48*d));
         round(canvas, this.play, 18.0f, UiStyle.REPLAY);
-        label(canvas, "Rejouer  ↻", this.play.centerX(), this.play.centerY(), 19.0f, UiStyle.REPLAY_TEXT, Paint.Align.CENTER);
+        if(adventureLevel>0 && adventureLevel<AdventureStore.LEVEL_COUNT) nextLevelButton.set(play);
+        label(canvas,nextLevelButton.isEmpty() ? "Rejouer  ↻" : "Niveau suivant  ▶",play.centerX(),play.centerY(),19,UiStyle.REPLAY_TEXT,Paint.Align.CENTER);
         if (this.suggestedPairs > 0 || newUnlocks>0) {
             canvas2 = canvas;
             label(canvas2, newUnlocks>0 ? "Nouvelle image dans ton album !" : "Lumi propose : " + this.suggestedPairs + " paires", this.W / 2.0f, 0.843f * this.H, 10.0f, this.purple, Paint.Align.CENTER);
@@ -1532,7 +1559,7 @@ class GameView extends View {
         round(canvas2, this.albumBtn, 18.0f, -1);
         round(canvas2, this.homeBtn, 18.0f, -1);
         label(canvas2, "Mon album", this.albumBtn.centerX(), this.albumBtn.centerY(), 12.0f, this.purple, Paint.Align.CENTER);
-        fitLabel(canvas, "Choisir un monde", this.homeBtn.centerX(), this.homeBtn.centerY(), 12f, 9f, this.homeBtn.width() - 12f * this.d, this.ink);
+        fitLabel(canvas, adventureLevel>0 ? "Voir la carte" : "Choisir un monde", this.homeBtn.centerX(), this.homeBtn.centerY(), 12f, 9f, this.homeBtn.width() - 12f * this.d, this.ink);
         if (animationsReduced() || !this.activityActive) {
             return;
         }
@@ -1762,6 +1789,8 @@ class GameView extends View {
     }
 
     void unlockProgress() {
+        if(adventureLevel>0 && players==1 && found==pairs && theme==AdventureStore.world(adventureLevel)
+                && pairs==AdventureStore.pairs(adventureLevel)) adventure.complete(adventureLevel);
         this.progress.recordCompleted(this.theme, this.pairs);
         SharedPreferences sharedPreferences = getContext().getSharedPreferences("m", 0);
         SharedPreferences.Editor editorEdit = sharedPreferences.edit();
@@ -2262,7 +2291,7 @@ class GameView extends View {
     public boolean onTouchEvent(MotionEvent motionEvent) {
         int action = motionEvent.getActionMasked();
         if (!showQuit && !showResetConfirm && !showResumePrompt && enlargedItem<0
-                && (screen==0 || screen==3 || screen==4 || screen==5 && albumTab==2)) {
+                && (screen==0 || screen==3 || screen==4 || screen==7 || screen==5 && albumTab==2)) {
             if (action==MotionEvent.ACTION_DOWN) { dragStartY=dragLastY=motionEvent.getY(); dragging=false; }
             if (action==MotionEvent.ACTION_MOVE) {
                 float delta=dragLastY-motionEvent.getY(); dragLastY=motionEvent.getY();
@@ -2270,6 +2299,7 @@ class GameView extends View {
                 if (dragging) {
                     if (screen==0) homeScroll=Math.max(0,Math.min(homeScrollMax,homeScroll+delta));
                     else if (screen==4) worldsScroll=Math.max(0,Math.min(worldsScrollMax,worldsScroll+delta));
+                    else if (screen==7) adventureMap.scrollBy(delta);
                     else if (screen==3) parentsScroll=Math.max(0,Math.min(parentsScrollMax,parentsScroll+delta));
                     else albumScroll=Math.max(0,Math.min(albumScrollMax,albumScroll+delta));
                     parentHolding=false; removeCallbacks(parentHoldAction); pressedTarget=null; invalidate(); return true;
@@ -2320,7 +2350,7 @@ class GameView extends View {
                 } else if (this.quitConfirmBtn.contains(x, y)) {
                     this.showQuit = false;
                     clearSavedGame();
-                    this.screen = 0;
+                    if(adventureLevel>0) openAdventure(); else this.screen = 0;
                     buzz(0);
                 }
                 invalidate();
@@ -2516,7 +2546,17 @@ class GameView extends View {
             invalidate();
             return true;
         }
+        if(i6==7) {
+            if(adventureMap.back.contains(x,y)) { screen=0; adventureLevel=0; }
+            else if(adventureMap.continueButton.contains(x,y)) startAdventure(adventure.current());
+            else {
+                int level=adventureMap.hit(x,y);
+                if(level>0 && !startAdventure(level)) { mapHint="Termine le niveau "+adventure.current()+" d’abord"; announceForAccessibility(mapHint); }
+            }
+            invalidate(); return true;
+        }
         if (i6 == 0) {
+            if(adventureButton.contains(x,y)) { openAdventure(); return true; }
             if (this.chooseTheme.contains(x, y)) {
                 this.screen = 4;
             } else if (this.easy.contains(x, y)) {
@@ -2558,14 +2598,15 @@ class GameView extends View {
             }
             if (!this.storyBtn.contains(x, y)) {
                 if (this.play.contains(x, y)) {
-                    start();
+                    if(adventureLevel>0) startAdventure(nextLevelButton.isEmpty() ? adventureLevel : adventureLevel+1);
+                    else start();
                 } else {
                     if (this.albumBtn.contains(x, y)) {
                         this.albumPage = this.theme;
                         this.albumReturnScreen = 2;
                         this.screen = 5;
                     } else if (this.homeBtn.contains(x, y)) {
-                        this.screen = 4;
+                        if(adventureLevel>0) openAdventure(); else this.screen = 4;
                     }
                     buzz(4);
                 }
@@ -2793,7 +2834,7 @@ class GameView extends View {
         } else if (this.turn != 1) {
             i = 1;
         }
-        getContext().getSharedPreferences("m", 0).edit().putBoolean("game_active", true).putString("saved_cards", sb.toString()).putLong("saved_matched", j).putLong("saved_owner1", j2).putLong("saved_owner2", j3).putInt("saved_theme", this.theme).putInt("saved_pairs", this.pairs).putInt("saved_players", this.players).putInt("saved_turn", i).putInt("saved_score1", this.score1).putInt("saved_score2", this.score2).putInt("saved_moves", this.moves).putInt("saved_found", this.found).putInt("saved_first", i2).putInt("saved_errors", this.errors).putBoolean("saved_hint_used", this.hintUsed).apply();
+        getContext().getSharedPreferences("m", 0).edit().putBoolean("game_active", true).putString("saved_cards", sb.toString()).putLong("saved_matched", j).putLong("saved_owner1", j2).putLong("saved_owner2", j3).putInt("saved_theme", this.theme).putInt("saved_pairs", this.pairs).putInt("saved_players", this.players).putInt("saved_turn", i).putInt("saved_score1", this.score1).putInt("saved_score2", this.score2).putInt("saved_moves", this.moves).putInt("saved_found", this.found).putInt("saved_first", i2).putInt("saved_errors", this.errors).putBoolean("saved_hint_used", this.hintUsed).putInt("saved_adventure_level",adventureLevel).apply();
         this.resumeAvailable = true;
     }
 
@@ -2803,6 +2844,9 @@ class GameView extends View {
             this.pairs = sharedPreferences.getInt("saved_pairs", 6);
             this.players = sharedPreferences.getInt("saved_players", 1);
             this.theme = Math.max(0, Math.min(WORLD_COUNT - 1, sharedPreferences.getInt("saved_theme", 0)));
+            adventureLevel=sharedPreferences.getInt("saved_adventure_level",0);
+            if(adventureLevel!=0 && (!adventure.unlocked(adventureLevel) || players!=1 || theme!=AdventureStore.world(adventureLevel)
+                    || pairs!=AdventureStore.pairs(adventureLevel))) throw new IllegalStateException("Invalid adventure save");
             String[] strArrSplit = sharedPreferences.getString("saved_cards", "").split(",");
             if (strArrSplit.length != this.pairs * 2) {
                 throw new IllegalStateException();

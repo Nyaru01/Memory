@@ -36,6 +36,13 @@ public final class UpdateChecks {
                         .putBoolean("audio_default_v7",true).putBoolean("sound",false).putBoolean("calm",true)
                         .putBoolean("tutorial_done",true).commit()) throw new AssertionError("Seed failed");
                 result.putString("stream","PASS: V2 upgrade data written on version "+UpdateManager.version(getTargetContext().getPackageManager().getPackageInfo("fr.memomimi.app",0))+"\n");
+            } else if ("adventureverify".equals(mode)) {
+                android.content.SharedPreferences prefs=getTargetContext().getSharedPreferences("m",0);
+                if(UpdateManager.version(getTargetContext().getPackageManager().getPackageInfo("fr.memomimi.app",0))!=44
+                        || prefs.getInt("theme",-1)!=17 || prefs.getInt("pairs",-1)!=12 || prefs.getInt("album_17",0)!=63
+                        || prefs.getInt("best_12",0)!=19 || prefs.getBoolean("sound",true) || !prefs.getBoolean("calm",false)
+                        || new AdventureStore(getTargetContext()).completed()!=0) throw new AssertionError("Upgrade data changed");
+                result.putString("stream","PASS: signed upgrade 9.2 to 9.3 preserves album, record, world, sound and calm; adventure starts at level 1\n");
             } else if ("v2verify".equals(mode)) {
                 android.content.SharedPreferences prefs=getTargetContext().getSharedPreferences("m",0);
                 if (UpdateManager.version(getTargetContext().getPackageManager().getPackageInfo("fr.memomimi.app",0))!=41

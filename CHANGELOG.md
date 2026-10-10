@@ -1,5 +1,14 @@
 # Changements
 
+## 9.3 — 10 octobre 2026
+
+- Carte d'aventure Canvas originale : cinq îles pastel, chemin et 40 niveaux.
+- Déblocage séquentiel après victoire, étapes terminées rejouables, difficulté 6/8/10/12 paires.
+- Mon aventure sur l'accueil ; Niveau suivant et Voir la carte à la victoire.
+- Sauvegarde indépendante de progression et reprise avec le bon numéro de niveau.
+- Jeu libre, albums, records et réglages conservés ; aucun SDK ajouté.
+
+
 ## 9.2 — 10 octobre 2026
 
 - Rejouer turquoise avec texte sombre, résultats menthe et étoiles dorées.
