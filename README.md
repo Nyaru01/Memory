@@ -1,4 +1,4 @@
-# MémoMondes 9.0 — V2
+# MémoMondes 9.1 — V2
 
 Jeu de mémoire Android pour les enfants de 5 à 8 ans. Le jeu fonctionne hors ligne ; une connexion sert à vérifier et télécharger les mises à jour GitHub.
 

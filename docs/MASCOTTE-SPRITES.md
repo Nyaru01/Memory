@@ -53,3 +53,7 @@ La timeline est jouée à deux tiers de sa vitesse précédente (durées multipl
 ## Accueil 8.11
 
 Séquence dédiée de six poses, indices 0, 1, 19, 22, 23, 0, environ 290 ms par pose avec fondus de 90 ms. Un petit bond accompagne la quatrième pose. Cette séquence tient dans le chargement existant de 1750 ms ; elle ne déclenche pas la célébration de victoire. Pose fixe en mode calme et en animations réduites.
+
+## Accueil ralenti — 9.1
+
+La séquence de chargement tient la pose 0 pendant 650 ms, effectue un seul fondu smoothstep de 450 ms vers la pose 19 (salut), puis conserve cette pose. La respiration est limitée à 1,2 % avec période de 7,5 s environ ; le balancement à 1,2 degré avec période de 8,8 s environ. Aucun saut ni retour cyclique entre poses pendant le chargement. Délai total de démarrage inchangé : 1750 ms. Le mode calme utilise toujours la pose fixe 0.
