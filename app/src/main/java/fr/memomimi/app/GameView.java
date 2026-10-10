@@ -29,6 +29,49 @@ import java.util.Random;
 /* JADX INFO: compiled from: MainActivity.java */
 /* JADX INFO: loaded from: classes.dex */
 class GameView extends View {
+    static long now() { return android.os.SystemClock.uptimeMillis(); }
+    final VictoryCelebration celebration = new VictoryCelebration();
+    final VictoryMascot victoryMascot = new VictoryMascot();
+    final RectF victoryArea = new RectF();
+    final RectF splashPanel = new RectF(), splashMascotArea = new RectF();
+    final RectF splashBadge = new RectF(), splashBar = new RectF(), splashFill = new RectF();
+    boolean systemReducedMotion;
+    RectF pressedTarget;
+    LinearGradient worldGradient;
+    float backgroundWidth, backgroundHeight;
+    int backgroundTheme = -1;
+    final Path backgroundWave = new Path();
+    final Path cardShinePath = new Path();
+    int matchFeedbackGeneration;
+    volatile AudioTrack activeSound;
+    final java.util.concurrent.ThreadPoolExecutor soundExecutor = new java.util.concurrent.ThreadPoolExecutor(
+            1, 1, 0L, java.util.concurrent.TimeUnit.MILLISECONDS,
+            new java.util.concurrent.ArrayBlockingQueue<Runnable>(4),
+            runnable -> { Thread thread = new Thread(runnable, "MemoMondes-audio"); thread.setDaemon(true); return thread; },
+            new java.util.concurrent.ThreadPoolExecutor.DiscardOldestPolicy());
+    final GameAccessibility accessible = new GameAccessibility(this);
+    boolean animationsReduced() { return this.calm || this.systemReducedMotion; }
+
+    @Override public android.view.accessibility.AccessibilityNodeProvider getAccessibilityNodeProvider() {
+        return this.accessible;
+    }
+
+    @Override public boolean dispatchHoverEvent(MotionEvent event) {
+        return this.accessible.hover(event) || super.dispatchHoverEvent(event);
+    }
+
+    @Override public boolean performClick() {
+        super.performClick();
+        return true;
+    }
+    final RectF[] cardBounds = new RectF[30];
+    final RectF[] albumImageBounds = new RectF[12];
+    final RectF cardImageBounds = new RectF();
+    final RectF cardBorderBounds = new RectF();
+    int[] themeColors;
+    static final String[] THEME_NAMES = {"ANIMAUX", "OCÉAN", "ESPACE", "DINOSAURES", "FERME", "VÉHICULES", "MAGIE", "SIRÈNES", "JUNGLE", "GOURMANDISES", "PIRATES", "BANQUISE", "MUSIQUE", "MÉTIERS", "FÉES", "MAISON", "LÉGUMES", "DÉTECTIVE"};
+    static final long MATCH_DURATION_MS = 1050L;
+    long pendingWinAt;
     static final int ALBUM_TOTAL = 216;
     static final int WORLD_COUNT = 18;
     final RectF[] themeTiles = new RectF[WORLD_COUNT];
@@ -164,6 +207,9 @@ class GameView extends View {
 
     GameView(Context context) {
         super(context);
+        this.victoryMascot.load(context);
+        for (int index = 0; index < this.cardBounds.length; index++) this.cardBounds[index] = new RectF();
+        for (int index = 0; index < this.albumImageBounds.length; index++) this.albumImageBounds[index] = new RectF();
         this.p = new Paint(3);
         Paint paint = new Paint(3);
         this.text = paint;
@@ -206,7 +252,7 @@ class GameView extends View {
         this.flipStart = 0L;
         this.closeStart = 0L;
         this.hintUntil = 0L;
-        this.splashStart = System.currentTimeMillis();
+        this.splashStart = now();
         this.flipIndex = -1;
         this.closeA = -1;
         this.closeB = -1;
@@ -285,7 +331,7 @@ class GameView extends View {
         this.purple = Color.rgb(125, 102, 190);
         this.cheers = new String[]{"Bravo !", "Super !", "Bien joué !", "Youpi !"};
         this.d = getResources().getDisplayMetrics().density;
-        setLayerType(1, null);
+        setLayerType(View.LAYER_TYPE_SOFTWARE, null);
         ProgressStore progressStore = new ProgressStore(context);
         this.progress = progressStore;
         SharedPreferences sharedPreferencesPrefs = progressStore.prefs();
@@ -315,7 +361,7 @@ class GameView extends View {
         }
         this.resumeAvailable = z;
         this.showResumePrompt = z;
-        paint.setTypeface(Typeface.create("sans", 1));
+        paint.setTypeface(Typeface.create("sans", Typeface.BOLD));
         setFocusable(true);
         setImportantForAccessibility(1);
         setContentDescription("MémoMondes, jeu de mémoire illustré");
@@ -355,11 +401,17 @@ class GameView extends View {
         this.text.setTextSize(f3 * this.d);
         this.text.setColor(i);
         this.text.setTextAlign(align);
-        this.text.setTypeface(Typeface.create("sans", 1));
+        this.text.setTypeface(Typeface.create("sans", Typeface.BOLD));
         canvas.drawText(str, f, f2 - ((this.text.ascent() + this.text.descent()) / 2.0f), this.text);
     }
 
     void round(Canvas canvas, RectF rectF, float f, int i) {
+        boolean action = rectF == this.play || rectF == this.homeBtn || rectF == this.albumBtn
+                || rectF == this.storyBtn || rectF == this.soundBtn || rectF == this.parentBtn
+                || rectF == this.hintBtn || rectF == this.resumeBtn || rectF == this.newGameBtn
+                || rectF == this.quitConfirmBtn || rectF == this.quitContinueBtn;
+        if (action) f = 18f;
+        if (this.pressedTarget == rectF) i = blend(i, this.ink, 0.12f);
         color(i);
         Paint paint = this.p;
         float f2 = this.d;
@@ -371,6 +423,19 @@ class GameView extends View {
 
     @Override // android.view.View
     protected void onDraw(Canvas canvas) {
+        if (this.screen == 1 && this.found == this.pairs && this.pendingWinAt > 0
+                && now() >= this.pendingWinAt && !this.showQuit) {
+            this.pendingWinAt = 0L;
+            this.winAt = now();
+            this.celebration.begin(this.winAt, this.rng);
+            this.screen = 2;
+            this.accessible.changed();
+            announceForAccessibility(this.players == 3 ? "Bravo, vous avez gagné ensemble !"
+                    : this.players == 2 ? "Bravo, la partie est terminée !"
+                    : "Bravo, toutes les paires sont retrouvées !");
+            performHapticFeedback(0);
+            playSound(100);
+        }
         this.W = getWidth();
         this.H = getHeight();
         drawWorldBackground(canvas, this.screen == 5 ? this.albumPage : this.theme);
@@ -394,13 +459,14 @@ class GameView extends View {
         } else {
             drawStory(canvas);
         }
+        this.accessible.drawFocus(canvas);
         long j = this.hideAt;
         if (j > 0) {
-            long jCurrentTimeMillis = j - System.currentTimeMillis();
+            long jCurrentTimeMillis = j - now();
             if (jCurrentTimeMillis <= 0) {
                 this.closeA = this.first;
                 this.closeB = this.second;
-                this.closeStart = System.currentTimeMillis();
+                this.closeStart = now();
                 this.second = -1;
                 this.first = -1;
                 this.hideAt = 0L;
@@ -421,88 +487,40 @@ class GameView extends View {
     }
 
     void drawSplash(Canvas canvas) {
-        float f;
-        int i;
-        long jCurrentTimeMillis = System.currentTimeMillis() - this.splashStart;
-        float f2 = jCurrentTimeMillis;
-        float f3 = 1.0f;
-        float fMin = Math.min(1.0f, f2 / 1750.0f);
-        float fSin = ((float) Math.sin(jCurrentTimeMillis / 180.0d)) * 3.0f * this.d;
-        float f4 = this.d * 20.0f;
-        float fSystemTop = systemTop();
-        float f5 = this.d;
-        RectF rectF = new RectF(f4, fSystemTop + (22.0f * f5), this.W - (f5 * 20.0f), this.H * 0.8f);
-        round(canvas, rectF, 34.0f, -134218244);
-        int iThemeColor = themeColor(this.theme);
-        int i2 = iThemeColor & 16777215;
-        color(402653184 | i2);
-        float f6 = this.W / 2.0f;
-        float f7 = rectF.top;
-        float f8 = this.d;
-        canvas.drawCircle(f6, f7 + (140.0f * f8), f8 * 96.0f, this.p);
-        int i3 = 0;
-        while (i3 < 10) {
-            float fWidth = rectF.left + ((((i3 * 67) % 100) / 100.0f) * rectF.width());
-            float fHeight = rectF.bottom - (((((f2 / 1450.0f) + (i3 * 0.11f)) % f3) * rectF.height()) * 0.86f);
-            int i4 = i3 % 3;
-            if (i4 == 0) {
-                f = f3;
-                i = 861719470;
-            } else {
-                f = f3;
-                i = i4 == 1 ? 863856318 : 872396373;
-            }
-            color(i);
-            canvas.drawCircle(fWidth, fHeight, ((i4 * 2) + 4) * this.d, this.p);
-            i3++;
-            f3 = f;
-        }
-        float f9 = f3;
-        float fMin2 = Math.min(this.d * 118.0f, this.W * 0.29f);
-        float f10 = 1.32f * fMin2;
-        float f11 = rectF.top + (this.d * 61.0f);
-        float f12 = this.W;
-        float f13 = 0.82f * fMin2;
-        float f14 = fMin2 * 0.18f;
-        float f15 = f10 + f11;
-        RectF rectF2 = new RectF((f12 / 2.0f) - f13, f11 + fSin, (f12 / 2.0f) + f14, f15 + fSin);
-        canvas.save();
-        canvas.rotate(-11.0f, rectF2.centerX(), rectF2.centerY());
-        drawBack(canvas, rectF2);
-        canvas.restore();
-        float f16 = this.W;
-        RectF rectF3 = new RectF((f16 / 2.0f) - f14, f11 - fSin, (f16 / 2.0f) + f13, f15 - fSin);
-        canvas.save();
-        canvas.rotate(9.0f, rectF3.centerX(), rectF3.centerY());
-        round(canvas, rectF3, 24.0f, -1);
-        drawThemeSticker(canvas, this.theme, new RectF(rectF3.left + (this.d * 6.0f), rectF3.top + (this.d * 6.0f), rectF3.right - (this.d * 6.0f), rectF3.bottom - (this.d * 6.0f)));
-        canvas.restore();
-        label(canvas, "MémoMondes", this.W / 2.0f, (this.d * 290.0f) + rectF.top, 37.0f, this.ink, Paint.Align.CENTER);
-        label(canvas, "Éveille ta mémoire en t'amusant", this.W / 2.0f, (this.d * 337.0f) + rectF.top, 14.0f, -8950152, Paint.Align.CENTER);
-        float f17 = (this.W / 2.0f) - (this.d * 82.0f);
-        float f18 = rectF.top;
-        float f19 = this.d;
-        RectF rectF4 = new RectF(f17, f18 + (370.0f * f19), (this.W / 2.0f) + (f19 * 82.0f), rectF.top + (this.d * 402.0f));
-        round(canvas, rectF4, 15.0f, 570425344 | i2);
-        label(canvas, "★  " + WORLD_COUNT + " MONDES À EXPLORER", this.W / 2.0f, rectF4.centerY(), 10.0f, iThemeColor, Paint.Align.CENTER);
-        RectF rectF5 = new RectF(rectF.left + (this.d * 48.0f), rectF.top + (this.d * 445.0f), rectF.right - (this.d * 48.0f), rectF.top + (this.d * 461.0f));
-        round(canvas, rectF5, 8.0f, -1580827);
-        round(canvas, new RectF(rectF5.left, rectF5.top, rectF5.left + (rectF5.width() * fMin), rectF5.bottom), 8.0f, this.mint);
-        label(canvas, fMin < 0.92f ? "Les aventures se préparent…" : "C'est prêt !", this.W / 2.0f, rectF.top + (this.d * 502.0f), 12.0f, iThemeColor, Paint.Align.CENTER);
-        int i5 = 0;
-        while (i5 < 3) {
-            color(i5 <= Math.min(2, (int) (fMin * 3.0f)) ? iThemeColor : -2567720);
-            float f20 = (this.W / 2.0f) + ((i5 - 1) * 18 * this.d);
-            float f21 = rectF.top;
-            float f22 = this.d;
-            canvas.drawCircle(f20, f21 + (535.0f * f22), f22 * 4.0f, this.p);
-            i5++;
-        }
-        if (fMin < f9) {
-            postInvalidateDelayed(16L);
+        long elapsed = Math.max(0, now()-this.splashStart);
+        float progress = Math.min(1f, elapsed/1750f);
+        float top = systemTop()+22f*this.d;
+        this.splashPanel.set(20f*this.d, top, this.W-20f*this.d, this.H*.80f);
+        round(canvas, this.splashPanel, 34f, -134218244);
+        float height = this.splashPanel.height();
+        int accent = themeColor(this.theme);
+        this.splashMascotArea.set(this.splashPanel.left+12f*this.d, top+height*.035f,
+                this.splashPanel.right-12f*this.d, top+height*.50f);
+        this.victoryMascot.drawLoading(canvas, this.splashMascotArea, elapsed, animationsReduced(), accent);
+        fitLabel(canvas, "MémoMondes", this.W/2f, top+height*.61f, 37f, 24f,
+                this.splashPanel.width()-24f*this.d, this.ink);
+        fitLabel(canvas, "Éveille ta mémoire en t'amusant", this.W/2f, top+height*.70f, 14f, 10f,
+                this.splashPanel.width()-24f*this.d, -8950152);
+        this.splashBadge.set(this.W/2f-82f*this.d, top+height*.77f,
+                this.W/2f+82f*this.d, top+height*.84f);
+        round(canvas, this.splashBadge, 15f, (accent & 0xffffff) | 0x22000000);
+        label(canvas, "★  " + WORLD_COUNT + " MONDES À EXPLORER", this.W/2f,
+                this.splashBadge.centerY(), 10f, accent, Paint.Align.CENTER);
+        this.splashBar.set(this.splashPanel.left+35f*this.d, top+height*.92f,
+                this.splashPanel.right-35f*this.d, top+height*.92f+12f*this.d);
+        round(canvas, this.splashBar, 8f, -1580827);
+        this.splashFill.set(this.splashBar);
+        this.splashFill.right = this.splashBar.left+this.splashBar.width()*progress;
+        if (progress > 0) round(canvas, this.splashFill, 8f, this.mint);
+        label(canvas, progress < .92f ? "Lumi prépare les aventures…" : "C'est prêt !",
+                this.W/2f, this.splashPanel.bottom+this.H*.06f, 12f, accent, Paint.Align.CENTER);
+        if (progress < 1f) {
+            if (animationsReduced()) postInvalidateDelayed(120L);
+            else postInvalidateOnAnimation();
             return;
         }
         this.screen = 0;
+        this.accessible.changed();
         announceForAccessibility("Bienvenue dans MémoMondes");
         updateMusic();
         invalidate();
@@ -510,8 +528,29 @@ class GameView extends View {
 
     void drawWorldBackground(Canvas canvas, int i) {
         Path path = null;
-        canvas.drawColor(this.bg);
-        color((themeColor(i) & 16777215) | 335544320);
+        int accent = themeColor(i);
+        if (worldGradient == null || backgroundTheme != i || backgroundWidth != W || backgroundHeight != H) {
+            worldGradient = new LinearGradient(0, 0, W * 0.65f, H,
+                    new int[]{blend(accent, Color.WHITE, 0.80f), blend(this.bg, accent, 0.10f),
+                            blend(accent, Color.WHITE, 0.68f)}, new float[]{0f, 0.48f, 1f}, Shader.TileMode.CLAMP);
+            backgroundTheme = i;
+            backgroundWidth = W;
+            backgroundHeight = H;
+        }
+        color(Color.WHITE);
+        this.p.setShader(worldGradient);
+        canvas.drawRect(0, 0, W, H, this.p);
+        this.p.setShader(null);
+        // Des courbes fixes, sans animation, donnent de la profondeur sans distraire du jeu.
+        backgroundWave.reset();
+        backgroundWave.moveTo(0, H * 0.76f);
+        backgroundWave.cubicTo(W * 0.30f, H * 0.64f, W * 0.65f, H * 0.96f, W, H * 0.80f);
+        backgroundWave.lineTo(W, H);
+        backgroundWave.lineTo(0, H);
+        backgroundWave.close();
+        color((accent & 0x00ffffff) | 0x12000000);
+        canvas.drawPath(backgroundWave, this.p);
+        color((accent & 0x00ffffff) | 0x24000000);
         for (int i2 = 0; i2 < 15; i2++) {
             float f = ((((i2 * 83) + (i * 29)) % 101) / 101.0f) * this.W;
             float f2 = ((((i2 * 149) + (i * 47)) % 103) / 103.0f) * this.H;
@@ -564,7 +603,7 @@ class GameView extends View {
     }
 
     void fitLabel(Canvas canvas, String str, float f, float f2, float f3, float f4, float f5, int i) {
-        this.text.setTypeface(Typeface.create("sans", 1));
+        this.text.setTypeface(Typeface.create("sans", Typeface.BOLD));
         float f6 = f3;
         do {
             this.text.setTextSize(this.d * f6);
@@ -662,11 +701,12 @@ class GameView extends View {
     }
 
     int themeColor(int i) {
-        return new int[]{this.mint, -12013624, this.purple, -1008827, -8537246, -1414047, -2263628, -11159117, -10901413, -1475427, -12617560, -9912368, -1989061, -11625599, -5417494, -10042165, -12684698, -9411760}[i];
+        if (this.themeColors == null) this.themeColors = new int[]{this.mint, -12013624, this.purple, -1008827, -8537246, -1414047, -2263628, -11159117, -10901413, -1475427, -12617560, -9912368, -1989061, -11625599, -5417494, -10042165, -12684698, -9411760};
+        return this.themeColors[i];
     }
 
     String themeName(int i) {
-        return new String[]{"ANIMAUX", "OCÉAN", "ESPACE", "DINOSAURES", "FERME", "VÉHICULES", "MAGIE", "SIRÈNES", "JUNGLE", "GOURMANDISES", "PIRATES", "BANQUISE", "MUSIQUE", "MÉTIERS", "FÉES", "MAISON", "LÉGUMES", "DÉTECTIVE"}[i];
+        return THEME_NAMES[i];
     }
 
     void selectedThemeChoice(Canvas canvas, RectF rectF) {
@@ -743,6 +783,10 @@ class GameView extends View {
     }
 
     void start() {
+        this.celebration.reset();
+        this.victoryMascot.bounds.setEmpty();
+        this.matchFeedbackGeneration++;
+        this.pendingWinAt = 0L;
         String str;
         int iColumns = GameModel.columns(this.pairs);
         this.cols = iColumns;
@@ -811,7 +855,7 @@ class GameView extends View {
         int i;
         Paint.Align align;
         float f;
-        long jCurrentTimeMillis = System.currentTimeMillis();
+        long jCurrentTimeMillis = now();
         int i2 = 2;
         boolean z = true;
         boolean z2 = this.first < 0 && this.errors >= 3 && !this.hintUsed && this.players != 2 && jCurrentTimeMillis >= this.hintUntil;
@@ -883,7 +927,8 @@ class GameView extends View {
             int i10 = i8 / i9;
             float f14 = f7 + ((i8 % i9) * (f11 + f6));
             float f15 = (i10 * (fMin + f6)) + f13;
-            RectF rectF3 = new RectF(f14, f15, f14 + f11, f15 + fMin);
+            RectF rectF3 = this.cardBounds[i8];
+            rectF3.set(f14, f15, f14 + f11, f15 + fMin);
             long j = jCurrentTimeMillis;
             drawAnimatedCard(canvas, i8, rectF3, (this.matched[i8] || i8 == this.first || i8 == this.second || (jCurrentTimeMillis < this.hintUntil && (i8 == this.hintA || i8 == this.hintB))) ? z : false, j);
             int i11 = i8;
@@ -905,11 +950,13 @@ class GameView extends View {
         }
         long j2 = jCurrentTimeMillis;
         float f17 = fMin;
-        if (!this.calm && j2 < this.successUntil) {
+        this.p.setAlpha(255);
+        this.p.setStyle(Paint.Style.FILL);
+        if (!animationsReduced() && j2 < this.successUntil) {
             drawSuccessSparkles(canvas, j2, f7, f13, f11, f17, f6);
         }
-        if (j2 < this.successUntil || this.flipIndex >= 0 || this.closeA >= 0) {
-            postInvalidateDelayed(16L);
+        if (j2 < this.successUntil || this.pendingWinAt > 0 || this.flipIndex >= 0 || this.closeA >= 0) {
+            postInvalidateOnAnimation();
         }
         if (j2 < this.hintUntil) {
             postInvalidateDelayed(40L);
@@ -920,22 +967,46 @@ class GameView extends View {
         drawTutorialDone(canvas);
     }
 
-    void drawSuccessSparkles(Canvas canvas, long j, float f, float f2, float f3, float f4, float f5) {
-        int[] iArr = {this.lastA, this.lastB};
-        for (int i = 0; i < 2; i++) {
-            int i2 = iArr[i];
-            if (i2 >= 0) {
-                int i3 = this.cols;
-                float f6 = f + ((i2 % i3) * (f3 + f5)) + (f3 / 2.0f);
-                float f7 = f2 + ((i2 / i3) * (f4 + f5)) + (f4 / 2.0f);
-                for (int i4 = 0; i4 < 8; i4++) {
-                    double d = ((((double) i4) * 3.141592653589793d) / 4.0d) + ((j % 500) / 500.0d);
-                    float f8 = (((j % 650) / 30.0f) + 28.0f) * this.d;
-                    color(i4 % 2 == 0 ? -14249 : this.mint);
-                    canvas.drawCircle((((float) Math.cos(d)) * f8) + f6, (((float) Math.sin(d)) * f8) + f7, this.d * 3.0f, this.p);
+    // Particles follow elapsed match time, with no random allocation in a frame.
+    void drawSuccessSparkles(Canvas canvas, long now, float left, float top,
+                             float width, float height, float gap) {
+        float progress = Math.max(0f, Math.min(1f,
+                (now - (this.successUntil - MATCH_DURATION_MS)) / (float) MATCH_DURATION_MS));
+        // Wait until the second card has revealed its illustration.
+        float burst = Math.max(0f, (progress - 0.16f) / 0.84f);
+        if (burst <= 0f) return;
+        for (int pairCard = 0; pairCard < 2; pairCard++) {
+            int index = pairCard == 0 ? this.lastA : this.lastB;
+            if (index < 0 || index >= this.cards.length) continue;
+            float cx = left + (index % this.cols) * (width + gap) + width / 2f;
+            float cy = top + (index / this.cols) * (height + gap) + height / 2f;
+            float radius = Math.min(width, height) * (0.3f + 0.18f * burst);
+            this.p.setStyle(Paint.Style.STROKE);
+            this.p.setStrokeWidth(this.d * (2f - burst));
+            this.p.setColor(this.mint);
+            this.p.setAlpha((int) (130f * (1f - burst)));
+            canvas.drawCircle(cx, cy, radius, this.p);
+            this.p.setStyle(Paint.Style.FILL);
+            for (int particle = 0; particle < 12; particle++) {
+                double angle = particle * Math.PI / 6d + pairCard * 0.25d;
+                float travel = Math.min(Math.min(width, height) * (0.38f + 0.17f * burst),
+                        Math.min(width, height) * 0.5f + gap * 0.4f);
+                float px = cx + (float) Math.cos(angle) * travel;
+                float py = cy + (float) Math.sin(angle) * travel + gap * 0.6f * burst * burst;
+                color(particle % 3 == 0 ? this.coral : particle % 3 == 1 ? this.mint : -14249);
+                this.p.setAlpha((int) (230f * (1f - burst)));
+                float size = this.d * (3f - 1.5f * burst);
+                if (particle % 2 == 0) {
+                    canvas.save();
+                    canvas.rotate(45f + burst * 100f, px, py);
+                    canvas.drawRect(px - size, py - size, px + size, py + size, this.p);
+                    canvas.restore();
+                } else {
+                    canvas.drawCircle(px, py, size, this.p);
                 }
             }
         }
+        this.p.setAlpha(255);
     }
 
     void drawDuelScore(Canvas canvas, float f) {
@@ -999,10 +1070,14 @@ class GameView extends View {
         if (this.tutorialActive) {
             message = this.tutorialStep == 0 ? "Touche la carte brillante" :
                     this.tutorialStep == 1 ? "Touche l'autre carte" : "Elles vont se cacher";
-        } else if (System.currentTimeMillis() < this.hintUntil) {
+        } else if (now() < this.successUntil && this.first < 0 && !z) {
+            message = this.pendingWinAt > 0 ? "Toutes les paires ! Bravo !" : "Bravo, une paire retrouvée !";
+            accent = this.mint;
+            background = blend(this.mint, -1, 0.9f);
+        } else if (now() < this.hintUntil) {
             message = "Regarde : voici une paire !";
         } else if (z) {
-            message = "Regarde bien…";
+            message = "Regarde bien ces deux cartes…";
         } else if (this.first >= 0) {
             message = "Trouve sa jumelle !";
             accent = this.purple;
@@ -1029,6 +1104,7 @@ class GameView extends View {
 
     void drawAnimatedCard(Canvas canvas, int i, RectF rectF, boolean z, long j) {
         float fAbs;
+        float turnProgress = -1f;
         boolean z2;
         Paint paint;
         int i2;
@@ -1036,19 +1112,23 @@ class GameView extends View {
         int i3;
         boolean z3 = false;
         if (i == this.flipIndex) {
-            float fMin = Math.min(1.0f, (j - this.flipStart) / 170.0f);
-            fAbs = Math.abs(1.0f - (2.0f * fMin));
+            float fMin = animationsReduced() ? 1f : Math.min(1.0f, (j - this.flipStart) / (float)CardMotion.OPEN_MS);
+            turnProgress = fMin;
+            fAbs = CardMotion.width(fMin);
             z2 = fMin >= 0.5f;
             if (fMin >= 1.0f) {
                 this.flipIndex = -1;
+                this.accessible.changed();
             }
         } else if (i == this.closeA || i == this.closeB) {
-            float fMin2 = Math.min(1.0f, (j - this.closeStart) / 210.0f);
-            fAbs = Math.abs(1.0f - (2.0f * fMin2));
+            float fMin2 = animationsReduced() ? 1f : Math.min(1.0f, (j - this.closeStart) / (float)CardMotion.CLOSE_MS);
+            turnProgress = fMin2;
+            fAbs = CardMotion.width(fMin2);
             z2 = fMin2 < 0.5f;
             if (fMin2 >= 1.0f && i == this.closeB) {
                 this.closeB = -1;
                 this.closeA = -1;
+                this.accessible.changed();
                 if (this.switchPending && this.players == 2) {
                     this.turn = this.turn == 1 ? 2 : 1;
                     this.switchPending = false;
@@ -1061,14 +1141,28 @@ class GameView extends View {
             fAbs = 1.0f;
         }
         canvas.save();
-        canvas.scale(Math.max(0.04f, fAbs), 1.0f, rectF.centerX(), rectF.centerY());
+        if (turnProgress >= 0 && !animationsReduced()) {
+            canvas.translate(0, -this.d*2f*(float)Math.sin(Math.PI*turnProgress));
+        }
+        canvas.scale(Math.max(0.025f, fAbs), 1.0f, rectF.centerX(), rectF.centerY());
+        if (!animationsReduced() && this.matched[i] && j < this.successUntil
+                && (i == this.lastA || i == this.lastB)) {
+            float elapsed = (j - (this.successUntil - MATCH_DURATION_MS)) / (float) MATCH_DURATION_MS;
+            float pulse = Math.max(0f, Math.min(1f, (elapsed - 0.16f) / 0.6f));
+            float scale = 1f + 0.045f * (float) Math.sin(pulse * Math.PI);
+            canvas.scale(scale, scale, rectF.centerX(), rectF.centerY());
+        }
         if (z2) {
-            round(canvas, rectF, 20.0f, -516);
-            drawCardAnimal(canvas, this.cards[i], new RectF(rectF.left + (this.d * 5.0f), rectF.top + (this.d * 5.0f), rectF.right - (this.d * 5.0f), rectF.bottom - (this.d * 5.0f)), 16.0f);
+            boolean waitingMismatch = this.hideAt > 0 && (i == this.first || i == this.second);
+            round(canvas, rectF, 20.0f, this.matched[i] ? blend(this.mint, -1, 0.93f)
+                    : waitingMismatch ? blend(this.coral, -1, 0.94f) : -516);
+            this.cardImageBounds.set(rectF.left + this.d * 5f, rectF.top + this.d * 5f, rectF.right - this.d * 5f, rectF.bottom - this.d * 5f);
+            drawCardAnimal(canvas, this.cards[i], this.cardImageBounds, 16.0f);
             this.p.setStyle(Paint.Style.STROKE);
             this.p.setStrokeWidth(this.d * 1.5f);
             this.p.setColor((themeColor(this.theme) & 16777215) | 1426063360);
-            RectF rectF2 = new RectF(rectF.left + (this.d * 3.0f), rectF.top + (this.d * 3.0f), rectF.right - (this.d * 3.0f), rectF.bottom - (this.d * 3.0f));
+            RectF rectF2 = this.cardBorderBounds;
+            rectF2.set(rectF.left + this.d * 3f, rectF.top + this.d * 3f, rectF.right - this.d * 3f, rectF.bottom - this.d * 3f);
             float f = this.d;
             canvas.drawRoundRect(rectF2, f * 17.0f, f * 17.0f, this.p);
             this.p.setStyle(Paint.Style.FILL);
@@ -1113,6 +1207,33 @@ class GameView extends View {
             }
         } else {
             drawBack(canvas, rectF);
+        }
+        if (z2 && this.matched[i] && this.players != 2) {
+            color(this.mint);
+            float badgeX = rectF.right - this.d * 12f;
+            float badgeY = rectF.top + this.d * 12f;
+            canvas.drawCircle(badgeX, badgeY, this.d * 9f, this.p);
+            this.p.setStyle(Paint.Style.STROKE);
+            this.p.setStrokeWidth(this.d * 2f);
+            this.p.setColor(Color.WHITE);
+            canvas.drawLine(badgeX - this.d * 4f, badgeY, badgeX - this.d, badgeY + this.d * 3f, this.p);
+            canvas.drawLine(badgeX - this.d, badgeY + this.d * 3f, badgeX + this.d * 4f, badgeY - this.d * 3f, this.p);
+            this.p.setStyle(Paint.Style.FILL);
+        }
+        if (turnProgress > 0 && turnProgress < 1 && !animationsReduced()) {
+            // Soft shading and a moving highlight, clipped to the rounded card.
+            float shine = (float)Math.sin(Math.PI*turnProgress);
+            color(((int)(32*shine)<<24) | (this.ink & 0xffffff));
+            canvas.drawRoundRect(rectF, this.d*18f, this.d*18f, this.p);
+            this.cardShinePath.reset();
+            this.cardShinePath.addRoundRect(rectF, this.d*18f, this.d*18f, Path.Direction.CW);
+            canvas.save(); canvas.clipPath(this.cardShinePath);
+            float x = rectF.left + rectF.width()*turnProgress;
+            color((int)(70*shine)<<24 | 0xffffff);
+            canvas.drawOval(x-rectF.width()*.13f, rectF.top-rectF.height()*.2f,
+                    x+rectF.width()*.13f, rectF.bottom+rectF.height()*.2f, this.p);
+            canvas.restore();
+            this.p.setAlpha(255); this.p.setStyle(Paint.Style.FILL);
         }
         canvas.restore();
     }
@@ -1338,31 +1459,7 @@ class GameView extends View {
         StringBuilder sb2;
         String strThemeName;
         Canvas canvas2;
-        long jCurrentTimeMillis = System.currentTimeMillis() - this.winAt;
-        int[] iArr = {this.coral, this.mint, this.purple, -14249, -10965272};
-        if (jCurrentTimeMillis < 1800) {
-            i = 28;
-        } else {
-            i = jCurrentTimeMillis < 3300 ? 16 : 8;
-        }
-        int i2 = i;
-        long j = 4600;
-        if (!this.calm && jCurrentTimeMillis < 4600) {
-            int i3 = 0;
-            while (i3 < i2) {
-                float f = (((i3 * 73) % 101) / 101.0f) * this.W;
-                float f2 = ((((((long) (i3 * 137)) + ((jCurrentTimeMillis / 10) * ((long) ((i3 % 3) + 2)))) % 115) / 100.0f) * this.H) - (this.d * 30.0f);
-                color(iArr[i3 % 5]);
-                canvas.save();
-                canvas.rotate(((jCurrentTimeMillis / 8) + ((long) (i3 * 29))) % 360, f, f2);
-                float f3 = this.d;
-                canvas.drawRoundRect(f - (f3 * 4.0f), f2 - (f3 * 7.0f), f + (4.0f * f3), f2 + (7.0f * f3), f3 * 2.0f, f3 * 2.0f, this.p);
-                canvas.restore();
-                i3++;
-                j = j;
-            }
-        }
-        long j2 = j;
+        long jCurrentTimeMillis = now() - this.winAt;
         int i4 = this.players;
         boolean z = i4 == 2;
         boolean z2 = i4 == 3;
@@ -1374,9 +1471,16 @@ class GameView extends View {
             str = i5 > i6 ? "Joueur 1 gagne !" : "Joueur 2 gagne !";
         }
         String str4 = str;
+        canvas.save();
+        if (!animationsReduced() && jCurrentTimeMillis < 650L) {
+            float entrance = Math.max(0f, jCurrentTimeMillis / 650f);
+            float scale = 0.8f + 0.2f * (1f - (float) Math.pow(1f - entrance, 3d));
+            canvas.scale(scale, scale, this.W / 2f, this.H * 0.1f);
+        }
         label(canvas, "★", (this.W / 2.0f) - (this.d * 48.0f), this.H * 0.1f, 38.0f, -14249, Paint.Align.CENTER);
         label(canvas, "★", this.W / 2.0f, this.H * 0.085f, 46.0f, this.coral, Paint.Align.CENTER);
         label(canvas, "★", (this.W / 2.0f) + (this.d * 48.0f), this.H * 0.1f, 38.0f, this.mint, Paint.Align.CENTER);
+        canvas.restore();
         float f4 = this.d;
         float f5 = this.H;
         round(canvas, new RectF(f4 * 20.0f, 0.145f * f5, this.W - (f4 * 20.0f), f5 * 0.585f), 28.0f, -516);
@@ -1414,27 +1518,20 @@ class GameView extends View {
         }
         sb.append(str3);
         label(canvas, sb.toString(), rectF.centerX(), rectF.centerY(), 15.0f, z ? this.purple : this.coral, Paint.Align.CENTER);
-        float f8 = this.H;
-        float f9 = 0.365f * f8;
-        float f10 = f8 * 0.565f;
-        float fMin = Math.min(this.W * 0.3f, this.d * 112.0f);
-        float f11 = this.W;
-        float f12 = this.d;
-        RectF rectF2 = new RectF(((f11 / 2.0f) - fMin) - (f12 * 5.0f), f9, (f11 / 2.0f) - (f12 * 5.0f), f10);
-        float f13 = this.W;
-        float f14 = this.d;
-        RectF rectF3 = new RectF((f13 / 2.0f) + (f14 * 5.0f), f9, (f13 / 2.0f) + fMin + (f14 * 5.0f), f10);
-        drawAnimal(canvas, (this.moves + 2) % this.pairs, rectF2, 22.0f);
-        drawAnimal(canvas, (this.moves + 4) % this.pairs, rectF3, 22.0f);
+        this.victoryArea.set(this.d * 30f, this.H * .36f,
+                this.W - this.d * 30f, this.H * .58f);
+        this.victoryMascot.draw(canvas, this.victoryArea, this.celebration, now(),
+                animationsReduced(), themeColor(this.theme), this.theme);
         float f15 = this.d;
         float f16 = this.H;
-        RectF rectF4 = new RectF(f15 * 28.0f, 0.59f * f16, this.W - (f15 * 28.0f), f16 * 0.7f);
+        RectF rectF4 = new RectF(f15 * 20.0f, 0.60f * f16, this.W - (f15 * 20.0f), f16 * 0.72f);
         this.storyBtn.set(rectF4);
-        round(canvas, rectF4, 25.0f, themeColor(this.theme));
+        round(canvas, this.storyBtn, 18.0f, themeColor(this.theme));
         color(872415231);
-        canvas.drawCircle(rectF4.left + (this.d * 38.0f), rectF4.centerY(), this.d * 27.0f, this.p);
-        label(canvas, "♪", (this.d * 38.0f) + rectF4.left, rectF4.centerY() - (this.d * 2.0f), 28.0f, -1, Paint.Align.CENTER);
-        float f17 = ((rectF4.left + (this.d * 72.0f)) + rectF4.right) / 2.0f;
+        float iconRadius = Math.min(this.d * 24f, rectF4.height() * 0.32f);
+        canvas.drawCircle(rectF4.left + (this.d * 34.0f), rectF4.centerY(), iconRadius, this.p);
+        label(canvas, "♪", (this.d * 34.0f) + rectF4.left, rectF4.centerY(), 26.0f, -1, Paint.Align.CENTER);
+        float f17 = ((rectF4.left + (this.d * 64.0f)) + rectF4.right) / 2.0f;
         if (this.earnedBadge.isEmpty()) {
             sb2 = new StringBuilder("CADEAU DU MONDE ");
             strThemeName = themeName(this.theme);
@@ -1443,38 +1540,37 @@ class GameView extends View {
             strThemeName = this.earnedBadge;
         }
         sb2.append(strThemeName);
-        fitLabel(canvas, sb2.toString(), f17, rectF4.top + (this.d * 23.0f), 10.0f, 8.0f, (rectF4.right - rectF4.left) - (this.d * 92.0f), -285212673);
-        fitLabel(canvas, "ÉCOUTE TON HISTOIRE !", f17, (this.d * 50.0f) + rectF4.top, 18.0f, 13.0f, (rectF4.right - rectF4.left) - (this.d * 90.0f), -1);
-        label(canvas, "TOUCHE ICI  ▶", f17, (this.d * 74.0f) + rectF4.top, 10.0f, -1, Paint.Align.CENTER);
+        fitLabel(canvas, sb2.toString(), f17, rectF4.top + rectF4.height() * 0.27f, 10.0f, 8.0f, rectF4.width() - (this.d * 80.0f), -285212673);
+        fitLabel(canvas, "ÉCOUTER L’HISTOIRE  ▶", f17, rectF4.top + rectF4.height() * 0.65f, 17.0f, 12.0f, rectF4.width() - (this.d * 80.0f), -1);
         RectF rectF5 = this.play;
         float f18 = this.d;
         float f19 = this.H;
-        rectF5.set(f18 * 28.0f, 0.715f * f19, this.W - (f18 * 28.0f), f19 * 0.795f);
-        round(canvas, this.play, 25.0f, this.mint);
+        rectF5.set(f18 * 20.0f, 0.74f * f19, this.W - (f18 * 20.0f), f19 * 0.825f);
+        round(canvas, this.play, 18.0f, this.coral);
         label(canvas, "REJOUER  ↻", this.play.centerX(), this.play.centerY(), 19.0f, -1, Paint.Align.CENTER);
         if (this.suggestedPairs > 0) {
             canvas2 = canvas;
-            label(canvas2, "★  Lumi propose ensuite : " + this.suggestedPairs + " paires", this.W / 2.0f, 0.807f * this.H, 10.0f, this.purple, Paint.Align.CENTER);
+            label(canvas2, "★  Lumi propose ensuite : " + this.suggestedPairs + " paires", this.W / 2.0f, 0.843f * this.H, 10.0f, this.purple, Paint.Align.CENTER);
         } else {
             canvas2 = canvas;
         }
         float f20 = this.d;
         float f21 = 10.0f * f20;
-        float f22 = ((this.W - (56.0f * f20)) - f21) / 2.0f;
+        float f22 = ((this.W - (40.0f * f20)) - f21) / 2.0f;
         float f23 = this.H;
-        this.albumBtn.set(f20 * 28.0f, f23 * 0.82f, (f20 * 28.0f) + f22, f23 * 0.89f);
+        this.albumBtn.set(f20 * 20.0f, f23 * 0.865f, (f20 * 20.0f) + f22, f23 * 0.945f);
         RectF rectF6 = this.homeBtn;
         float f24 = this.albumBtn.right + f21;
         float f25 = this.H;
-        rectF6.set(f24, 0.82f * f25, this.W - (this.d * 28.0f), f25 * 0.89f);
-        round(canvas2, this.albumBtn, 20.0f, this.purple);
-        round(canvas2, this.homeBtn, 20.0f, -1);
-        label(canvas2, "★  MON ALBUM", this.albumBtn.centerX(), this.albumBtn.centerY(), 12.0f, -1, Paint.Align.CENTER);
-        label(canvas, "⌂  ACCUEIL", this.homeBtn.centerX(), this.homeBtn.centerY(), 12.0f, this.ink, Paint.Align.CENTER);
-        if (this.calm || jCurrentTimeMillis >= j2) {
+        rectF6.set(f24, 0.865f * f25, this.W - (this.d * 20.0f), f25 * 0.945f);
+        round(canvas2, this.albumBtn, 18.0f, -1);
+        round(canvas2, this.homeBtn, 18.0f, -1);
+        label(canvas2, "★  MON ALBUM", this.albumBtn.centerX(), this.albumBtn.centerY(), 12.0f, this.purple, Paint.Align.CENTER);
+        fitLabel(canvas, "CHOISIR UN MONDE", this.homeBtn.centerX(), this.homeBtn.centerY(), 12f, 9f, this.homeBtn.width() - 12f * this.d, this.ink);
+        if (animationsReduced() || !this.activityActive) {
             return;
         }
-        postInvalidateDelayed(32L);
+        postInvalidateDelayed(33L);
     }
 
     void drawStory(Canvas canvas) {
@@ -1514,7 +1610,7 @@ class GameView extends View {
 
     void drawWrappedText(Canvas canvas, String str, float f, float f2, float f3, float f4, float f5, int i) {
         this.text.setTextSize(f4 * this.d);
-        this.text.setTypeface(Typeface.create("sans", 0));
+        this.text.setTypeface(Typeface.create("sans", Typeface.NORMAL));
         String str2 = "";
         for (String str3 : str.split(" ")) {
             String str4 = str2.isEmpty() ? str3 : str2 + " " + str3;
@@ -1533,7 +1629,7 @@ class GameView extends View {
             this.text.setTextAlign(Paint.Align.LEFT);
             canvas.drawText(str2, f, f2, this.text);
         }
-        this.text.setTypeface(Typeface.create("sans", 1));
+        this.text.setTypeface(Typeface.create("sans", Typeface.BOLD));
     }
 
     /* JADX INFO: renamed from: lambda$toggleStory$0$fr-memomimi-app-GameView, reason: not valid java name */
@@ -1804,11 +1900,12 @@ class GameView extends View {
         while (i3 < 12) {
             float f9 = ((i3 % 3) * (f8 + f5)) + f7;
             float f10 = f + ((i3 / 3) * (fMin + f5));
-            RectF rectF = new RectF(f9, f10, f9 + f8, f10 + fMin);
+            RectF rectF = gameView.albumImageBounds[i3];
+            rectF.set(f9, f10, f9 + f8, f10 + fMin);
             if (((1 << i3) & iAlbumMask) != 0) {
                 gameView.round(canvas, rectF, 17.0f, -1);
                 gameView.drawAnimalFrom(canvas, gameView.albumPage, i3, new RectF(rectF.left + (gameView.d * 4.0f), rectF.top + (gameView.d * 4.0f), rectF.right - (gameView.d * 4.0f), rectF.bottom - (gameView.d * 4.0f)), 14.0f);
-                if (gameView.newUnlocks > 0 && gameView.albumPage == gameView.theme && System.currentTimeMillis() - gameView.winAt < 120000) {
+                if (gameView.newUnlocks > 0 && gameView.albumPage == gameView.theme && now() - gameView.winAt < 120000) {
                     gameView.label(canvas, "✦", rectF.right - (gameView.d * 10.0f),
                             rectF.top + (gameView.d * 10.0f), 12.0f, -18881, Paint.Align.CENTER);
                 }
@@ -1860,20 +1957,9 @@ class GameView extends View {
         }
     }
 
-    int albumImageAt(float f, float f2) {
-        float fSystemTop = systemTop();
-        float f3 = this.d;
-        float f4 = fSystemTop + (118.0f * f3) + (56.0f * f3) + (48.0f * f3);
-        float f5 = 9.0f * f3;
-        float f6 = 22.0f * f3;
-        float f7 = ((this.W - (f6 * 2.0f)) - (2.0f * f5)) / 3.0f;
-        float fMin = Math.min(f7, f3 * 105.0f);
-        for (int i = 0; i < 12; i++) {
-            float f8 = ((i % 3) * (f7 + f5)) + f6;
-            float f9 = ((i / 3) * (fMin + f5)) + f4;
-            if (new RectF(f8, f9, f8 + f7, f9 + fMin).contains(f, f2) && (albumMask(this.albumPage) & (1 << i)) != 0) {
-                return i;
-            }
+    int albumImageAt(float x, float y) {
+        for (int index = 0; index < this.albumImageBounds.length; index++) {
+            if (this.albumImageBounds[index].contains(x, y) && (albumMask(this.albumPage) & (1 << index)) != 0) return index;
         }
         return -1;
     }
@@ -1969,7 +2055,7 @@ class GameView extends View {
         rectF5.set(f19 * 32.0f, (510.0f * f19) + fSystemTop, this.W - (32.0f * f19), (f19 * 560.0f) + fSystemTop);
         round(canvas, this.tutorialResetBtn, 18.0f, -1);
         label(canvas, "★  REVOIR LE TUTORIEL DE LUMI", this.tutorialResetBtn.centerX(), this.tutorialResetBtn.centerY(), 12.0f, this.purple, Paint.Align.CENTER);
-        if (System.currentTimeMillis() < this.resetDoneUntil) {
+        if (now() < this.resetDoneUntil) {
             label(canvas, "✓  " + this.parentNotice, this.W / 2.0f, (this.d * 588.0f) + fSystemTop, 12.0f, this.mint, Paint.Align.CENTER);
             postInvalidateDelayed(200L);
         }
@@ -2204,6 +2290,26 @@ class GameView extends View {
     /* JADX WARN: Code duplicated, block: B:150:0x0267  */
     @Override // android.view.View
     public boolean onTouchEvent(MotionEvent motionEvent) {
+        int action = motionEvent.getActionMasked();
+        if (action == MotionEvent.ACTION_CANCEL) {
+            this.pressedTarget = null;
+            this.parentHolding = false;
+            invalidate();
+            return true;
+        }
+        if (action == MotionEvent.ACTION_DOWN) {
+            this.pressedTarget = this.accessible.targetAt(motionEvent.getX(), motionEvent.getY());
+            invalidate();
+        } else if (action == MotionEvent.ACTION_MOVE && this.pressedTarget != null
+                && !this.pressedTarget.contains(motionEvent.getX(), motionEvent.getY())) {
+            this.pressedTarget = null;
+            invalidate();
+        } else if (action == MotionEvent.ACTION_UP) {
+            this.pressedTarget = null;
+            performClick();
+            this.accessible.changed();
+            invalidate();
+        }
         StringBuilder sb;
         int i;
         String str;
@@ -2214,6 +2320,7 @@ class GameView extends View {
         float y = motionEvent.getY();
         int i4 = this.screen;
         int i5 = -1;
+        if (i4 == 1 && this.pendingWinAt > 0) return true;
         if (i4 == -1) {
             return true;
         }
@@ -2240,7 +2347,7 @@ class GameView extends View {
                     this.progress.resetStatsAndRecords();
                     this.showResetConfirm = false;
                     this.parentNotice = "Records et statistiques effacés";
-                    this.resetDoneUntil = System.currentTimeMillis() + 2400;
+                    this.resetDoneUntil = now() + 2400;
                 }
                 buzz(4);
                 invalidate();
@@ -2302,7 +2409,7 @@ class GameView extends View {
                 } else if (this.tutorialResetBtn.contains(x, y)) {
                     getContext().getSharedPreferences("m", 0).edit().remove("tutorial_done").apply();
                     this.parentNotice = "Lumi reviendra à la prochaine partie";
-                    this.resetDoneUntil = System.currentTimeMillis() + 2400;
+                    this.resetDoneUntil = now() + 2400;
                 }
                 this.mismatchDelay = i3;
                 saveParents();
@@ -2449,6 +2556,14 @@ class GameView extends View {
             return true;
         }
         if (i6 == 2) {
+            if (this.victoryMascot.bounds.contains(x, y)) {
+                if (this.celebration.touch(now())) {
+                    playSound(92);
+                    if (animationsReduced()) announceForAccessibility("Lumi te sourit !");
+                }
+                invalidate();
+                return true;
+            }
             if (!this.storyBtn.contains(x, y)) {
                 if (this.play.contains(x, y)) {
                     start();
@@ -2458,7 +2573,7 @@ class GameView extends View {
                         this.albumReturnScreen = 2;
                         this.screen = 5;
                     } else if (this.homeBtn.contains(x, y)) {
-                        this.screen = 0;
+                        this.screen = 4;
                     }
                     buzz(4);
                 }
@@ -2500,12 +2615,12 @@ class GameView extends View {
             useHint();
             return true;
         }
-        if (System.currentTimeMillis() >= this.hintUntil && this.hideAt <= 0 && this.second < 0 && this.closeA < 0 && (this.flipIndex < 0 || System.currentTimeMillis() - this.flipStart >= 175)) {
+        if (now() >= this.hintUntil && this.hideAt <= 0 && this.second < 0 && this.closeA < 0 && (this.flipIndex < 0 || animationsReduced() || now() - this.flipStart >= CardMotion.OPEN_MS)) {
             int iHitCard = hitCard(x, y);
             if ((!this.tutorialActive || this.tutorialStep >= 2 || iHitCard == tutorialTarget()) && iHitCard >= 0 && !this.matched[iHitCard] && iHitCard != this.first) {
                 performHapticFeedback(4);
                 this.flipIndex = iHitCard;
-                this.flipStart = System.currentTimeMillis();
+                this.flipStart = now();
                 int i7 = this.first;
                 if (i7 < 0) {
                     this.first = iHitCard;
@@ -2524,7 +2639,7 @@ class GameView extends View {
                 if (iArr[i7] == iArr[iHitCard]) {
                     this.lastA = i7;
                     this.lastB = iHitCard;
-                    this.successUntil = System.currentTimeMillis() + 650;
+                    this.successUntil = now() + MATCH_DURATION_MS;
                     boolean[] zArr = this.matched;
                     int i8 = this.first;
                     int i9 = this.second;
@@ -2548,7 +2663,7 @@ class GameView extends View {
                     }
                     this.second = -1;
                     this.first = -1;
-                    playSound(92);
+                    playMatchSound();
                     int i11 = this.players;
                     if (i11 == 2) {
                         sb = new StringBuilder("Paire pour le joueur ");
@@ -2576,17 +2691,7 @@ class GameView extends View {
                         }
                         unlockProgress();
                         clearSavedGame();
-                        this.winAt = System.currentTimeMillis();
-                        this.screen = 2;
-                        int i12 = this.players;
-                        if (i12 == 3) {
-                            str = "Bravo, vous avez gagné ensemble !";
-                        } else {
-                            str = i12 == 2 ? "Bravo, la partie est terminée !" : "Bravo, toutes les paires sont retrouvées !";
-                        }
-                        announceForAccessibility(str);
-                        performHapticFeedback(0);
-                        playSound(100);
+                        this.pendingWinAt = now() + (animationsReduced() ? 450L : MATCH_DURATION_MS);
                     }
                     invalidate();
                 } else {
@@ -2595,7 +2700,7 @@ class GameView extends View {
                     } else {
                         this.errors++;
                     }
-                    this.hideAt = System.currentTimeMillis() + ((long) this.mismatchDelay);
+                    this.hideAt = now() + ((long) this.mismatchDelay);
                     this.switchPending = this.players == 2;
                     playSound(55);
                 }
@@ -2653,6 +2758,8 @@ class GameView extends View {
     }
 
     void saveGame() {
+        // Do not restore a completed board during its final celebration.
+        if (this.pendingWinAt > 0 || (this.cards != null && this.found == this.pairs)) return;
         int i;
         int i2;
         if (this.cards == null || this.matched == null) {
@@ -2719,7 +2826,7 @@ class GameView extends View {
                 this.owners[i] = (j2 & j4) != 0 ? 1 : (j3 & j4) != 0 ? 2 : 0;
             }
             int i2 = this.pairs;
-            int i3 = i2 <= 6 ? 3 : 4;
+            int i3 = GameModel.columns(i2);
             this.cols = i3;
             this.rows = (((i2 * 2) + i3) - 1) / i3;
             this.turn = sharedPreferences.getInt("saved_turn", 1);
@@ -2813,6 +2920,7 @@ class GameView extends View {
     }
 
     boolean handleBack() {
+        if (this.pendingWinAt > 0) return true;
         if (this.showQuit) {
             this.showQuit = false;
         } else {
@@ -2862,7 +2970,7 @@ class GameView extends View {
         if (this.hintA >= 0) {
             this.hintUsed = true;
             this.errors = 0;
-            this.hintUntil = System.currentTimeMillis() + 1250;
+            this.hintUntil = now() + 1250;
             playSound(92);
             announceForAccessibility("Coup de pouce. Une paire est montrée");
             saveGame();
@@ -2870,31 +2978,10 @@ class GameView extends View {
         }
     }
 
-    int hitCard(float f, float f2) {
-        int i = this.pairs >= 10 ? 7 : 9;
-        float f3 = this.d;
-        float f4 = i * f3;
-        float f5 = f3 * 14.0f;
-        float fSystemTop = systemTop();
-        float f6 = this.d;
-        float f7 = fSystemTop + (112.0f * f6);
-        float f8 = f6 * 24.0f;
-        float f9 = this.W - (f5 * 2.0f);
-        int i2 = this.cols;
-        float f10 = (f9 - ((i2 - 1) * f4)) / i2;
-        float f11 = (this.H - f7) - f8;
-        int i3 = this.rows;
-        float fMin = Math.min((f11 - ((i3 - 1) * f4)) / i3, 1.18f * f10);
-        int i4 = this.rows;
-        float f12 = f7 + ((((this.H - f7) - f8) - ((i4 * fMin) + ((i4 - 1) * f4))) / 2.0f);
-        for (int i5 = 0; i5 < this.cards.length; i5++) {
-            int i6 = this.cols;
-            int i7 = i5 / i6;
-            float f13 = ((i5 % i6) * (f10 + f4)) + f5;
-            float f14 = (i7 * (fMin + f4)) + f12;
-            if (new RectF(f13, f14, f13 + f10, f14 + fMin).contains(f, f2)) {
-                return i5;
-            }
+    int hitCard(float x, float y) {
+        if (this.cards == null) return -1;
+        for (int index = 0; index < this.cards.length; index++) {
+            if (this.cardBounds[index].contains(x, y)) return index;
         }
         return -1;
     }
@@ -2909,10 +2996,16 @@ class GameView extends View {
 
     void pauseMusic() {
         this.activityActive = false;
+        this.parentHolding = false;
+        this.pressedTarget = null;
+        this.matchFeedbackGeneration++;
+        stopEffectSound();
         stopMusic();
     }
 
     void resumeMusic() {
+        this.systemReducedMotion = android.provider.Settings.Global.getFloat(
+                getContext().getContentResolver(), android.provider.Settings.Global.ANIMATOR_DURATION_SCALE, 1f) == 0f;
         this.activityActive = true;
         updateMusic();
     }
@@ -2987,6 +3080,11 @@ class GameView extends View {
 
     @Override // android.view.View
     protected void onDetachedFromWindow() {
+        this.activityActive = false;
+        this.parentHolding = false;
+        this.pressedTarget = null;
+        this.matchFeedbackGeneration++;
+        stopEffectSound();
         stopMusic();
         super.onDetachedFromWindow();
     }
@@ -2995,7 +3093,7 @@ class GameView extends View {
         final int i2;
         final double[] dArr;
         final float f;
-        if (this.sound) {
+        if (this.sound && this.activityActive && !this.soundExecutor.isShutdown()) {
             if (i >= 100) {
                 dArr = new double[]{523.25d, 659.25d, 783.99d, 1046.5d};
                 i2 = 105;
@@ -3019,12 +3117,12 @@ class GameView extends View {
                     f = 0.065f;
                 }
             }
-            new Thread(new Runnable() { // from class: fr.memomimi.app.GameView$$ExternalSyntheticLambda7
+            this.soundExecutor.execute(new Runnable() {
                 @Override // java.lang.Runnable
                 public final void run() {
                     GameView.this.m2lambda$playSound$5$frmemomimiappGameView(dArr, i2, f);
                 }
-            }).start();
+            });
         }
     }
 
@@ -3051,14 +3149,43 @@ class GameView extends View {
             }
             i4 += i2;
         }
+        AudioTrack audioTrack = null;
         try {
-            AudioTrack audioTrack = new AudioTrack(3, 22050, 4, 2, length * 2, 0);
+            if (!this.activityActive || !this.sound) return;
+            audioTrack = new AudioTrack(3, 22050, 4, 2, length * 2, 0);
+            this.activeSound = audioTrack;
             audioTrack.write(sArr, 0, length);
             audioTrack.play();
             Thread.sleep((((long) dArr.length) * ((long) (i + 25))) + 40);
             audioTrack.stop();
-            audioTrack.release();
         } catch (Exception unused) {
+        } finally {
+            if (this.activeSound == audioTrack) this.activeSound = null;
+            if (audioTrack != null) {
+                try { audioTrack.release(); } catch (Exception ignored) { }
+            }
         }
+    }
+
+    void playMatchSound() {
+        final int generation = ++this.matchFeedbackGeneration;
+        postDelayed(() -> {
+            if (generation == this.matchFeedbackGeneration && this.screen == 1) playSound(92);
+        }, animationsReduced() ? 0L : 170L);
+    }
+
+    void stopEffectSound() {
+        this.soundExecutor.getQueue().clear();
+        AudioTrack track = this.activeSound;
+        this.activeSound = null;
+        if (track != null) {
+            try { track.stop(); } catch (Exception ignored) { }
+        }
+    }
+
+    void releaseAudio() {
+        pauseMusic();
+        releaseNarration();
+        this.soundExecutor.shutdownNow();
     }
 }

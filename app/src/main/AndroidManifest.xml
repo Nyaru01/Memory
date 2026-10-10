@@ -1,12 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     >
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
     <application
         android:theme="@style/AppTheme"
         android:label="MémoMondes"
         android:icon="@mipmap/ic_launcher"
         android:allowBackup="true"
         android:roundIcon="@mipmap/ic_launcher_round">
+        <provider android:name=".UpdateFileProvider" android:authorities="${applicationId}.updates"
+            android:exported="false" android:grantUriPermissions="true">
+            <grant-uri-permission android:path="/update.apk" />
+        </provider>
         <activity
             android:name="fr.memomimi.app.MainActivity"
             android:exported="true"

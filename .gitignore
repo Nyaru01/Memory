@@ -6,3 +6,7 @@ local.properties
 .idea/
 *.log
 .codex-remote-attachments/
+releases/
+APK/
+*.hprof
+__pycache__/
