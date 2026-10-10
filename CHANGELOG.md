@@ -1,5 +1,14 @@
 # Changements
 
+## 9.10 — Accueil à deux modes et coucou de Lumi
+
+- Deux cartes illustrées, progression réelle et état de premier voyage ; aventure ouvrant la carte au prochain niveau.
+- Configuration Jeu libre séparée, monde et difficulté persistés indépendamment, retours Android cohérents.
+- Album partagé, déblocage d’aventure réservé aux niveaux valides ; données conservées.
+- Bienvenue de cinq secondes avec huit nouvelles poses de salut, registration au sol, respiration et toucher.
+- Canvas matériel sur l’accueil, deux paysages chargés hors UI, ressources bornées ; accessibilité et mode réduit adaptés.
+
+
 ## 9.9 — 10 octobre2026
 
 - Paysage de carte derrière l’en-tête et jusqu’au haut de l’écran, avec un voile translucide dégradé pour conserver la lisibilité.
