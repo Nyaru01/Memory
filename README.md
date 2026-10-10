@@ -1,5 +1,7 @@
 # MémoMondes 9.10 — V2
 
+**Reprise du projet par un agent : [document de passation](docs/PASSATION-AGENT.md).**
+
 Jeu de mémoire Android pour les enfants de 5 à 8 ans. Le jeu fonctionne hors ligne ; une connexion sert à vérifier et télécharger les mises à jour GitHub.
 
 Le dossier source original ayant été perdu, cette version a été reconstruite à partir de l'APK 7.2, puis remise en état de compilation. Les images, musiques et narrations antérieures ont été récupérées de cet APK. Le code Java reconstruit par décompilation peut contenir des noms de variables moins lisibles que le code original.
