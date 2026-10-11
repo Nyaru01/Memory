@@ -4,6 +4,19 @@ import org.junit.Test;
 import static org.junit.Assert.*;
 
 public class BoardSizeTest {
+    @Test public void twelvePairsRemainTouchableWithRealCompactScreenInsets(){
+        BoardLayout board=new BoardLayout();board.fit(24,320,270,1,178);
+        assertEquals(6,board.columns);assertEquals(4,board.rows);
+        assertTrue(board.width>=48);assertTrue(board.height>=48);
+        assertTrue(board.top+board.rows*board.height+(board.rows-1)*board.gap<=448.1f);
+    }
+    @Test public void everyDeckUsesSpareHeightOnTallPhones(){
+        for(int count:new int[]{12,16,20,24}){
+            BoardLayout board=new BoardLayout();board.fit(count,392,633,1,186);
+            assertTrue("Taller cards for "+count,board.height>board.width*1.12f);
+            if(count>=16)assertTrue("Wider dense boards",board.width>=87.5f);
+        }
+    }
     @Test public void eightPairsUseTallPhoneSpaceWithoutShrinkingCompactBoards(){
         BoardLayout board=new BoardLayout();
         board.fit(16,360,700,1,186);

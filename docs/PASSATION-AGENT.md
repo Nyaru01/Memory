@@ -1,5 +1,11 @@
 # MémoMondes — Passation à un prochain agent
 
+## Tous les plateaux — sources9.20/code61 — 11 octobre 2026
+
+- Correction étendue aux6/8/10/12 paires (Aventure et Jeu libre via BoardLayout partagé). Hauteur jusqu'à1,30 largeur bornée à l'espace réel, marges12 dp sur les decks denses ; recalcul compact marge6/gap4 dp si largeur sous48 dp. Aucun changement de progression, règles, decks ou stockage.
+- Six tests ciblés PASS, lint zéro erreur/25 avertissements existants. Android116 contrôles petit et116 grand téléphone aux niveaux1/7/17/29/40, captures inspectées. Albums/records/progression préservés et préférences du scénario restaurées. Petit écran12 paires48×62,4 dp ; grand87,5×99,17. Voir VALIDATION.md pour périmètre/incidents/limites.
+- Viewport320×640/160 restauré et émulateur arrêté. Publication finale à documenter après compilation complète et vérification des assets publics. Les blocs suivants sont historiques.
+
 ## Publication actuelle — 9.19/code60 — 11 octobre 2026
 
 **Final unique : APK/MemoMondes.apk**,107690514 octets, SHA256 `da7f5bc0aadfc17f8584c252c8b337e93c2bff7ffa7d3e645babbbb47f1af323`. Release : https://github.com/Nyaru01/Memory/releases/tag/v9.19. Sources applicatives `1d28ba9` sur origin/main ; documentation de publication ajoutée ensuite. Compilation complète184 tests sans échec, lint zéro erreur/25 avertissements ; scripts build/publish-apk/publish-github-release réussis, signature fixe vérifiée et clé conservée.

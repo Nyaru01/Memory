@@ -1,5 +1,14 @@
 # Validation
 
+## Tous les plateaux — sources 9.20 — 11 octobre 2026
+
+- BoardLayout utilise la hauteur disponible pour les 6/8/10/12 paires et resserre les marges sur les grilles denses. Si une largeur descend sous 48 dp, un second calcul compact (marge6/gap4 dp) ajuste les colonnes. Aucun changement des règles ou des données.
+- Six tests ciblés PASS via tools/build.ps1 : géométrie à plusieurs densités, cas 24 cartes avec seulement270 dp disponibles, rendus des niveaux1/7/17/29/40 sur SDK28/35 et trois tailles. Deck identique après redimensionnement, progression, collection et record conservés. Debug et instrumentation compilés ; lint zéro erreur/25 avertissements existants.
+- Android :116 contrôles PASS sur320×480/160 et116 sur784×1702/320 (392×851 dp), aux niveaux1/7/17/29/40. Chaque carte reste sous l'en-tête et au-dessus du bas, largeur au moins48 dp, hitCard et tap de dernière carte corrects ; données fictives restaurées après scénario. Rapports et captures : releases/validation/9.20/.
+- Sur grand téléphone :6 paires114,67×149,07 dp ;8 et10 paires87,5×113,75 ;12 paires87,5×99,17. Sur petit écran :12 paires en6×4,48×62,4 dp. Captures compact niveau29 et grand niveaux17/40 inspectées, ainsi que rendus unitaires. Les cartes restent nécessairement plus petites quand le nombre de paires augmente.
+- Premier essai Android : cibles trop étroites au niveau29 après prise en compte des barres système ; ajout du calcul compact, nouveaux tests et répétition des deux formats PASS. Au redémarrage, le helper a refusé de réinstaller l'ancien final9.19 sur le debug9.20 : debug courant réinstallé sans désinstallation ni perte de données.
+- Viewport et densité rétablis320×640/160 sans override, émulateur arrêté. Pas de téléphone, TalkBack, parcours enfant ou mesure FPS ; aucune ressource graphique ajoutée. Publication finale documentée séparément après vérification.
+
 ## Publication9.19 — 11 octobre 2026
 
 - Sources1d28ba9 sur main, build final184 tests unitaires sans échec/erreur et lint zéro erreur/25 avertissements. Scripts du projet réussis, clé fixe conservée/signature vérifiée. Final unique107690514 octets, SHA256 `da7f5bc0aadfc17f8584c252c8b337e93c2bff7ffa7d3e645babbbb47f1af323` ; https://github.com/Nyaru01/Memory/releases/tag/v9.19.

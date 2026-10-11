@@ -1,5 +1,11 @@
 # Changements
 
+## 9.20 — 11 octobre 2026
+
+- Agrandissement commun aux plateaux de 6, 8, 10 et 12 paires : hauteur jusqu'à 1,30 fois la largeur, bornée à l'espace disponible, marges de 12 dp sur les grilles denses.
+- Si les cibles passent sous 48 dp, nouveau calcul avec marges de 6 dp et espacement de 4 dp ; les 24 cartes restent accessibles sur petit écran.
+- Rendu et détection tactile restent partagés ; aucune modification des decks, règles, données ou progression.
+
 ## 9.19 — 11 octobre 2026 — publiée sur GitHub
 
 - Plateau à8 paires : marges12 dp, espacement6 dp et cartes jusqu'à1,30 fois leur largeur lorsque la hauteur disponible le permet. La grille4×4 reste privilégiée, trois colonnes sur écrans très allongés si le gain de largeur atteint6%.
