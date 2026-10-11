@@ -20,7 +20,7 @@ Installer une fois la version 8.6 ou suivante pour activer les mises à jour dep
 
 ## Catalogue du Jeu libre — 9.18
 
-Deux grandes cartes par ligne sur téléphone, aperçus des paysages existants, familles pastel et chevrons animés. Les compteurs et barres de collection restent distincts de la coche de sélection. Grille adaptée à la tablette et au texte agrandi, sans changer le parcours ni les données. [Détails de la finition](docs/SELECTEUR-MONDES-9.18.md).
+Deux grandes cartes par ligne sur téléphone, aperçus des paysages existants, familles pastel et chevrons animés. Les compteurs et barres de collection restent distincts de la coche de sélection. Grille adaptée à la tablette et au texte agrandi, sans changer le parcours ni les données. [Détails de la finition](docs/SELECTEUR-MONDES-9.18.md). [Version9.18 publiée](https://github.com/Nyaru01/Memory/releases/tag/v9.18), correctif depuis9.17 vérifié sur Android.
 
 ## Monde d'aventure continu — 9.17
 

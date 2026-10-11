@@ -1,11 +1,19 @@
 # MémoMondes — Passation à un prochain agent
 
+## Publication actuelle — 9.18/code59 — 11 octobre 2026
+
+**Final unique : APK/MemoMondes.apk**,107690232 octets, SHA256 `bba29e037bcc7d904161c220ddc3af5ae9cd04416d0bb6f641e17cca1e952e1b`. Release : https://github.com/Nyaru01/Memory/releases/tag/v9.18. Sources applicatives `8254420` sur origin/main ; documentation de publication ajoutée ensuite. Build/publish-apk et publish-github-release réussis ; signature fixe vérifiée, clé conservée.
+
+- 22 correctifs des releases publiques8.6–9.17 reconstruits exactement avant publication. Depuis9.17 :128036 octets. APK public retéléchargé, SHA256 identique au final ; manifeste nommé et latest avec Cache-Control:no-cache confirment9.18/code59.
+- Test réseau Android PASS, final release installé : téléchargement128036, reconstruction exacte107690232, package/version/signature/provider lecture seule vérifiés. Base publique9.17 fournie au scénario ; aucune nouvelle confirmation système d'installation. Rapport releases/validation/9.18/github-update-9.17-to-9.18.txt. Premier essai DNS indisponible, puis ancien manifeste latest sans correctif pendant propagation ; répétition PASS sans modification de code.
+- Dernière compilation180 tests unitaires sans échec, lint zéro erreur/25 avertissements. Contrôles UI :80 petit,80 grand,80 tablette/texte agrandi, captures inspectées. Voir VALIDATION.md. Émulateur seulement ; aucun TalkBack manuel/parcours enfant/mesure FPS. Base temporaire retirée, viewport320×640/160 et font1,0 vérifiés puis émulateur arrêté.
+
 ## Catalogue Jeu libre — sources 9.18/code59 — 11 octobre 2026
 
 - [Finition du sélecteur](SELECTEUR-MONDES-9.18.md) : WorldSelector extrait drawThemesGrid, deux colonnes sur téléphone et davantage sur grandes largeurs, paysages existants décodés par région en arrière-plan/cache6 Mio. Aucun nouveau fichier graphique ni changement Aventure.
 - Cinq familles et vingt identifiants conservés, ouverture multiple actuelle conservée. Accents, vignettes, chevrons190 ms, titres sur deux lignes, compteur/barre de collection et coche de sélection distincts. Rappel de sélection dans la famille fermée et libellés accessibles.
 - Ancrage de défilement et protection des taps pendant expansion/redimensionnement. Rafraîchissement final explicite pour reconstruire les cibles. Navigation et remember restent dans GameView ; album, records, progression et sauvegardes inchangés.
-- Validation :180 tests unitaires, lint zéro erreur/25 avertissements ;80 contrôles Android sur petit, grand et tablette avec texte1,3 PASS, captures inspectées. Voir VALIDATION.md pour incidents du scénario, périmètre et limites. Viewport/font restaurés puis émulateur arrêté. Publication à effectuer ; dernier final public9.17 conservé jusqu'au succès des scripts. Les blocs suivants sont historiques.
+- Validation :180 tests unitaires, lint zéro erreur/25 avertissements ;80 contrôles Android sur petit, grand et tablette avec texte1,3 PASS, captures inspectées. Voir VALIDATION.md pour incidents du scénario, périmètre et limites. Viewport/font restaurés puis émulateur arrêté. Publication9.18 réussie : voir le bloc en tête. Les blocs suivants sont historiques.
 
 ## Publication actuelle — 9.17/code58 — 11 octobre 2026
 

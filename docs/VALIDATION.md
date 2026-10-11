@@ -1,5 +1,12 @@
 # Validation
 
+## Publication 9.18 — 11 octobre 2026
+
+- Sources8254420 sur main. Compilation finale via scripts :180 tests sans échec/erreur, lint zéro erreur/25 avertissements, signature fixe vérifiée. Final unique107690232 octets, SHA256 `bba29e037bcc7d904161c220ddc3af5ae9cd04416d0bb6f641e17cca1e952e1b` ; https://github.com/Nyaru01/Memory/releases/tag/v9.18.
+- 22 correctifs8.6–9.17 reconstruits exactement avant envoi ;128036 octets depuis9.17. APK public complet retéléchargé et identique au final par hash. API latest9.18/non draft, manifeste nommé et latest avec Cache-Control:no-cache9.18/code59 et même empreinte.
+- Test réseau Android PASS depuis la base publique9.17 fournie :128036 octets téléchargés,107690232 reconstruits exactement, package/version/signature/provider lecture seule vérifiés. Final release installé par helper, sans nouveau dialogue système d'installation. Premier essai DNS indisponible ; deuxième ancien manifeste latest ne proposant pas encore de correctif ; répétition réussie après propagation sans changement de code. Rapport github-update-9.17-to-9.18.txt.
+- Base externe temporaire retirée ; viewport320×640/160 et font_scale1,0 vérifiés, émulateur arrêté. Contrôles UI des mêmes sources debug détaillés ci-dessous. Pas de validation téléphone ou TalkBack manuel.
+
 ## Catalogue Jeu libre — 9.18 — 11 octobre 2026
 
 - Debug/tests/lint/instrumentation compilés avec tools/build.ps1. 180 tests unitaires sans échec/erreur, lint zéro erreur/25 avertissements existants. Trois scénarios supplémentaires à deux SDK : géométrie/ressources aux trois tailles et texte1,35, animation/redimensionnement/glissement, parcours direct avec préservation des données.

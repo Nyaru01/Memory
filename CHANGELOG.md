@@ -1,6 +1,6 @@
 # Changements
 
-## 9.18 — 11 octobre 2026
+## 9.18 — 11 octobre 2026 — publiée sur GitHub
 
 - Sélecteur Jeu libre : deux cartes par ligne sur téléphone, grille adaptée aux grandes largeurs, grands aperçus et titres sur deux lignes si nécessaire.
 - Cinq accents pastel, vignettes de familles et chevrons animés ; ouverture multiple actuelle conservée.
