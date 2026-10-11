@@ -20,7 +20,7 @@ Installer une fois la version 8.6 ou suivante pour activer les mises à jour dep
 
 ## Accueil — 9.13
 
-Marges identiques pour les blocs, boutons principaux centrés avec un espace autour, illustrations séparées des boutons et textes regroupés au centre de leur conteneur. La disposition des deux entrées, la progression et les données sont conservées. Livraison locale : les liens GitHub désignent la dernière version publiée.
+Marges identiques pour les blocs, boutons principaux centrés avec un espace autour, illustrations séparées des boutons et textes regroupés au centre de leur conteneur. La disposition des deux entrées, la progression et les données sont conservées. [Version 9.13 publiée](https://github.com/Nyaru01/Memory/releases/tag/v9.13) ; les sources, assets, tests et scripts sont désormais sauvegardés dans ce dépôt. La clé de signature et les SDK restent séparés sur D:.
 
 ## Espace parents — 9.12
 

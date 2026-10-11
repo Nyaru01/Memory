@@ -1,5 +1,12 @@
 # Validation
 
+## Publication et sources GitHub — 11 octobre 2026
+
+- Historiques local/distant fusionnés sans force push ; sources, tests, assets et scripts présents sur main, avec contrôles de présence via API et vérification du SHA de la branche distante. Clé, APK final, caches et intermédiaires exclus du Git.
+- tools/publish-github-release.ps1 a recompilé et signé la 9.13/code54 ; tests unitaires et lint à jour, aucune modification applicative depuis la validation du 10 octobre. La métadonnée de révision Git change l'empreinte finale : ad7a1664f5509d36762cee7e510271764621f85584a325ca6882929746f972a6, 102692335 octets. Signature vérifiée, clé fixe conservée, un seul final dans APK/.
+- 17 correctifs de 8.6 à 9.10 reconstruits exactement par apk_delta.py avant publication ; correctif depuis 9.10 de 117318 octets. GitHub v9.13 publiée et reconnue latest. APK public retéléchargé dans app/build/public-check-9.13/ et SHA256 comparé au final et au manifeste ; update.json du flux latest ordinaire confirme 9.13/code54/empreinte identique.
+- Pas de nouveau test Android du téléchargement ou de l'installation système ; limites visuelles 9.13 conservées. Aucune donnée de téléphone supprimée.
+
 ## Accueil aligné — 9.13 — 10 octobre 2026
 
 - Marges extérieures communes de 16 dp ; espaces entre blocs de 12 dp ; boutons principaux de 48 dp avec 12 dp sur les côtés et en bas, 8 dp entre illustration et bouton. Album, musique et parents alignés ; textes des groupes centrés verticalement. Le glissement des seules cartes est retiré pour garder dessin et zones tactiles concordants dès l'entrée.

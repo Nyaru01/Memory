@@ -1,5 +1,14 @@
 # MémoMondes — Passation à un prochain agent
 
+## Publication GitHub et sauvegarde des sources — 11 octobre 2026
+
+**État actuel : 9.13/code54 publiée** sur https://github.com/Nyaru01/Memory/releases/tag/v9.13 et reconnue par releases/latest. APK final unique : 102692335 octets, SHA256 `ad7a1664f5509d36762cee7e510271764621f85584a325ca6882929746f972a6`. La recompilation de publication a changé la métadonnée de révision Git embarquée, donc l'empreinte diffère de la livraison locale du 10 octobre sans modification du code applicatif.
+
+- Sources complètes, assets, tests et scripts envoyés sur `origin/main`, https://github.com/Nyaru01/Memory.git. Historique local relié à l'historique distant par fusion sans réécriture ; commit applicatif publié `d3c2cc9` (la documentation de publication est ajoutée ensuite). Branche locale `codex/memomondes-v2` ; `git remote -v` n'est plus vide. Présence de GameView, HomeScreen et build.ps1 vérifiée dans l'arbre public.
+- Publication via tools/publish-github-release.ps1 : build/tests/lint réussis (tests et lint à jour), signature vérifiée avec la clé fixe ; 17 correctifs de 8.6 à 9.10 générés et reconstruits exactement avant envoi. Depuis 9.10 : 117318 octets. Release, APK et update.json publiés ; APK public retéléchargé et comparé au final par SHA256 ; manifeste latest ordinaire vérifié code54/empreinte identique.
+- Les limites de validation UI du bloc 9.13 ci-dessous restent applicables : aucun nouveau contrôle Android attaché ni essai téléphone/TalkBack. Aucun test réseau Android supplémentaire de mise à jour réalisé lors de cette publication.
+- APK, caches, fichiers de compilation, pièces jointes et clé de signature restent exclus du Git. La clé fixe est uniquement sur D:/AndroidDev/signing ; conserver sa sauvegarde séparément. Les APK de vérification et bases des correctifs sont des intermédiaires dans app/build/.
+
 ## Mise à jour de reprise — 9.13 locale — 10 octobre 2026
 
 **Ce bloc remplace l'état 9.12 ci-dessous, conservé comme historique.** Sources et final : **9.13 / versionCode 54**, `APK/MemoMondes.apk`, 102692335 octets, SHA256 `504ea37610ba701cbfc54104f8f757a203f8d4422af5eb298b50f64ac4d1d5e9`. Compilé via build.ps1 et livré via publish-apk.ps1 ; signature vérifiée, clé fixe conservée, un seul final. Aucun déploiement GitHub 9.13.
@@ -46,7 +55,7 @@
 - Distribution : https://github.com/Nyaru01/Memory/releases/tag/v9.10 ; le flux `releases/latest` a été vérifié sur cette version.
 - Branche locale : `codex/memomondes-v2`. Dernier commit applicatif : `f09066f` ; précédents : `df6d10a` (9.9), `aef59aa` (9.8). Le commit de cette passation viendra après ces références.
 
-**Point de récupération essentiel :** le GitHub public contient actuellement README, CHANGELOG, docs et les releases APK/correctifs. Les sources Java n'y ont pas été poussées. `git remote -v` est vide dans ce checkout au moment de la passation. La publication via les scripts/API GitHub ne constitue pas un push des sources. Conserver ce workspace et son historique Git ; cloner le dépôt public seul ne permet pas de recompiler le jeu. Ne pas annoncer les sources comme sauvegardées sur GitHub sans l'avoir réellement fait et vérifié.
+**Point de récupération essentiel, actualisé le 11 octobre :** le dépôt public contient désormais les sources, assets, tests et scripts ainsi que la documentation ; clonage depuis https://github.com/Nyaru01/Memory.git possible. Le SDK, les caches et la clé fixe ne sont pas dans Git : les rétablir séparément sur D: pour compiler. L'ancien état 9.10 sans sources distantes est historique.
 
 ## 2. Contraintes utilisateur à conserver
 
