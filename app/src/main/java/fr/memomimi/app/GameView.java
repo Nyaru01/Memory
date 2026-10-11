@@ -939,7 +939,7 @@ class GameView extends View {
         while (i8 < this.cards.length) {
             int i9 = this.cols;
             int i10 = i8 / i9;
-            float f14 = f7 + ((i8 % i9) * (f11 + f6));
+            float f14 = boardLayout.cardLeft(i8,this.cards.length);
             float f15 = (i10 * (fMin + f6)) + f13;
             RectF rectF3 = this.cardBounds[i8];
             rectF3.set(f14, f15, f14 + f11, f15 + fMin);

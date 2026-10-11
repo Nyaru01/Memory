@@ -1,5 +1,11 @@
 # MémoMondes — Passation à un prochain agent
 
+## Cartes niveau7 — sources9.19/code60 — 11 octobre 2026
+
+- Le passage à8 paires dès le niveau7 reste normal et inchangé. BoardLayout agrandit les16 cartes avec marges12 dp, gap6 dp et hauteur jusqu'à1,30 largeur selon la place. Grille4×4 courante,3 colonnes si gain de largeur réel ; dernière rangée incomplète centrée via cardLeft utilisé par GameView. Decks, progression et formats inchangés.
+- Quatre tests ciblés PASS, lint zéro erreur/25 avertissements ; rendus inspectés. Android20/20/21 contrôles sur deux hauteurs compactes et un format392×851 dp ; cartes87,5×113,75 dp sur ce dernier. Préférences restaurées, viewport rétabli320×640/160 puis émulateur arrêté. Voir VALIDATION.md.
+- Compilation complète et publication à effectuer ; final public9.18 conservé jusqu'au succès des scripts. Les blocs suivants sont historiques.
+
 ## Publication actuelle — 9.18/code59 — 11 octobre 2026
 
 **Final unique : APK/MemoMondes.apk**,107690232 octets, SHA256 `bba29e037bcc7d904161c220ddc3af5ae9cd04416d0bb6f641e17cca1e952e1b`. Release : https://github.com/Nyaru01/Memory/releases/tag/v9.18. Sources applicatives `8254420` sur origin/main ; documentation de publication ajoutée ensuite. Build/publish-apk et publish-github-release réussis ; signature fixe vérifiée, clé conservée.

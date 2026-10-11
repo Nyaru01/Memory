@@ -15,7 +15,9 @@ public final class UpdateChecks {
         Bundle result = new Bundle();
         try {
             String mode = arguments == null ? "network" : arguments.getString("mode", "network");
-            if("catalogue".equals(mode)) {
+            if("board".equals(mode)) {
+                return new BoardSizeChecks(host).run();
+            } else if("catalogue".equals(mode)) {
                 return new WorldSelectorChecks(host).run();
             } else if("home".equals(mode)) {
                 return new HomeChecks(host).run();
