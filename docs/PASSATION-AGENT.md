@@ -1,11 +1,19 @@
 # MémoMondes — Passation à un prochain agent
 
+## Publication actuelle — 9.15/code56 — 11 octobre 2026
+
+**Final unique et release GitHub : 9.15/code56**, 102693314 octets, SHA256 `fb0e2483882078ddb3a5c13556d4abb7f99a8f3fc4b8f9658a90d6d0ea60a676`. URL : https://github.com/Nyaru01/Memory/releases/tag/v9.15. Sources applicatives `8b57c4d` sur origin/main, documentation de publication ajoutée ensuite. Build/publish-apk et publish-github-release réussis, signature vérifiée, clé fixe conservée.
+
+- 19 correctifs depuis les releases publiques 8.6 à 9.14 reconstruits exactement avant envoi. Depuis 9.14 : 118351 octets. APK public retéléchargé et identique au final par SHA256 ; manifeste nommé v9.15 et API latest vérifiés.
+- Flux latest : premier GET ordinaire encore en9.14 pendant la propagation ; la requête avec Cache-Control:no-cache, identique au jeu, renvoie 9.15/code56. Test réseau Android PASS depuis la base publique 9.14 : téléchargement118351 octets, reconstruction exacte102693314, package/version/signature/provider vérifiés. Premier essai DNS temporairement indisponible, second essai sans correctif car ancien manifeste, répétition après propagation PASS. Rapport releases/validation/9.15/github-update-9.14-to-9.15.txt.
+- Les contrôles UI sont ceux de la build debug validée ci-dessous ; le test réseau utilise le final release installé par le helper. Pas de nouvelle confirmation système d'installation ni de téléphone utilisateur. Base temporaire retirée ; émulateur320×640/160 sans override vérifié puis arrêté.
+
 ## Finition carte — sources 9.15/code56 — 11 octobre 2026
 
 - [Détails de la passe](POLISH-CARTE-9.15.md) : pierres de niveaux et ombres de contact, chemin sablé, repères de départ et Pirates ajustés, Lumi posée près de la pierre, commandes translucides plus légères et lucioles latérales. Pastilles accessibles de 58 dp ; progression et illustrations conservées.
 - Retour sur niveau verrouillé dans GameView/AdventureMap : court mouvement si animations actives, message et haptique selon réglages ; aucun nouveau déblocage. Ombre en deux couches dans VictoryMascot.drawMap, sans changement des états de victoire. Idle, clignements et réactions de l'atlas existant conservés.
 - Validation avant publication : 163 tests unitaires, lint zéro erreur/25 avertissements, 40 contrôles carte Android petit écran et 40 HD, captures inspectées. Voir VALIDATION.md pour les deux incidents de configuration/timing de scénario et les limites. Préférences restaurées par le scénario réussi ; viewport remis à320×640/160 et vérifié, émulateur arrêté avant compilation finale.
-- La livraison et la publication GitHub de 9.15 sont réalisées ensuite ; le bloc de publication ajouté en tête doit fournir l'empreinte finale, l'URL et la preuve du test réseau.
+- Livraison et publication réalisées : consulter le bloc de publication en tête pour l'empreinte finale, l'URL et la preuve réseau.
 
 ## Mise à jour 9.14 publiée — 11 octobre 2026
 

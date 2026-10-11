@@ -1,5 +1,12 @@
 # Validation
 
+## Publication et correctif 9.15 — 11 octobre 2026
+
+- Sources8b57c4d envoyées sur main sans réécriture ; compilation finale et publication par les scripts du projet, tests/lint à jour. Final unique102693314 octets, SHA256 fb0e2483882078ddb3a5c13556d4abb7f99a8f3fc4b8f9658a90d6d0ea60a676 ; signature vérifiée avec la clé fixe. Aucun SDK/asset ajouté.
+- GitHubv9.15 publiée, API latest correcte. APK public retéléchargé dans app/build/public-check-9.15/ et identique au final/manifeste nommé.19 correctifs des versions publiques8.6 à9.14 reconstruits exactement avant envoi.
+- Latest a initialement renvoyé le manifeste9.14 au GET ordinaire. La requête Cache-Control:no-cache utilisée par le jeu renvoie9.15/code56. Test Android réseau final PASS depuis la base officielle9.14 :118351 octets HTTPS, reconstruction exacte102693314 octets, package/version/signature et provider lecture seule vérifiés. Deux essais préalables non retenus : DNS de l'émulateur temporairement indisponible puis manifeste ancien sans correctif pour9.14.
+- Rapport releases/validation/9.15/github-update-9.14-to-9.15.txt ; base temporaire supprimée, taille/densité320×640/160 sans override contrôlée avant arrêt de l'émulateur. UI validée sur debug des mêmes sources ; réseau vérifié avec le final release installé. Aucun nouvel essai d'installation système ni de téléphone physique, de TalkBack manuel ou de fluidité vidéo.
+
 ## Finition carte — 9.15 — 11 octobre 2026
 
 - Build debug/instrumentation et lint via tools/build.ps1 : 163 tests unitaires SDK28/35 passent, zéro échec/erreur ; lint zéro erreur et 25 avertissements. Second passage après ajustement ciblé de l'étape18 Pirates ; aucun autre repère hors départ/Pirates déplacé.

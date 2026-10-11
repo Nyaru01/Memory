@@ -20,7 +20,7 @@ Installer une fois la version 8.6 ou suivante pour activer les mises à jour dep
 
 ## Carte d'aventure — finition 9.15
 
-Pierres de niveaux mieux ancrées au sol, chemin sablé et repères ajustés, Lumi avec une ombre plus douce, interface fixe allégée et petites lucioles dans les paysages adaptés. Niveaux, progression et illustrations conservés. [Détails de la passe](docs/POLISH-CARTE-9.15.md).
+Pierres de niveaux mieux ancrées au sol, chemin sablé et repères ajustés, Lumi avec une ombre plus douce, interface fixe allégée et petites lucioles dans les paysages adaptés. Niveaux, progression et illustrations conservés. [Détails de la passe](docs/POLISH-CARTE-9.15.md). [Version 9.15 publiée](https://github.com/Nyaru01/Memory/releases/tag/v9.15), correctif depuis 9.14 vérifié sur Android.
 
 ## Mon aventure avec Lumi — 9.14
 

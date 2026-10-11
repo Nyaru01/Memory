@@ -1,6 +1,6 @@
 # Changements
 
-## 9.15 — 11 octobre 2026
+## 9.15 — 11 octobre 2026 — publiée sur GitHub
 
 - Carte : pastilles en pierres ovales avec biseau et ombre de contact ; niveau actuel bordé d'or, niveaux terminés marqués et verrouillés plus discrets. Cibles tactiles conservées.
 - Chemin sablé translucide, traces espacées, étapes de départ et Pirates repositionnées sur les sentiers. Autres repères, paysages et progression conservés.
