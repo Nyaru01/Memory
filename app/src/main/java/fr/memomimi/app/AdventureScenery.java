@@ -6,17 +6,20 @@ import java.io.*;
 import java.util.*;
 import java.util.concurrent.*;
 
-/** Native-resolution landscape tiles decoded off the UI thread, with a bounded three-tile cache. */
+/** Native-resolution tiles decoded off the UI thread, with four viewport/neighbour slots. */
 final class AdventureScenery {
     static final int MAX_BYTES=16*1024*1024;
+    static final int MAX_TILES=4;
     static final int MAX_SEAM_BYTES=2*1024*1024;
     private final LinkedHashMap<Integer,Bitmap> tiles=new LinkedHashMap<>(4,.75f,true);
     private final LinkedHashMap<Integer,Bitmap> seams=new LinkedHashMap<>(3,.75f,true);
+    final AdventurePassage passage=new AdventurePassage();
     private final boolean[] failed=new boolean[20];
     private final boolean[] failedSeams=new boolean[20];
     private final Paint paint=new Paint(Paint.ANTI_ALIAS_FLAG|Paint.FILTER_BITMAP_FLAG);
     private final Rect source=new Rect();
     private final RectF target=new RectF();
+    private final RectF sourceFloat=new RectF();
     private Bitmap topBitmap;
     private BitmapShader topShader;
     private final Matrix topMatrix=new Matrix();
@@ -36,14 +39,16 @@ final class AdventureScenery {
         int newWidth=Math.max(256,Math.min(1280,pixels));
         int newHeight=Math.max(100,Math.round(sectionPixels*newWidth/(float)Math.max(1,pixels)));
         if(width!=newWidth||sectionHeight!=newHeight){generation++;tiles.clear();seams.clear();Arrays.fill(failed,false);Arrays.fill(failedSeams,false);width=newWidth;sectionHeight=newHeight;}
-        first=Math.max(0,Math.min(19,start));last=Math.max(first,Math.min(first+2,Math.min(19,end)));repaint=changed;
+        int visibleFirst=Math.max(0,Math.min(19,start)),visibleLast=Math.max(visibleFirst,Math.min(visibleFirst+3,Math.min(19,end)));
+        boolean downward=visibleFirst>=first;first=visibleFirst;last=visibleLast;
+        if(last-first+1<MAX_TILES){if(downward&&last<19)last++;else if(first>0)first--;}
+        if(last-first+1<MAX_TILES){if(first>0)first--;else if(last<19)last++;}repaint=changed;
         if(context==null||running||nextMissing()==-1)return;
         running=true;ExecutorService owner=executor();owner.execute(()->fill(owner));
     }
     private int nextMissing(){
         for(int section=first;section<=last;section++)if(!tiles.containsKey(section)&&!failed[section])return section;
-        if(last-first<2 && last<19 && !tiles.containsKey(last+1)&&!failed[last+1])return last+1;
-        int end=Math.min(19,last+(last-first<2?1:0));
+        int end=last;
         for(int k=Math.max(1,first);k<=end;k++)if(tiles.containsKey(k-1)&&tiles.containsKey(k)&&!seams.containsKey(k)&&!failedSeams[k])return -2-k;
         return -1;
     }
@@ -51,7 +56,8 @@ final class AdventureScenery {
         while(true){
             int section,token,pixels,height;Context ctx;Bitmap a=null,b=null;
             synchronized(this){if(owner!=worker)return;if(context==null){running=false;return;}section=nextMissing();if(section==-1){running=false;return;}token=generation;pixels=width;height=sectionHeight;ctx=context;if(section<-1){int k=-2-section;a=tiles.get(k-1);b=tiles.get(k);}}
-            Bitmap bitmap=section>=0?decode(ctx,section,pixels):AdventureSeam.bake(a,b,pixels,height,-2-section);
+            if(section<0)passage.load(ctx);
+            Bitmap bitmap=section>=0?decode(ctx,section,pixels):AdventureSeam.bake(a,b,pixels,height,-2-section,passage);
             Runnable notify;
             synchronized(this){
                 if(owner!=worker){if(bitmap!=null)bitmap.recycle();return;}
@@ -64,7 +70,7 @@ final class AdventureScenery {
                 decodes++;
                 if(bitmap==null)failed[section]=true;
                 else {
-                    while(tiles.size()>=3 || retainedBytes()+bitmap.getAllocationByteCount()>MAX_BYTES){
+                    while(tiles.size()>=MAX_TILES || retainedBytes()+bitmap.getAllocationByteCount()>MAX_BYTES){
                         Integer victim=null;
                         for(Integer key:tiles.keySet())if(key<first||key>last){victim=key;break;}
                         if(victim==null && !tiles.isEmpty())victim=tiles.keySet().iterator().next();
@@ -87,7 +93,7 @@ final class AdventureScenery {
         if(bounds.outWidth<=0||bounds.outHeight<=0)return null;
         BitmapFactory.Options options=new BitmapFactory.Options();options.inScaled=false;options.inPreferredConfig=Bitmap.Config.RGB_565;options.inSampleSize=1;
         while(bounds.outWidth/(options.inSampleSize*2)>=pixels)options.inSampleSize*=2;
-        while((long)bounds.outWidth*bounds.outHeight*2/(options.inSampleSize*options.inSampleSize)>(MAX_BYTES-128*1024)/3)options.inSampleSize*=2;
+        while((long)bounds.outWidth*bounds.outHeight*2/(options.inSampleSize*options.inSampleSize)>(MAX_BYTES-128*1024)/MAX_TILES)options.inSampleSize*=2;
         for(int attempt=0;attempt<2;attempt++){
             try(InputStream in=ctx.getAssets().open(file)){
                 Bitmap decoded=BitmapFactory.decodeStream(in,null,options);
@@ -118,7 +124,7 @@ final class AdventureScenery {
         if(y<=0)return;Bitmap b=tile(section);if(b==null)return;
         if(b!=topBitmap){topBitmap=b;topShader=new BitmapShader(b,Shader.TileMode.MIRROR,Shader.TileMode.MIRROR);}
         crop(b,w,h,source);target.set(0,y,w,y+h);
-        topMatrix.setRectToRect(new RectF(source),target,Matrix.ScaleToFit.FILL);topShader.setLocalMatrix(topMatrix);
+        sourceFloat.set(source);topMatrix.setRectToRect(sourceFloat,target,Matrix.ScaleToFit.FILL);topShader.setLocalMatrix(topMatrix);
         paint.setColor(Color.WHITE);paint.setShader(topShader);c.drawRect(0,0,w,y,paint);paint.setShader(null);
     }
     static void crop(Bitmap b,float w,float h,Rect out){float ratio=w/h;if(b.getWidth()/(float)b.getHeight()>ratio){int crop=Math.round(b.getHeight()*ratio);out.set((b.getWidth()-crop)/2,0,(b.getWidth()+crop)/2,b.getHeight());}else{int crop=Math.round(b.getWidth()/ratio);out.set(0,(b.getHeight()-crop)/2,b.getWidth(),(b.getHeight()+crop)/2);}}
@@ -129,5 +135,5 @@ final class AdventureScenery {
     synchronized int decodeCount(){return decodes;}
     /** Test synchronization only; the production renderer never waits for decoding. */
     void awaitReady(){ExecutorService current; synchronized(this){current=worker;}if(current!=null)try{current.submit(()->{}).get(15,TimeUnit.SECONDS);}catch(Exception e){throw new IllegalStateException("Map image loading failed",e);}}
-    synchronized void release(){generation++;context=null;repaint=null;tiles.clear();seams.clear();topBitmap=null;topShader=null;Arrays.fill(failed,false);Arrays.fill(failedSeams,false);if(worker!=null)worker.shutdownNow();worker=null;running=false;}
+    synchronized void release(){generation++;context=null;repaint=null;tiles.clear();seams.clear();passage.release();topBitmap=null;topShader=null;Arrays.fill(failed,false);Arrays.fill(failedSeams,false);if(worker!=null)worker.shutdownNow();worker=null;running=false;}
 }

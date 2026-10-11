@@ -5,7 +5,10 @@ import android.graphics.*;
 /** Bake only the small visible join, off the UI thread. Original paintings are never altered. */
 final class AdventureSeam {
     static Bitmap bake(Bitmap before,Bitmap after,int width,int sectionHeight,int seed){
-        int height=Math.min(Math.round(sectionHeight*(seed==1?.42f:.28f)),AdventureScenery.MAX_SEAM_BYTES/(width*6));
+        return bake(before,after,width,sectionHeight,seed,null);
+    }
+    static Bitmap bake(Bitmap before,Bitmap after,int width,int sectionHeight,int seed,AdventurePassage passage){
+        int height=Math.min(Math.round(sectionHeight*.36f),AdventureScenery.MAX_SEAM_BYTES/(width*6));
         height=Math.max(8,height);
         Bitmap result=null,mask=null;
         try {
@@ -22,6 +25,7 @@ final class AdventureSeam {
             }
             mask.setPixels(pixels,0,64,0,0,64,64);p.setShader(null);p.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.DST_IN));
             canvas.drawBitmap(mask,null,new RectF(0,0,width,height),p);p.setXfermode(null);canvas.restoreToCount(layer);
+            if(passage!=null)passage.compose(canvas,seed,width,height,sectionHeight);
             return result;
         } catch(OutOfMemoryError error){if(result!=null)result.recycle();return null;}
         finally{if(mask!=null)mask.recycle();}

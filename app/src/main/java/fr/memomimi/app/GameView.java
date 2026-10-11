@@ -474,6 +474,7 @@ class GameView extends View {
         this.H = getHeight();
         if (screen != 5) albumFreshWorld = -1;
         if (screen != lastRenderedScreen) { navigationAt = now(); lastRenderedScreen = screen; }
+        if(screen!=7)adventureMap.hide(now());
         int desiredLayer=screen==7 || screen==-1 || screen==0 ? View.LAYER_TYPE_NONE : View.LAYER_TYPE_SOFTWARE;
         if(getLayerType()!=desiredLayer)setLayerType(desiredLayer,null);
         if(screen==7)canvas.drawColor(0xffe3f0e7);
@@ -814,6 +815,7 @@ class GameView extends View {
     }
     boolean startAdventure(int level) {
         if(!adventure.unlocked(level)) return false;
+        adventureMap.hide(now());
         android.content.SharedPreferences prefs=getContext().getSharedPreferences("m",0);
         if(prefs.getBoolean("game_active",false) && prefs.getInt("saved_adventure_level",0)==level){
             loadGame();

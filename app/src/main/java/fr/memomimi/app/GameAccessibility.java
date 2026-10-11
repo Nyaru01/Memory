@@ -132,7 +132,7 @@ final class GameAccessibility extends AccessibilityNodeProvider {
                 break;
             case 7:
                 add(result,view.adventureMap.back,"Retour à l’accueil");
-                 add(result,view.adventureMap.focusButton,"Revenir au niveau actuel");
+                add(result,view.adventureMap.focusButton,"Recentrer sur Lumi, "+(view.adventure.completed()==40?"niveau 40 à rejouer":"prochain niveau jouable "+view.adventure.current())+", "+view.worldTitle(AdventureStore.world(view.adventure.current())));
                  add(result,view.adventureMap.lumi,"Lumi, touche pour un coucou");
                 add(result,view.adventureMap.continueButton,"Continuer le niveau "+view.adventure.current());
                 for(int level=1;level<=AdventureStore.LEVEL_COUNT;level++) {

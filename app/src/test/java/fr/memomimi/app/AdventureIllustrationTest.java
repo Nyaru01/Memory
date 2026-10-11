@@ -6,6 +6,61 @@ import static org.junit.Assert.*;
 
 /** Meaningful renderer regressions in addition to the full progression scenarios. */
 public class AdventureIllustrationTest extends AdventureTest {
+    @Test public void cachedWalkingPathsCoverAllLevelsWithoutOvershootAndShareTheirEndpoints(){
+        AdventureJourney route=new AdventureJourney();
+        for(int width:new int[]{320,360,412}){
+            route.layout(width,1);
+            for(int level=1;level<40;level++){
+                route.sample(level,0);assertEquals(AdventureRoute.x(level,width,1),route.position[0],.05);
+                assertEquals(AdventureRoute.y(level,width,1),route.position[1],.05);
+                float previous=route.position[1];
+                for(int i=1;i<=60;i++){route.sample(level,i/60f);assertTrue(route.position[0]>=31&&route.position[0]<=width-31);assertTrue(route.position[1]>=previous-.01);previous=route.position[1];}
+                assertEquals(AdventureRoute.x(level+1,width,1),route.position[0],.05);assertEquals(AdventureRoute.y(level+1,width,1),route.position[1],.05);
+            }
+            Path identity=route.paths[0];route.layout(width,1);assertSame(identity,route.paths[0]);
+        }
+    }
+    @Test public void globalProgressSceneAndPlayablePositionStayIndependentAndSignsCoverAllChapters(){
+        context.getSharedPreferences("m",0).edit().putInt("adventure_completed",17).commit();view.openAdventure();
+        for(int section=0;section<20;section++){
+            view.adventureMap.focus(section*2+1,488,1);render("world-917-"+section,360,640);
+            Bitmap guide=Bitmap.createBitmap(360,640,Bitmap.Config.ARGB_8888);Canvas guideCanvas=new Canvas(guide);view.onDraw(guideCanvas);
+            guideCanvas.save();guideCanvas.translate(0,view.adventureMap.top-view.adventureMap.scroll);
+            Paint routeInk=new Paint(Paint.ANTI_ALIAS_FLAG);routeInk.setStyle(Paint.Style.STROKE);routeInk.setStrokeWidth(3);routeInk.setColor(0xccf70067);
+            guideCanvas.drawPath(view.adventureMap.journey.paths[section*2],routeInk);guideCanvas.restore();
+            try(java.io.FileOutputStream out=new java.io.FileOutputStream(new java.io.File(System.getProperty("memomondes.captureDir"),"route-917-"+section+".png"))){guide.compress(Bitmap.CompressFormat.PNG,100,out);}catch(Exception e){throw new AssertionError(e);}guide.recycle();
+            assertEquals(17,view.adventure.completed());assertEquals(18,view.adventure.current());
+            assertTrue(view.adventureMap.visibleSection>=Math.max(0,section-1)&&view.adventureMap.visibleSection<=section+1);
+            assertTrue(view.adventureMap.scenery.retainedTiles()<=AdventureScenery.MAX_TILES);
+            assertTrue(view.adventureMap.scenery.retainedBytes()<=AdventureScenery.MAX_BYTES);
+        }
+        assertEquals(0,AdventureChapters.visible(0,50,450,1));
+        assertEquals(1,AdventureChapters.visible(350,50,550,1));
+        assertEquals(19,AdventureChapters.visible(7600,50,550,1));
+        click(view.adventureMap.focusButton);render(null,360,640);
+        assertTrue(view.adventureMap.lumi.bottom>view.adventureMap.top&&view.adventureMap.lumi.top<view.adventureMap.bottom);
+    }
+    @Test public void leavingMapFreezesTimelineAndProgressSurvivesViewRecreation(){
+        AdventureMap map=view.adventureMap;map.motion.completed(1);map.open(2,488,1,false,1000);
+        float before=map.motion.progress(2000);map.motion.reactionAt=1800;map.hide(2000);
+        map.pause(3000);map.resume(6000);map.open(2,488,1,false,9000);
+        assertEquals(before,map.motion.progress(9000),.0001);assertEquals(8800,map.motion.reactionAt);assertEquals(1,map.motion.from);
+        assertTrue(view.adventure.complete(1));view.releaseAudio();view=new GameView(context);view.d=1;view.activityActive=false;view.sound=false;view.calm=true;
+        view.openAdventure();render(null,360,640);assertEquals(2,view.adventure.current());assertEquals(2,view.adventureMap.motion.to);
+        assertEquals(view.adventureMap.nodes[1].centerX(),view.adventureMap.lumi.centerX(),.01);
+    }
+    @Test public void allNineteenComposedPassagesKeepEdgesIntactAndBounded(){
+        AdventurePassage passage=new AdventurePassage();passage.load(context);assertTrue(passage.bytes()>0&&passage.bytes()<=2*1024*1024);
+        Bitmap before=Bitmap.createBitmap(64,64,Bitmap.Config.RGB_565),after=Bitmap.createBitmap(64,64,Bitmap.Config.RGB_565);
+        before.eraseColor(Color.RED);after.eraseColor(Color.BLUE);
+        for(int boundary=1;boundary<20;boundary++){
+            Bitmap strip=AdventureSeam.bake(before,after,360,400,boundary,passage);
+            assertEquals(Color.RED,strip.getPixel(180,0));assertEquals(Color.BLUE,strip.getPixel(180,strip.getHeight()-1));
+            assertTrue(strip.getAllocationByteCount()*3<=AdventureScenery.MAX_SEAM_BYTES);strip.recycle();
+        }
+        assertFalse(AdventurePassage.portal(1));assertTrue(AdventurePassage.portal(5));assertTrue(AdventurePassage.portal(10));
+        passage.release();before.recycle();after.recycle();
+    }
     @Test public void pauseFreezesTravelAndTouchWithoutChangingProgress(){
         AdventureMap map=view.adventureMap;map.motion.completed(1);map.open(2,488,1,false,1000);
         map.motion.reactionAt=1500;float progress=map.motion.progress(2000);
@@ -74,7 +129,7 @@ public class AdventureIllustrationTest extends AdventureTest {
         assertTrue(view.adventureMap.decor.bytes()>0);
         view.d=2;view.adventureMap.focus(17,1296,2);render(null,720,1600);
         assertEquals(720,view.adventureMap.scenery.tile(8).getWidth());
-        assertTrue(view.adventureMap.scenery.retainedBytes()<=4*1024*1024);
+        assertTrue(view.adventureMap.scenery.retainedBytes()<=6*1024*1024);
         view.startAdventure(1);render(null,1080,2400);
         assertEquals(android.view.View.LAYER_TYPE_SOFTWARE,view.getLayerType());
     }
@@ -100,7 +155,7 @@ public class AdventureIllustrationTest extends AdventureTest {
         for(int level=1;level<=40;level++) {
             view.adventureMap.focus(level,488,1);render(level==13?"adventure-illustrated-ocean":level==21?"adventure-illustrated-space":null,360,640);
             assertTrue(view.adventureMap.scenery.retainedTiles()>0);
-            assertTrue(view.adventureMap.scenery.retainedTiles()<=3);
+            assertTrue(view.adventureMap.scenery.retainedTiles()<=AdventureScenery.MAX_TILES);
             assertTrue(view.adventureMap.scenery.retainedBytes()<=6*1024*1024);
         }
         assertEquals(0,view.adventure.completed());
@@ -125,6 +180,6 @@ public class AdventureIllustrationTest extends AdventureTest {
         view.adventureMap.scrollBy(2000);render(null,360,640);click(view.adventureMap.focusButton);render(null,360,640);
         assertTrue(view.adventureMap.nodes[0].centerY()>=view.adventureMap.top);
         assertTrue(view.adventureMap.nodes[0].centerY()<=view.adventureMap.bottom);assertEquals(0,view.adventure.completed());
-        assertTrue(view.accessible.targets().stream().anyMatch(t->t.label.equals("Revenir au niveau actuel")));
+        assertTrue(view.accessible.targets().stream().anyMatch(t->t.label.startsWith("Recentrer sur Lumi, prochain niveau jouable 1")));
     }
 }

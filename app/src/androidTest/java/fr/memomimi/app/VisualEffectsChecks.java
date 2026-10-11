@@ -125,7 +125,7 @@ public final class VisualEffectsChecks extends Instrumentation {
         view.calm=false;
         for(int level=1;level<=40;level++) {
             view.adventureMap.focus(level,488,1);render(view,level==13?"adventure-illustrated-ocean":level==21?"adventure-illustrated-space":null,360,640);
-            require(view.adventureMap.scenery.retainedTiles()<=3,"Illustrated tile cache bounded");
+            require(view.adventureMap.scenery.retainedTiles()<=AdventureScenery.MAX_TILES,"Illustrated tile cache bounded");
             require(view.adventureMap.scenery.retainedBytes()+view.adventureMap.decor.bytes()<6*1024*1024,"Map bitmap memory bounded");
             require(view.adventureMap.scenery.seamBytes()<=AdventureScenery.MAX_SEAM_BYTES,"Join strip cache bounded");
         }

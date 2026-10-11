@@ -1,5 +1,13 @@
 # MémoMondes — Passation à un prochain agent
 
+## Monde continu — sources 9.17/code58 — 11 octobre 2026
+
+- [Architecture et ressources](MONDE-CONTINU-9.17.md) : atlas de douze passages supplémentaires composé hors thread UI sur les dix-neuf raccords, vingt illustrations originales conservées ; panneaux locaux, compteur global fixe et bouton Lumi.
+- AdventureJourney conserve39 courbes partagées par les traces, Lumi et la caméra. Placements6,7,11,12,24 ajustés sur les sentiers ; phases gelées pendant les changements d'écran, retour ordinaire recentré. AdventureStore et formats persistants inchangés.
+- AdventureScenery : quatre segments proches maximum/16 Mio, trois raccords/2 Mio et atlas~1,57 Mio. Ne pas recycler les bitmaps publiés au renderer. SDK/caches/temp et clé fixe restent sur D:.
+- Validation :174 tests unitaires, lint zéro erreur/25 avertissements,72 contrôles Android petit écran et72 HD. Captures inspectées. FrameMetrics moyens26,36 ms petit et22,71 ms HD, chargements/captures inclus : aucune promesse60 FPS. Téléphone explicitement écarté par l'utilisateur ; aucun TalkBack/parcours enfant/vidéo continu. Voir VALIDATION.md. Émulateur rétabli320×640/160 puis arrêté.
+- Publication9.17 à effectuer après ce commit ; dernier final/public9.16 conservé jusqu'au succès des scripts de publication. Les blocs suivants sont historiques.
+
 ## Publication actuelle — 9.16/code57 — 11 octobre 2026
 
 **Final unique : APK/MemoMondes.apk**, 104647994 octets, SHA256 `cdf70468e1fa82443bef458d64053c3c10130bcebe003ae9c704d393dae28f54`. Release : https://github.com/Nyaru01/Memory/releases/tag/v9.16. Sources applicatives `5d63321` envoyées sur origin/main ; documentation de publication ajoutée ensuite. Build/publish-apk et publish-github-release réussis ; signature fixe vérifiée et clé conservée.

@@ -9,6 +9,9 @@ import java.io.*;
 /** Real completion -> victory action -> animated route -> next game, on the attached GPU view. */
 final class MapPolishChecks {
     final Instrumentation host;int checks;
+    private android.view.Window.OnFrameMetricsAvailableListener metricsListener;
+    private long frameNanos,worstNanos;
+    private int measuredFrames,slowFrames;
     MapPolishChecks(Instrumentation host){this.host=host;}
     Bundle run(){
         Bundle result=new Bundle();MainActivity activity=null;
@@ -16,6 +19,10 @@ final class MapPolishChecks {
         try {
             android.content.Intent intent=new android.content.Intent(host.getTargetContext(),MainActivity.class).addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK);
             activity=(MainActivity)host.startActivitySync(intent);MainActivity live=activity;GameView v=live.game;
+            if(android.os.Build.VERSION.SDK_INT>=24)host.runOnMainSync(()->{
+                metricsListener=(window,metrics,dropped)->{if(v.screen==7){long duration=metrics.getMetric(android.view.FrameMetrics.TOTAL_DURATION);if(duration>=0){measuredFrames++;frameNanos+=duration;worstNanos=Math.max(worstNanos,duration);if(duration>16666667)slowFrames++;}}};
+                live.getWindow().addOnFrameMetricsAvailableListener(metricsListener,new android.os.Handler(android.os.Looper.getMainLooper()));
+            });
             host.runOnMainSync(()->{live.updates.close();v.sound=false;v.pauseMusic();v.activityActive=true;v.calm=false;v.systemReducedMotion=false;v.haptics=false;prefs.edit().putInt("adventure_completed",0).commit();v.startAdventure(1);v.tutorialActive=false;v.previewUntil=0;for(int i=0;i<v.cards.length;i++)v.cards[i]=i/2;});
             Thread.sleep(250);
             host.runOnMainSync(()->{for(int i=0;i<v.cards.length;i++){v.flipIndex=-1;click(v,v.cardBounds[i]);}require(v.found==v.pairs && v.adventure.completed()==1,"Real board unlocks one level");});
@@ -52,12 +59,29 @@ final class MapPolishChecks {
                     require(v.adventureMap.lockedLevel==21&&v.adventureMap.lockedAt>=0,"Locked feedback registered");
                     require(node.width()/v.d>=48&&node.height()/v.d>=48,"Stone keeps accessible target");
                 });
-                host.runOnMainSync(()->{require(v.adventureMap.scenery.retainedTiles()<=3,"Three landscape limit");require(v.adventureMap.scenery.seamBytes()<=AdventureScenery.MAX_SEAM_BYTES,"Bounded join strips");require(v.adventure.completed()==17,"Browsing does not unlock");});
+                host.runOnMainSync(()->{require(v.adventureMap.scenery.retainedTiles()<=AdventureScenery.MAX_TILES,"Bounded viewport and neighbour tiles");require(v.adventureMap.scenery.seamBytes()<=AdventureScenery.MAX_SEAM_BYTES,"Bounded join strips");require(v.adventure.completed()==17,"Browsing does not unlock");});
             }
-            result.putString("stream","PASS: "+checks+" attached Android polish checks: real level1 victory, depart/travel/touch/arrival sprite poses, Continue, current-level camera, four landscape joins and bounded caches. Screenshots are captures, not a manual video review.\n");
+            for(int completed:new int[]{2,10,20,38}){
+                host.runOnMainSync(()->{prefs.edit().putInt("adventure_completed",completed).commit();v.adventureMap.motion.completed(completed);v.openAdventure();});
+                long readyBy=GameView.now()+15000;
+                while((v.adventureMap.waitingForScenery||v.adventureMap.scenery.seam(completed/2)==null)&&GameView.now()<readyBy)Thread.sleep(30);
+                long departure=v.adventureMap.motion.startedAt;
+                host.runOnMainSync(()->{require(v.adventureMap.scenery.passage.bytes()>0,"Illustrated passage atlas decoded off-thread");require(v.adventureMap.scenery.passage.bytes()<=2*1024*1024,"Passage atlas bounded");});
+                waitUntil(departure,AdventureMotion.DEPART_MS+AdventureMotion.MOVE_MS/2);
+                host.runOnMainSync(()->{float t=v.adventureMap.motion.progress(GameView.now());v.adventureMap.journey.sample(completed,t);require(Math.abs(v.adventureMap.lumi.centerX()-v.adventureMap.journey.position[0])<6*v.d,"Lumi follows the shared path through the passage");require(v.adventure.completed()==completed,"Scenic passage never unlocks a level");});
+                capture("world-passage-"+completed);
+                waitUntil(departure,AdventureMotion.TRAVEL_MS+200);
+                host.runOnMainSync(()->{require(v.adventureMap.motion.to==completed+1,"Arrival position is next saved level");});
+            }
+            final float[] beforeScroll=new float[1];
+            host.runOnMainSync(()->{v.adventureMap.focus(18,v.adventureMap.bottom-v.adventureMap.top,v.d);beforeScroll[0]=v.adventureMap.scroll;touch(v,MotionEvent.ACTION_DOWN,v.W/2,v.adventureMap.bottom-80*v.d);});
+            for(int step=1;step<=12;step++){final int index=step;Thread.sleep(18);host.runOnMainSync(()->touch(v,MotionEvent.ACTION_MOVE,v.W/2,v.adventureMap.bottom-(80+index*20)*v.d));}
+            host.runOnMainSync(()->touch(v,MotionEvent.ACTION_UP,v.W/2,v.adventureMap.bottom-320*v.d));Thread.sleep(350);
+            host.runOnMainSync(()->{require(v.adventureMap.scroll>beforeScroll[0]+100*v.d,"Real swipe scrolls the attached map");require(v.adventureMap.scenery.retainedBytes()<=AdventureScenery.MAX_BYTES,"Swipe cache stays within memory budget");require(v.adventure.completed()==38,"Exploration swipe preserves saved position");click(v,v.adventureMap.focusButton);});
+            host.runOnMainSync(()->result.putString("stream","PASS: "+checks+" attached Android map checks: victory, real sprite frames, lifecycle pause, shared path/camera, four illustrated cross-zone passages, Continue, focus, browsing and bounded caches.\nMap FrameMetrics: "+measuredFrames+" frames, mean "+(measuredFrames==0?0:frameNanos/1000000d/measuredFrames)+" ms, worst "+worstNanos/1000000d+" ms, "+slowFrames+" over 16.7 ms. Emulator measurements include loading/captures; no physical-device or manual-video claim.\n"));
         }catch(Throwable error){result.putString("stream","FAIL: "+error+"\n");}
         finally {
-            if(activity!=null){MainActivity live=activity;host.runOnMainSync(live::finish);}host.waitForIdleSync();
+            if(activity!=null){MainActivity live=activity;host.runOnMainSync(()->{if(android.os.Build.VERSION.SDK_INT>=24&&metricsListener!=null)live.getWindow().removeOnFrameMetricsAvailableListener(metricsListener);live.finish();});}host.waitForIdleSync();
             android.content.SharedPreferences.Editor edit=prefs.edit().clear();
             for(java.util.Map.Entry<String,?> entry:saved.entrySet()){
                 String key=entry.getKey();Object value=entry.getValue();

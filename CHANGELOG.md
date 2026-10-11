@@ -1,5 +1,13 @@
 # Changements
 
+## 9.17 — 11 octobre 2026
+
+- Dix-neuf raccords composés avec un atlas de passages supplémentaire ; vingt paysages conservés.
+- Panneaux de chapitres locaux, compteur global fixe, jalons de découverte et bouton Lumi.
+- Courbes partagées par les traces, Lumi et la caméra ; placements sur les sentiers ajustés et phases gelées hors de la carte.
+- Cache limité à quatre segments et leurs raccords, sans modification des formats persistants.
+- [Architecture, ressources et limites](docs/MONDE-CONTINU-9.17.md). Contrôles Android sur émulateur uniquement, selon le choix de l'utilisateur.
+
 ## 9.16 — 11 octobre 2026 — publiée sur GitHub
 
 - Carte vivante : spritesheet d'attente de Lumi à 16 frames, respiration dessinée, clignement, oreilles et sauts ; six expressions de l'atlas original au toucher.

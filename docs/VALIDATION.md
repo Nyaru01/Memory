@@ -1,5 +1,14 @@
 # Validation
 
+## Monde continu — 9.17 — 11 octobre 2026
+
+- Compilation debug/tests/lint/instrumentation via tools/build.ps1 terminée ; 174 tests unitaires sans échec ni erreur, lint zéro erreur et 25 avertissements existants. Première passe : huit échecs liés aux anciennes attentes de cache/libellé et au retour de caméra après exploration. Attentes actualisées ; retour ordinaire recentré sur Lumi corrigé. Les passes suivantes passent, dont celle contenant les derniers placements des niveaux et sentiers.
+- Les trente-neuf courbes sont contrôlées à trois largeurs, avec réutilisation des objets et échantillons bornés ; les vingt zones et dix-neuf raccords illustrés sont contrôlés. Les rendus des vingt zones avec guide magenta ont été inspectés ; les trois zones modifiées en dernier (Jardin, Magie, Métiers) ont été revues après recompilation. Le guide magenta appartient uniquement aux captures de test.
+- 72 contrôles Android attachés PASS à 320×640/densité160, puis 72 PASS à 1080×1920/densité480 : victoire réelle, frames de sprites, pause/reprise, quatre passages entre zones (2→3,10→11,20→21,38→39), trajet partagé, position suivante, geste de glissement, recentrage et caches bornés. Préférences fictives restaurées par le scénario. Rapports releases/validation/9.17/android-small.txt et android-hd.txt.
+- FrameMetrics carte petit écran : 1587 frames, moyenne26,36 ms, maximum117,63 ms,1517 dépassant16,7 ms. HD :1874 frames, moyenne22,71 ms, maximum88,37 ms,1869 dépassant16,7 ms. Mesures de l'émulateur incluant chargements et captures : aucune promesse60 FPS ni extrapolation au téléphone. Ces mesures indiquent une marge d'optimisation restante.
+- Captures réelles petit écran des passages forêt–ferme et dinosaures–banquise inspectées, puis captures HD village–espace et métiers–robots. Atlas transparent supplémentaire et compositions inspectés ; vingt JPEG d'origine inchangés. Taille/densité rétablies320×640/160 sans override et vérifiées, puis émulateur arrêté avant compilation finale.
+- Téléphone explicitement écarté par l'utilisateur (« Continuer avec l'émulateur uniquement »). Aucun parcours enfant, TalkBack manuel ni visionnage vidéo continu. Les contrôles généraux historiques922 n'ont pas été relancés. Les animaux peints restent fixes ; phase transitoire non persistée après recréation complète de l'activité, prochain niveau sauvegardé restauré.
+
 ## Publication 9.16 — 11 octobre 2026
 
 - Source5d63321 sur main ; build/tests/lint réussis ou à jour, signature vérifiée, publication par les scripts du projet. Final unique104647994 octets, SHA256 cdf70468e1fa82443bef458d64053c3c10130bcebe003ae9c704d393dae28f54 ; release publique https://github.com/Nyaru01/Memory/releases/tag/v9.16.
