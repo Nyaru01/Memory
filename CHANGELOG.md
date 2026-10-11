@@ -1,6 +1,6 @@
 # Changements
 
-## 9.21 — 11 octobre 2026
+## 9.21 — 11 octobre 2026 — publiée sur GitHub
 
 - Sélecteur Jeu libre : suppression de la couche logicielle forcée, rendu matériel Android, ombres à aplats légers au lieu de masques floutés répétés.
 - En-têtes hors viewport non dessinés ; tailles de texte des familles mémorisées au redimensionnement. Aperçus existants chargés en arrière-plan et cache6 Mio conservés.

@@ -1,12 +1,19 @@
 # Validation
 
+## Publication9.21 — 11 octobre 2026
+
+- Sources6594b3d sur main, compilation complète186 tests sans échec/erreur, lint zéro erreur/25 avertissements existants. Scripts build/publish-apk/publish-github-release réussis ; clé fixe conservée et signature vérifiée.
+- Final unique APK/MemoMondes.apk :107690697 octets, SHA256 `1dc82d4964b448b3276a5ac04f91fd5a50aa483bc171fda638ef6f7265e118f1`. https://github.com/Nyaru01/Memory/releases/tag/v9.21. APK public retéléchargé et empreinte identique.
+- 25 correctifs des versions publiques8.6–9.20 reconstruits exactement avant envoi ; depuis9.20 :128500 octets. API latest9.21/non draft, manifeste nommé et flux latest avec Cache-Control:no-cache confirmés9.21/code62 (27 assets publics).
+- Aucun nouveau test réseau Android de reconstruction9.21 : updater inchangé et tous les correctifs reconstruits par le script. Profils/contrôles/captures ci-dessous ; émulateur restauré puis arrêté. Pas de nouvelle confirmation système d'installation ni mesure téléphone.
+
 ## Fluidité du catalogue — sources9.21/code62 — 11 octobre 2026
 
 - Cause constatée dans les sources : screen4 forçait LAYER_TYPE_SOFTWARE et WorldSelector utilisait GameView.round/setShadowLayer pour plusieurs surfaces par carte. Correction : couche NONE pour permettre le Canvas matériel Android ; deux aplats d'ombre légers par carte/en-tête, en-têtes hors viewport ignorés et mesures des titres de familles mises en cache au redimensionnement. Illustrations/grille/règles/données conservées.
 - Six tests WorldSelectorTest PASS sur SDK28/35, cinq familles/vingt mondes, tailles320/412/800, texte1/1,35, animation/taps/redimensionnement et sélection→paires→jeu. Assertion de couche NONE ajoutée. Build debug/instrumentation/lint réussi via build.ps1, zéro erreur/25 avertissements existants.
 - Comparaison Android attachée à784×1702/320, dix swipes alternés identiques, cache chaud4543776 octets et319 frames par mesure : release9.20 couche1, total médian34,70 ms/p9563,21, dessin10,57/p9522,73 ; debug9.21 couche0, total18,00/p9519,39, dessin0,69/p951,87. Rapports profile-before/after.txt dans releases/validation/9.21/. La buildtype diffère et l'émulateur/synchronisation influence le total ; pas de promesse60 FPS ni de mesure téléphone. Les319 frames anciennes dépassent16,67 ms,313 nouvelles aussi, même si leur durée baisse fortement.
 - Contrôles fonctionnels Android :81 PASS petit320×480/160 et81 PASS grand392×851 dp. Cache, cinq familles, vingt mondes, animations, taps, défilement sans sélection accidentelle, partie libre et préservation album/record/Aventure vérifiés. Préférences fictives restaurées ; captures après correction grand et petit inspectées. Aucun téléphone, TalkBack ou parcours enfant.
-- Viewport/densité rétablis320×640/160 sans override puis émulateur arrêté. Aucune nouvelle ressource ni modification de stockage. Publication finale à documenter séparément.
+- Viewport/densité rétablis320×640/160 sans override puis émulateur arrêté. Aucune nouvelle ressource ni modification de stockage. Publication finale réussie, voir le bloc en tête.
 
 ## Publication9.20 — 11 octobre 2026
 

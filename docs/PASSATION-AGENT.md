@@ -1,10 +1,17 @@
 # MémoMondes — Passation à un prochain agent
 
+## Publication actuelle — 9.21/code62 — 11 octobre 2026
+
+**Final unique : APK/MemoMondes.apk**,107690697 octets, SHA256 `1dc82d4964b448b3276a5ac04f91fd5a50aa483bc171fda638ef6f7265e118f1`. Release : https://github.com/Nyaru01/Memory/releases/tag/v9.21. Sources6594b3d sur origin/main ;186 tests sans échec/erreur, lint zéro erreur/25 avertissements existants. Scripts du projet réussis, signature fixe vérifiée et clé conservée.
+
+- 25 correctifs8.6–9.20 reconstruits exactement avant publication ; depuis9.20 :128500 octets. APK public retéléchargé et hash identique ; API latest/non draft, manifeste nommé et flux latest Cache-Control:no-cache vérifiés9.21/code62.
+- Menu matériel et ombres légères : médiane dessin10,57→0,69 ms sur le scénario émulateur documenté ;81 contrôles petit/81 grand et captures inspectées. Aucune modification de progression/stockage. Émulateur restauré320×640/160 puis arrêté ; pas de FPS téléphone ni nouveau scénario réseau Android9.21. Voir VALIDATION.md.
+
 ## Fluidité catalogue — sources9.21/code62 — 11 octobre 2026
 
 - screen4 utilise désormais LAYER_TYPE_NONE : laisser Android accélérer le Canvas, ne pas réintroduire la couche logicielle du menu. WorldSelector remplace les ombres floutées répétées par des aplats, ignore le dessin des en-têtes hors écran et mémorise leurs mesures. Images/disposition/navigation/données conservées, cache6 Mio et worker conservés.
 - Six tests ciblés et81 contrôles Android sur chacun des deux formats PASS, captures inspectées. Profil identique grand téléphone sur émulateur : médiane dessin10,57→0,69 ms, total34,70→18,00 ms (ancienne release/nouveau debug, cache chaud). Aucun FPS téléphone garanti. Voir VALIDATION.md pour limites.
-- Préférences de test restaurées, viewport320×640/160 restauré, émulateur arrêté. Publication finale à documenter après compilation complète ; blocs suivants historiques.
+- Préférences de test restaurées, viewport320×640/160 restauré, émulateur arrêté. Compilation complète186 tests et publication9.21 réussies, voir le bloc en tête ; blocs suivants historiques.
 
 ## Publication actuelle — 9.20/code61 — 11 octobre 2026
 
