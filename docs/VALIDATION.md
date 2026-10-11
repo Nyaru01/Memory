@@ -1,5 +1,13 @@
 # Validation
 
+## Fluidité du catalogue — sources9.21/code62 — 11 octobre 2026
+
+- Cause constatée dans les sources : screen4 forçait LAYER_TYPE_SOFTWARE et WorldSelector utilisait GameView.round/setShadowLayer pour plusieurs surfaces par carte. Correction : couche NONE pour permettre le Canvas matériel Android ; deux aplats d'ombre légers par carte/en-tête, en-têtes hors viewport ignorés et mesures des titres de familles mises en cache au redimensionnement. Illustrations/grille/règles/données conservées.
+- Six tests WorldSelectorTest PASS sur SDK28/35, cinq familles/vingt mondes, tailles320/412/800, texte1/1,35, animation/taps/redimensionnement et sélection→paires→jeu. Assertion de couche NONE ajoutée. Build debug/instrumentation/lint réussi via build.ps1, zéro erreur/25 avertissements existants.
+- Comparaison Android attachée à784×1702/320, dix swipes alternés identiques, cache chaud4543776 octets et319 frames par mesure : release9.20 couche1, total médian34,70 ms/p9563,21, dessin10,57/p9522,73 ; debug9.21 couche0, total18,00/p9519,39, dessin0,69/p951,87. Rapports profile-before/after.txt dans releases/validation/9.21/. La buildtype diffère et l'émulateur/synchronisation influence le total ; pas de promesse60 FPS ni de mesure téléphone. Les319 frames anciennes dépassent16,67 ms,313 nouvelles aussi, même si leur durée baisse fortement.
+- Contrôles fonctionnels Android :81 PASS petit320×480/160 et81 PASS grand392×851 dp. Cache, cinq familles, vingt mondes, animations, taps, défilement sans sélection accidentelle, partie libre et préservation album/record/Aventure vérifiés. Préférences fictives restaurées ; captures après correction grand et petit inspectées. Aucun téléphone, TalkBack ou parcours enfant.
+- Viewport/densité rétablis320×640/160 sans override puis émulateur arrêté. Aucune nouvelle ressource ni modification de stockage. Publication finale à documenter séparément.
+
 ## Publication9.20 — 11 octobre 2026
 
 - Sources33a5702 envoyées sur main. Compilation complète186 tests sans échec/erreur, lint zéro erreur/25 avertissements existants. Build/publish-apk/publish-github-release réussis, signature fixe vérifiée, clé conservée.

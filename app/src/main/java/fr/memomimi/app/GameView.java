@@ -476,7 +476,7 @@ class GameView extends View {
         if (screen != 5) albumFreshWorld = -1;
         if (screen != lastRenderedScreen) { navigationAt = now(); lastRenderedScreen = screen; }
         if(screen!=7)adventureMap.hide(now());
-        int desiredLayer=screen==7 || screen==-1 || screen==0 ? View.LAYER_TYPE_NONE : View.LAYER_TYPE_SOFTWARE;
+        int desiredLayer=screen==7 || screen==4 || screen==-1 || screen==0 ? View.LAYER_TYPE_NONE : View.LAYER_TYPE_SOFTWARE;
         if(getLayerType()!=desiredLayer)setLayerType(desiredLayer,null);
         if(screen==7)canvas.drawColor(0xffe3f0e7);
         else if(screen==4)canvas.drawColor(UiStyle.BACKGROUND);

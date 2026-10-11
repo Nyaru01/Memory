@@ -17,9 +17,11 @@ final class WorldSelector {
     private final String[][] titles=new String[20][2];
     private final String[] collections=new String[20];
     private final int[] masks=new int[20];
+    private final float[] familyTextSizes=new float[5];
     private final Paint paint=new Paint(Paint.ANTI_ALIAS_FLAG|Paint.FILTER_BITMAP_FLAG);
     private final Paint type=new Paint(Paint.ANTI_ALIAS_FLAG);
     private final RectF area=new RectF(),bar=new RectF(),downBounds=new RectF();
+    private final RectF shadow=new RectF();
     private final Rect source=new Rect();
     private final Path clip=new Path();
     private ExecutorService worker;
@@ -72,6 +74,9 @@ final class WorldSelector {
         cardWidth=(v.W-32*d-(columns-1)*12*d)/columns;cardHeight=cardWidth/1.45f+(80+22*(f-1))*d;
         if(cachedWidth==cardWidth&&cachedFont==f*d)return;cachedWidth=cardWidth;cachedFont=f*d;
         type.setTextSize(15*d*f);
+        for(int family=0;family<5;family++)familyTextSizes[family]=Math.min(15*d*f,
+                15*d*f*(v.W-124*d)/Math.max(1,type.measureText(WorldCatalog.FAMILIES[family])));
+        type.setTextSize(15*d*f);
         for(int w=0;w<20;w++){
             String title=v.worldTitle(w);titles[w][0]=title;titles[w][1]="";
             if(type.measureText(title)>cardWidth-18*d){int best=-1;float error=Float.MAX_VALUE;
@@ -94,14 +99,16 @@ final class WorldSelector {
         c.save();c.clipRect(0,start,v.W,bottom);
         for(int family=0;family<5;family++){
             RectF header=v.familyTiles[family];header.set(16*d,y,v.W-16*d,y+headerHeight);int accent=ACCENTS[family];
-            v.round(c,header,16,blend(accent,Color.WHITE,.91f));
-            area.set(header.left,header.top+10*d,header.left+4*d,header.bottom-10*d);v.round(c,area,2,accent);
+            boolean visible=header.bottom>start&&header.top<bottom;
+            if(visible){
+            surface(c,header,16*d,blend(accent,Color.WHITE,.91f),d);
+            area.set(header.left,header.top+10*d,header.left+4*d,header.bottom-10*d);paint.setColor(accent);c.drawRoundRect(area,2*d,2*d,paint);
             int cover=WorldCatalog.WORLDS[family][0];request(v,cover);area.set(header.left+10*d,header.top+8*d,header.left+44*d,header.bottom-8*d);picture(c,cover,area,7*d,accent);
             String familyTitle=WorldCatalog.FAMILIES[family];
-            type.setTextSize(15*d*f);float size=Math.min(15*d*f,15*d*f*(header.width()-92*d)/Math.max(1,type.measureText(familyTitle)));
-            text(c,familyTitle,header.centerX()+6*d,header.centerY(),size,UiStyle.TEXT);
+            text(c,familyTitle,header.centerX()+6*d,header.centerY(),familyTextSizes[family],UiStyle.TEXT);
             if(!v.familyOpen[family]&&WorldCatalog.familyOf(v.theme)==family){paint.setColor(v.themeColor(v.theme));c.drawCircle(header.left+40*d,header.top+8*d,7*d,paint);text(c,"✓",header.left+40*d,header.top+8*d,10*d,Color.WHITE);}
             float x=header.right-19*d,cy=header.centerY();c.save();c.rotate(180*amount[family],x,cy);paint.setColor(accent);paint.setStyle(Paint.Style.STROKE);paint.setStrokeWidth(2*d);paint.setStrokeCap(Paint.Cap.ROUND);c.drawLine(x-5*d,cy-2*d,x,cy+3*d,paint);c.drawLine(x,cy+3*d,x+5*d,cy-2*d,paint);paint.setStyle(Paint.Style.FILL);c.restore();
+            }
             y+=headerHeight+10*d;float expanded=rows(family)*(cardHeight+12*d)*amount[family];
             if(expanded>0){c.save();c.clipRect(16*d,y,v.W-16*d,y+expanded);int[] worlds=WorldCatalog.WORLDS[family];
                 for(int index=0;index<worlds.length;index++){
@@ -114,6 +121,12 @@ final class WorldSelector {
         }c.restore();if(moving(v)&&v.activityActive)v.postInvalidateOnAnimation();else if(changedAt>=0&&!moving(v)){changedAt=-1;v.accessible.changed();if(v.activityActive)v.postInvalidateOnAnimation();}
     }
     private int rows(int family){return (WorldCatalog.WORLDS[family].length+columns-1)/columns;}
+    /** Cheap layered shadow: no blurred mask or software bitmap on each scroll frame. */
+    private void surface(Canvas c,RectF bounds,float radius,int color,float d){
+        shadow.set(bounds);shadow.offset(0,3*d);paint.setColor(0x10645574);c.drawRoundRect(shadow,radius,radius,paint);
+        shadow.offset(0,-d);paint.setColor(0x0b645574);c.drawRoundRect(shadow,radius,radius,paint);
+        paint.setColor(color);c.drawRoundRect(bounds,radius,radius,paint);
+    }
     private void picture(Canvas c,int world,RectF bounds,float radius,int accent){
         Bitmap bitmap=image(world);paint.setColor(blend(accent,Color.WHITE,.85f));c.drawRoundRect(bounds,radius,radius,paint);
         if(bitmap==null)return;float ratio=bounds.width()/bounds.height();int w=bitmap.getWidth(),h=bitmap.getHeight();
@@ -123,8 +136,7 @@ final class WorldSelector {
     private void card(Canvas c,GameView v,int world,RectF bounds,float opacity){
         float d=v.d,f=v.fontScale();int accent=v.themeColor(world);boolean selected=v.theme==world;
         c.save();if(opacity<1)c.translate(0,6*d*(1-opacity));
-        bar.set(bounds.left,bounds.top+3*d,bounds.right,bounds.bottom+3*d);v.round(c,bar,18,0x14645574);
-        v.round(c,bounds,18,selected||v.pressedTarget==v.themeTiles[world]?blend(accent,Color.WHITE,.9f):UiStyle.SURFACE);
+        surface(c,bounds,18*d,selected||v.pressedTarget==v.themeTiles[world]?blend(accent,Color.WHITE,.9f):UiStyle.SURFACE,d);
         // Separate rectangle: picture must not mutate the card geometry.
         bar.set(bounds.left+5*d,bounds.top+5*d,bounds.right-5*d,bounds.top+cardWidth/1.45f);picture(c,world,bar,14*d,accent);
         float titleY=bar.bottom+14*d*f;text(c,titles[world][0],bounds.centerX(),titleY,15*d*f,UiStyle.TEXT);

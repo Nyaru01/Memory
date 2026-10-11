@@ -18,6 +18,7 @@ final class WorldSelectorChecks {
             host.runOnMainSync(()->{live.updates.close();v.sound=false;v.pauseMusic();v.activityActive=true;v.calm=false;v.systemReducedMotion=false;v.openFreePlay();});Thread.sleep(350);
             host.runOnMainSync(()->{tap(v,v.chooseTheme);require(v.screen==4,"World selector reached from free play");v.worldsScroll=0;Arrays.fill(v.familyOpen,false);v.familyOpen[0]=true;v.invalidate();});Thread.sleep(450);
             require(v.worldSelector.columns==(v.W/v.d<600?2:3),"Responsive columns");
+            require(v.getLayerType()==android.view.View.LAYER_TYPE_NONE,"Catalogue avoids software layer");
             for(int family=0;family<5;family++){
                 final int current=family;
                 host.runOnMainSync(()->{Arrays.fill(v.familyOpen,false);v.familyOpen[current]=true;v.worldsScroll=0;v.invalidate();});Thread.sleep(250);v.worldSelector.awaitReady();capture("catalogue-family-"+family);

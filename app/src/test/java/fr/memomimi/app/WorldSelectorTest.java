@@ -24,6 +24,7 @@ public class WorldSelectorTest {
     @Test public void realCatalogueFitsPhoneTabletAndLargeText() throws Exception {
         for(float scale:new float[]{1,1.35f}){font(scale);for(int[] size:new int[][]{{320,480},{412,850},{800,1000}}){
             for(int family=0;family<5;family++){java.util.Arrays.fill(view.familyOpen,false);view.familyOpen[family]=true;view.worldsScroll=0;render(size[0],size[1],null);view.worldSelector.awaitReady();render(size[0],size[1],"catalogue-918-"+size[0]+"-"+scale+"-"+family);
+                assertEquals(android.view.View.LAYER_TYPE_NONE,view.getLayerType());
                 assertEquals(size[0]<600?2:scale>1.15f?3:3,view.worldSelector.columns);
                 int[] worlds=WorldCatalog.WORLDS[family];for(int world:worlds){RectF tile=view.themeTiles[world];assertFalse(tile.isEmpty());assertTrue(tile.width()>=130);assertTrue(tile.height()>=160);assertTrue(tile.left>=16&&tile.right<=size[0]-16+.1f);assertNotNull(view.worldSelector.image(world));}
                 for(int i=0;i<worlds.length;i++)for(int j=i+1;j<worlds.length;j++)assertFalse(RectF.intersects(view.themeTiles[worlds[i]],view.themeTiles[worlds[j]]));

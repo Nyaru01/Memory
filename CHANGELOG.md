@@ -1,5 +1,11 @@
 # Changements
 
+## 9.21 — 11 octobre 2026
+
+- Sélecteur Jeu libre : suppression de la couche logicielle forcée, rendu matériel Android, ombres à aplats légers au lieu de masques floutés répétés.
+- En-têtes hors viewport non dessinés ; tailles de texte des familles mémorisées au redimensionnement. Aperçus existants chargés en arrière-plan et cache6 Mio conservés.
+- Présentation, navigation, vingt mondes et données du jeu conservés.
+
 ## 9.20 — 11 octobre 2026 — publiée sur GitHub
 
 - Agrandissement commun aux plateaux de 6, 8, 10 et 12 paires : hauteur jusqu'à 1,30 fois la largeur, bornée à l'espace disponible, marges de 12 dp sur les grilles denses.

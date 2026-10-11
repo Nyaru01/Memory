@@ -1,5 +1,11 @@
 # MémoMondes — Passation à un prochain agent
 
+## Fluidité catalogue — sources9.21/code62 — 11 octobre 2026
+
+- screen4 utilise désormais LAYER_TYPE_NONE : laisser Android accélérer le Canvas, ne pas réintroduire la couche logicielle du menu. WorldSelector remplace les ombres floutées répétées par des aplats, ignore le dessin des en-têtes hors écran et mémorise leurs mesures. Images/disposition/navigation/données conservées, cache6 Mio et worker conservés.
+- Six tests ciblés et81 contrôles Android sur chacun des deux formats PASS, captures inspectées. Profil identique grand téléphone sur émulateur : médiane dessin10,57→0,69 ms, total34,70→18,00 ms (ancienne release/nouveau debug, cache chaud). Aucun FPS téléphone garanti. Voir VALIDATION.md pour limites.
+- Préférences de test restaurées, viewport320×640/160 restauré, émulateur arrêté. Publication finale à documenter après compilation complète ; blocs suivants historiques.
+
 ## Publication actuelle — 9.20/code61 — 11 octobre 2026
 
 **Final unique : APK/MemoMondes.apk**,107690590 octets, SHA256 `ee8a4b3e6ef8ebce0090fcba6b08674c005698182dc93079b8806936679d3b3a`. Release : https://github.com/Nyaru01/Memory/releases/tag/v9.20. Sources33a5702 sur origin/main ; compilation complète186 tests sans échec/erreur, lint zéro erreur/25 avertissements existants, scripts du projet réussis, signature fixe vérifiée et clé conservée.
