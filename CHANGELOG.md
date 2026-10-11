@@ -1,6 +1,6 @@
 # Changements
 
-## 9.16 — 11 octobre 2026
+## 9.16 — 11 octobre 2026 — publiée sur GitHub
 
 - Carte vivante : spritesheet d'attente de Lumi à 16 frames, respiration dessinée, clignement, oreilles et sauts ; six expressions de l'atlas original au toucher.
 - Validation, apparition du niveau suivant, trajet animé et célébration ; horloges gelées en arrière-plan, réduction des animations respectée.

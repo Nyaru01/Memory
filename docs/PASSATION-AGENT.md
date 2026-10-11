@@ -1,11 +1,19 @@
 # MémoMondes — Passation à un prochain agent
 
+## Publication actuelle — 9.16/code57 — 11 octobre 2026
+
+**Final unique : APK/MemoMondes.apk**, 104647994 octets, SHA256 `cdf70468e1fa82443bef458d64053c3c10130bcebe003ae9c704d393dae28f54`. Release : https://github.com/Nyaru01/Memory/releases/tag/v9.16. Sources applicatives `5d63321` envoyées sur origin/main ; documentation de publication ajoutée ensuite. Build/publish-apk et publish-github-release réussis ; signature fixe vérifiée et clé conservée.
+
+- 20 correctifs des releases publiques8.6–9.15 reconstruits exactement avant envoi. Depuis9.15 : 2011067 octets. APK public retéléchargé et SHA256 identique au final ; manifeste nommé et flux latest avec Cache-Control:no-cache confirment9.16/code57.
+- Test réseau Android PASS, final release installé : téléchargement2011067, reconstruction exacte104647994, package/version/signature/provider en lecture seule vérifiés. Base publique9.15 fournie au scénario ; aucun nouveau dialogue système d'installation exécuté. Rapport releases/validation/9.16/github-update-9.15-to-9.16.txt. Premier téléchargement Windows de l'APK complet interrompu par le réseau (fichier partiel), répétition curl réussie ; aucun défaut de la release constaté.
+- Contrôles UI : 166 tests unitaires, lint zéro erreur/25 avertissements, 45 contrôles Android petit écran et45 HD. Captures inspectées. Limites : aucune mesure FPS, vidéo manuelle, observation enfant, téléphone/TalkBack manuel. Base externe temporaire retirée ; viewport320×640/160 sans override vérifié puis émulateur arrêté.
+
 ## Carte vivante — sources 9.16/code57 — 11 octobre 2026
 
 - [Implémentation et ressources](CARTE-VIVANTE-9.16.md) : atlas Lumi supplémentaire 16 frames de respiration/clignement/oreilles/saut ; expressions au toucher de l'atlas original. Horloge dédiée à la carte, pause/reprise conservant trajet et réactions. Accueil/victoire/chargement gardent leurs propres animations.
 - Séquence visuelle de victoire : validation600 ms, apparition600 ms, trajet2600 ms, arrivée1900 ms puis attente. AdventureStore et tous les formats persistants inchangés. Médaillons crème/bronze, traces sans ruban, reflets/papillons, en-tête et fondu forêt–ferme ; paysages et repères conservés.
 - Validation : 166 tests unitaires, lint zéro erreur/25 avertissements, 45 contrôles Android petit écran et 45 HD PASS. Captures réelles petit écran et arrivée HD inspectées ; viewport rétabli320×640/160 puis émulateur arrêté avant compilation finale. Pas de mesure FPS, vidéo manuelle, téléphone/TalkBack/parcours enfant. Les animaux peints restent fixes ; ressources nécessaires précisées dans le document.
-- Publication de la9.16 en cours : le bloc ci-dessous décrit la précédente9.15. Consulter le prochain bloc de publication pour l'empreinte finale et la preuve de réception.
+- Publication de la9.16 réussie : consulter le bloc de publication en tête pour l'empreinte finale et la preuve de réception. Les références9.15 ci-dessous sont historiques.
 
 ## Publication actuelle — 9.15/code56 — 11 octobre 2026
 

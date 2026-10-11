@@ -1,5 +1,12 @@
 # Validation
 
+## Publication 9.16 — 11 octobre 2026
+
+- Source5d63321 sur main ; build/tests/lint réussis ou à jour, signature vérifiée, publication par les scripts du projet. Final unique104647994 octets, SHA256 cdf70468e1fa82443bef458d64053c3c10130bcebe003ae9c704d393dae28f54 ; release publique https://github.com/Nyaru01/Memory/releases/tag/v9.16.
+- 20 correctifs8.6–9.15 vérifiés par reconstruction exacte avant envoi. APK complet public identique au final par hash, manifeste nommé et latest avec Cache-Control:no-cache9.16/code57. Le premier téléchargement Windows du complet s'est interrompu ; fichier partiel remplacé par un téléchargement curl réussi.
+- Test réseau Android PASS depuis la base publique9.15 : 2011067 octets téléchargés, APK reconstruit104647994, package/version/signature et provider vérifiés. Final release installé, mais base fournie au scénario : aucune nouvelle confirmation système d'installation ni validation du téléphone utilisateur. Rapport github-update-9.15-to-9.16.txt.
+- Les contrôles UI de la section suivante portent sur les mêmes sources debug. Captures départ/respiration/arrivée petit écran et arrivée HD inspectées. Base temporaire retirée ; taille/densité finales320×640/160 sans override vérifiées puis émulateur arrêté.
+
 ## Carte vivante — 9.16 — 11 octobre 2026
 
 - Build debug/tests/lint/instrumentation via tools/build.ps1 : 166 tests unitaires sans échec ni erreur, lint zéro erreur et 25 avertissements existants. Deux passages car les derniers ajustements de timing et de reprise avaient été ajoutés pendant la première compilation.
