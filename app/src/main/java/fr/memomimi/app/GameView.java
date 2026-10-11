@@ -2566,7 +2566,7 @@ class GameView extends View {
             else if(y>=adventureMap.top && y<=adventureMap.bottom && adventureMap.lumi.contains(x,y)) adventureMap.motion.reactionAt=now();
             else {
                 int level=adventureMap.hit(x,y);
-                if(level>0 && !startAdventure(level)) { mapHint="Termine le niveau "+adventure.current()+" d’abord"; announceForAccessibility(mapHint); }
+                if(level>0 && !startAdventure(level)) { mapHint="D’abord le niveau "+adventure.current(); adventureMap.lockedLevel=level;adventureMap.lockedAt=now();buzz(4);announceForAccessibility(mapHint); }
             }
             invalidate(); return true;
         }

@@ -24,6 +24,8 @@ final class AdventureMap {
     private LinearGradient headerFade;
     private float fadeTop=-1,fadeDensity;
     private float layoutWidth=360;
+    int lockedLevel;
+    long lockedAt=-1;
     private final LinearGradient[] nodeColors={new LinearGradient(0,0,0,1,0xffa9e9b6,0xff439b87,Shader.TileMode.CLAMP),new LinearGradient(0,0,0,1,0xffc7a6f2,0xff8163bd,Shader.TileMode.CLAMP),new LinearGradient(0,0,0,1,0xffede3d6,0xffb0a798,Shader.TileMode.CLAMP)};
     float scroll,maxScroll,top,bottom;
     private static final float SECTION=400;
@@ -46,12 +48,12 @@ final class AdventureMap {
     static float levelX(int level,float w,float d){return AdventureRoute.x(level,w,d);}
     void focus(int level,float viewport,float d){pendingFocus=false;motion.stop();scroll=Math.max(0,levelY(level,d)-viewport*.42f);}
     void open(int level,float viewport,float d,boolean reduced,long now){
-        motion.open(level,now,reduced);waitingForScenery=!reduced && motion.from>=1 && motion.to==motion.from+1;openedAt=now;scroll=Math.max(0,levelY(motion.from,d)-viewport*.42f);focusStart=scroll;pendingFocus=true;
+        lockedAt=-1;motion.open(level,now,reduced);waitingForScenery=!reduced && motion.from>=1 && motion.to==motion.from+1;openedAt=now;scroll=Math.max(0,levelY(motion.from,d)-viewport*.42f);focusStart=scroll;pendingFocus=true;
     }
     void draw(Canvas c,GameView v){
         hardwareCanvas=c.isHardwareAccelerated();
         float d=v.d,w=v.W;layoutWidth=w;long now=GameView.now();boolean reduced=v.animationsReduced();
-        top=v.systemTop()+60*d;bottom=v.H-v.systemBottom()-54*d;
+        top=v.systemTop()+52*d;bottom=v.H-v.systemBottom()-54*d;
         maxScroll=Math.max(0,20*SECTION*d-(v.H-top));
         if(pendingFocus){pendingFocus=false;if(!reduced && motion.from>=1 && motion.to==motion.from+1)motion.startedAt=now;scroll=Math.max(0,levelY(motion.from,d)-(bottom-top)*.42f);focusStart=scroll;}
         if(reduced)motion.stop();
@@ -90,17 +92,17 @@ final class AdventureMap {
             RectF a=nodes[level-2],b=nodes[level-1];path.reset();path.moveTo(a.centerX(),a.centerY());
             float span=b.centerY()-a.centerY();
             path.cubicTo(AdventureRoute.controlX(level-1,w,d,false),a.centerY()+span*.38f,AdventureRoute.controlX(level-1,w,d,true),b.centerY()-span*.38f,b.centerX(),b.centerY());
-            int family=AdventureStore.island(level);
-            paint.setStrokeWidth(8*d);paint.setColor(0x28675536);c.drawPath(path,paint);
-            paint.setStrokeWidth(5*d);paint.setColor(family==1?0x6095dac9:family==2?0x609f8ccb:0x70dbb474);c.drawPath(path,paint);
+            boolean reached=level<=v.adventure.current();
+            paint.setStrokeWidth(14*d);paint.setColor(reached?0x306c6143:0x166c6143);c.drawPath(path,paint);
+            paint.setStrokeWidth(9*d);paint.setColor(reached?0x9cddc99a:0x46d9cbb4);c.drawPath(path,paint);
             trail.setPath(path,false);float length=trail.getLength();paint.setStyle(Paint.Style.FILL);
-            for(float distance=12*d;distance<length;distance+=21*d){
+            for(float distance=12*d;distance<length;distance+=32*d){
                 trail.getPosTan(distance,trailPoint,trailTangent);
-                float side=((int)(distance/(21*d))%2==0?1:-1)*2*d;
+                float side=((int)(distance/(32*d))%2==0?1:-1)*1.5f*d;
                 float x=trailPoint[0]-trailTangent[1]*side,y=trailPoint[1]+trailTangent[0]*side;
-                paint.setColor(level<=v.adventure.current()?0xb6d5ac69:0x786f765c);
+                paint.setColor(reached?0x886e7950:0x406f765c);
                 c.save();c.rotate((float)Math.toDegrees(Math.atan2(trailTangent[1],trailTangent[0])),x,y);
-                c.drawOval(x-3*d,y-1.7f*d,x+3*d,y+1.7f*d,paint);c.restore();
+                c.drawOval(x-2.5f*d,y-1.3f*d,x+2.5f*d,y+1.3f*d,paint);c.restore();
             }
             paint.setStyle(Paint.Style.STROKE);
         }
@@ -109,27 +111,33 @@ final class AdventureMap {
             RectF n=nodes[level-1];if(n.bottom<top||n.top>bottom)continue;
             boolean done=level<=v.adventure.completed(),open=v.adventure.unlocked(level),current=level==v.adventure.current();
             float pulse=reduced?0:(float)Math.sin((now-openedAt)/900d)*2*d;
-            if(current){paint.setColor(0x65fff8d4);c.drawCircle(n.centerX(),n.centerY(),37*d+pulse,paint);}
-            paint.setColor(0x506c5266);c.drawOval(n.left,n.top+6*d,n.right,n.bottom+6*d,paint);
+            c.save();
+            if(!reduced && level==lockedLevel && now-lockedAt<420)c.translate((float)Math.sin((now-lockedAt)/35d)*2*d,0);
+            // Ground contact and a shallow stone bevel replace floating glossy discs.
+            paint.setColor(0x32615837);c.drawOval(n.left-6*d,n.bottom-10*d,n.right+6*d,n.bottom+7*d,paint);
+            paint.setColor(0x706f8060);c.drawOval(n.left-3*d,n.bottom-8*d,n.right+3*d,n.bottom+3*d,paint);
+            if(current){paint.setColor(0x55fff1ba);c.drawOval(n.left-5*d-pulse,n.top-1*d,n.right+5*d+pulse,n.bottom+3*d,paint);}
+            paint.setColor(open?0xff7b7460:0xffa09985);c.drawOval(n.left,n.top+6*d,n.right,n.bottom+3*d,paint);
             LinearGradient shade=nodeColors[done?0:open?1:2];shaderMatrix.setScale(1,n.height());shaderMatrix.postTranslate(0,n.top);shade.setLocalMatrix(shaderMatrix);paint.setColor(Color.WHITE);paint.setShader(shade);
-            c.drawCircle(n.centerX(),n.centerY(),29*d,paint);paint.setShader(null);
-            paint.setStyle(Paint.Style.STROKE);paint.setStrokeWidth(3*d);paint.setColor(0xeafffff4);c.drawCircle(n.centerX(),n.centerY(),26*d,paint);paint.setStyle(Paint.Style.FILL);
-            v.label(c,String.valueOf(level),n.centerX(),n.centerY()-3*d,22,open?Color.WHITE:0xff665f61,Paint.Align.CENTER);
-            if(open)v.label(c,done?"✓":"▶",n.centerX(),n.centerY()+18*d,12,Color.WHITE,Paint.Align.CENTER);
+            c.drawOval(n.left,n.top+4*d,n.right,n.bottom-2*d,paint);paint.setShader(null);
+            paint.setStyle(Paint.Style.STROKE);paint.setStrokeWidth(current?2*d:1*d);paint.setColor(current?0xfff6dda2:0x90f8f4dc);c.drawOval(n.left+3*d,n.top+7*d,n.right-3*d,n.bottom-5*d,paint);paint.setStyle(Paint.Style.FILL);
+            v.label(c,String.valueOf(level),n.centerX(),n.centerY()-3*d,21,open?Color.WHITE:0xff665f61,Paint.Align.CENTER);
+            if(open)v.label(c,done?"✓":"▶",n.centerX(),n.centerY()+15*d,12,Color.WHITE,Paint.Align.CENTER);
             else drawLock(c,n.centerX(),n.centerY()+15*d,d);
-            if(done)drawStar(c,n.right-3*d,n.top+2*d,8*d,0xffffd16a);
+            if(done)drawStar(c,n.right-3*d,n.top+5*d,6*d,0xffffd16a);
+            c.restore();
         }
         drawLumi(c,v,now,reduced);c.restore();
-        if(headerFade==null || fadeTop!=top || fadeDensity!=d){fadeTop=top;fadeDensity=d;headerFade=new LinearGradient(0,0,0,top+44*d,new int[]{0xd6e3f0e7,0xb0e3f0e7,0x00e3f0e7},new float[]{0,.55f,1},Shader.TileMode.CLAMP);}
-        paint.setColor(Color.WHITE);paint.setShader(headerFade);c.drawRect(0,0,w,top+44*d,paint);paint.setShader(null);
+        if(headerFade==null || fadeTop!=top || fadeDensity!=d){fadeTop=top;fadeDensity=d;headerFade=new LinearGradient(0,0,0,top+18*d,new int[]{0xe8edf4ec,0xc8edf4ec,0x00edf4ec},new float[]{0,.7f,1},Shader.TileMode.CLAMP);}
+        paint.setColor(Color.WHITE);paint.setShader(headerFade);c.drawRect(0,0,w,top+18*d,paint);paint.setShader(null);
         back.set(12*d,v.systemTop()+5*d,60*d,v.systemTop()+53*d);focusButton.set(w-60*d,v.systemTop()+5*d,w-12*d,v.systemTop()+53*d);
-        surface(c,back,16*d,UiStyle.SURFACE,d);v.label(c,"‹",back.centerX(),back.centerY(),30,UiStyle.TEXT,Paint.Align.CENTER);
-        surface(c,focusButton,16*d,UiStyle.SURFACE,d);v.label(c,"◎",focusButton.centerX(),focusButton.centerY(),29,UiStyle.ACCENT,Paint.Align.CENTER);
+        surface(c,back,16*d,0xdffffbf5,d);v.label(c,"‹",back.centerX(),back.centerY(),28,UiStyle.TEXT,Paint.Align.CENTER);
+        surface(c,focusButton,16*d,0xdffffbf5,d);v.label(c,"◎",focusButton.centerX(),focusButton.centerY(),25,UiStyle.ACCENT,Paint.Align.CENTER);
         int section=Math.min(19,Math.max(0,(int)((scroll+(bottom-top)*.42f)/(SECTION*d))));
         v.fitLabel(c,v.worldTitle(AdventureStore.world(section*2+1)),w/2,v.systemTop()+18*d,18,14,w-130*d,UiStyle.TEXT);
-        v.fitLabel(c,v.mapHint.isEmpty()?"Niveau "+v.adventure.current()+" · "+v.adventure.completed()+" / 40":v.mapHint,w/2,v.systemTop()+41*d,12,10,w-24*d,UiStyle.MUTED);
-        float buttonWidth=Math.min(w-24*d,272*d);continueButton.set((w-buttonWidth)/2,bottom+2*d,(w+buttonWidth)/2,bottom+50*d);surface(c,continueButton,18*d,UiStyle.REPLAY,d);
-        v.label(c,v.adventure.completed()==40?"Rejouer le niveau 40":"Continuer · Niveau "+v.adventure.current(),w/2,continueButton.centerY(),18,UiStyle.REPLAY_TEXT,Paint.Align.CENTER);
+        v.fitLabel(c,v.mapHint.isEmpty()?"Niveau "+v.adventure.current()+" · "+v.adventure.completed()+" / 40":v.mapHint,w/2,v.systemTop()+38*d,12,10,w-144*d,UiStyle.MUTED);
+        float buttonWidth=Math.min(w-32*d,240*d);continueButton.set((w-buttonWidth)/2,bottom+2*d,(w+buttonWidth)/2,bottom+50*d);surface(c,continueButton,18*d,UiStyle.REPLAY,d);
+        v.fitLabel(c,v.adventure.completed()==40?"Rejouer le niveau 40":"Continuer · Niveau "+v.adventure.current(),w/2,continueButton.centerY(),17,14,buttonWidth-20*d,UiStyle.REPLAY_TEXT);
         if(v.activityActive && (!reduced || Math.abs(motion.velocity)>8*d)){
             if(v.dragging || motion.travelling(now) || motion.arrival(now)>=0 || Math.abs(motion.velocity)>8*d || motion.reactionAt>=0 && now-motion.reactionAt<1440)v.postInvalidateOnAnimation();
             else v.postInvalidateDelayed(33);
@@ -147,7 +155,8 @@ final class AdventureMap {
             x=u*u*u*a.centerX()+3*u*u*t*AdventureRoute.controlX(motion.from,v.W,v.d,false)+3*u*t*t*AdventureRoute.controlX(motion.from,v.W,v.d,true)+t*t*t*x;
             float span=y-a.centerY();y=u*u*u*a.centerY()+3*u*u*t*(a.centerY()+span*.38f)+3*u*t*t*(y-span*.38f)+t*t*t*y;
         }
-        lumi.set(x-42*v.d,y-112*v.d,x+42*v.d,y-28*v.d);
+        lumi.set(x-42*v.d,y-105*v.d,x+42*v.d,y-21*v.d);
+        if(lumi.bottom>=top&&lumi.top<=bottom){paint.setColor(0x30584f35);c.drawOval(x-19*v.d,y-26*v.d,x+19*v.d,y-19*v.d,paint);}
         if(lumi.bottom>=top&&lumi.top<=bottom)v.victoryMascot.drawMap(c,lumi,now-openedAt,motion.reactionAt<0?-1:now-motion.reactionAt,reduced,motion.travelling(now),motion.arrival(now));
         if(!reduced && motion.arrival(now)>=0)arrivalStars(c,x,y,v.d,motion.arrival(now));
     }
@@ -181,8 +190,14 @@ final class AdventureMap {
             else if(family==2||family==4)drawStar(c,x,py,3*d,0x99fff2b4);
             else {paint.setColor(0x8098ba76);c.save();c.rotate(25+(float)Math.sin(elapsed/1600d+i)*15,x,py);c.drawOval(x-3*d,py-6*d,x+3*d,py+6*d,paint);c.restore();}
         }
-        float cx=((elapsed/180f+section*73)%(w+100*d))-50*d;
-        paint.setColor(0x65ffffff);c.drawOval(cx-35*d,y+63*d,cx+35*d,y+77*d,paint);c.drawOval(cx-12*d,y+54*d,cx+20*d,y+77*d,paint);
+        // Fireflies stay beside the vegetation, away from the fixed header.
+        if(family==0 || family==2 || family==4)for(int i=0;i<3;i++){
+            float x=w*(i==1?.83f:.12f)+(float)Math.sin(elapsed/2600d+i+section)*4*d;
+            float py=y+(170+i*64)*d+(float)Math.cos(elapsed/3100d+i)*6*d;
+            int alpha=Math.round(30+30*(1+(float)Math.sin(elapsed/1900d+i*2)));
+            paint.setColor((alpha<<24)|0xffe4a6);c.drawCircle(x,py,3*d,paint);
+            paint.setColor((Math.min(160,alpha+40)<<24)|0xfff4ce);c.drawCircle(x,py,1.2f*d,paint);
+        }
     }
     void touch(MotionEvent e,boolean dragging,float d,boolean reduced){
         if(e.getActionMasked()==MotionEvent.ACTION_DOWN){motion.velocity=0;if(tracker!=null)tracker.recycle();tracker=VelocityTracker.obtain();}

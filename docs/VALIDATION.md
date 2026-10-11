@@ -1,5 +1,13 @@
 # Validation
 
+## Finition carte — 9.15 — 11 octobre 2026
+
+- Build debug/instrumentation et lint via tools/build.ps1 : 163 tests unitaires SDK28/35 passent, zéro échec/erreur ; lint zéro erreur et 25 avertissements. Second passage après ajustement ciblé de l'étape18 Pirates ; aucun autre repère hors départ/Pirates déplacé.
+- 40 contrôles Android attachés réussis à 320×640/densité160 et 40 à 1080×1920/densité480. Victoire réelle, départ/trajet/toucher/arrivée de Lumi, Continuer, recentrage, quatre zones et caches bornés ; nouveau contrôle d'un niveau verrouillé sans changement de progression et cible de 58 dp. Le scénario restaure désormais toutes les préférences connues après fermeture de l'activité.
+- Captures map-small.png, pirates-small.png et pirates-hd.png inspectées sous releases/validation/9.15/. Pierres et ombres, placement sur les sentiers départ/Pirates, interface lisible. Rendus locaux départ et Pirates également inspectés. Animation vérifiée par états et captures, pas par vidéo manuelle ni mesures FPS.
+- Incidents de scénario : premier essai avec ancien override density480 sur écran320×640, arrêt sur assertion toucher de Lumi ; aucune validation retenue pour cet essai. Densité restaurée à160 puis PASS. Premier essai HD arrêté sur assertion de fenêtre mi-trajet après capture ; répétition sans changement du code applicatif PASS. Les assertions dans runOnMainSync peuvent faire crasher l'instrumentation malgré un code shell zéro : seuls les rapports PASS sont retenus.
+- Taille/densité restaurées et contrôlées (320×640/160, aucun override), émulateur arrêté avant compilation finale. Pas de téléphone physique, TalkBack manuel, parcours enfant ou garantie de fluidité. Aucun asset/paysage nouveau, règle de progression ou format de sauvegarde modifié.
+
 ## Publication et réception 9.14 — 11 octobre 2026
 
 - Sources 9.14 envoyées sur main et release publiée via publish-github-release.ps1, build/tests/lint à jour réussis et signature vérifiée. 18 correctifs des versions publiques 8.6 à 9.13 reconstruits exactement avant envoi. Aucun changement applicatif depuis la validation locale.

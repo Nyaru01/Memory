@@ -1,4 +1,4 @@
-# MémoMondes 9.14 — V2
+# MémoMondes 9.15 — V2
 
 **Reprise du projet par un agent : [document de passation](docs/PASSATION-AGENT.md).**
 
@@ -17,6 +17,10 @@ Le dossier source original ayant été perdu, cette version a été reconstruite
 - [Fonctionnement et publication des mises à jour](docs/MISES_A_JOUR.md)
 
 Installer une fois la version 8.6 ou suivante pour activer les mises à jour depuis GitHub. Depuis la 8.11, le jeu vérifie au retour dans l'application et toutes les minutes tant qu'elle reste ouverte. Un correctif compatible est téléchargé en arrière-plan ; un panneau propose « Installer » ou « Plus tard », directement dans le jeu. Une partie en cours n'est pas interrompue par ce panneau : le bouton d'installation reste disponible dans le bandeau. La confirmation finale appartient à Android. Le jeu et la progression restent utilisables hors ligne.
+
+## Carte d'aventure — finition 9.15
+
+Pierres de niveaux mieux ancrées au sol, chemin sablé et repères ajustés, Lumi avec une ombre plus douce, interface fixe allégée et petites lucioles dans les paysages adaptés. Niveaux, progression et illustrations conservés. [Détails de la passe](docs/POLISH-CARTE-9.15.md).
 
 ## Mon aventure avec Lumi — 9.14
 

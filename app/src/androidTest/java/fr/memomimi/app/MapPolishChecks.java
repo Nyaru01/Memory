@@ -12,7 +12,7 @@ final class MapPolishChecks {
     MapPolishChecks(Instrumentation host){this.host=host;}
     Bundle run(){
         Bundle result=new Bundle();MainActivity activity=null;
-        android.content.SharedPreferences prefs=host.getTargetContext().getSharedPreferences("m",0);int saved=prefs.getInt("adventure_completed",0);
+        android.content.SharedPreferences prefs=host.getTargetContext().getSharedPreferences("m",0);java.util.Map<String,?> saved=prefs.getAll();
         try {
             android.content.Intent intent=new android.content.Intent(host.getTargetContext(),MainActivity.class).addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK);
             activity=(MainActivity)host.startActivitySync(intent);MainActivity live=activity;GameView v=live.game;
@@ -38,11 +38,26 @@ final class MapPolishChecks {
             for(int level:new int[]{6,13,21,40}){
                 host.runOnMainSync(()->{v.adventureMap.focus(level,v.adventureMap.bottom-v.adventureMap.top,v.d);v.invalidate();});
                 Thread.sleep(700);capture("polish-zone-level"+level);
+                if(level==21)host.runOnMainSync(()->{
+                    RectF node=v.adventureMap.nodes[20];click(v,node);
+                    require(v.screen==7&&v.adventure.completed()==17,"Locked tap preserves progress and screen");
+                    require(v.adventureMap.lockedLevel==21&&v.adventureMap.lockedAt>=0,"Locked feedback registered");
+                    require(node.width()/v.d>=48&&node.height()/v.d>=48,"Stone keeps accessible target");
+                });
                 host.runOnMainSync(()->{require(v.adventureMap.scenery.retainedTiles()<=3,"Three landscape limit");require(v.adventureMap.scenery.seamBytes()<=AdventureScenery.MAX_SEAM_BYTES,"Bounded join strips");require(v.adventure.completed()==17,"Browsing does not unlock");});
             }
             result.putString("stream","PASS: "+checks+" attached Android polish checks: real level1 victory, depart/travel/touch/arrival sprite poses, Continue, current-level camera, four landscape joins and bounded caches. Screenshots are captures, not a manual video review.\n");
         }catch(Throwable error){result.putString("stream","FAIL: "+error+"\n");}
-        finally {prefs.edit().putInt("adventure_completed",saved).commit();if(activity!=null){MainActivity live=activity;host.runOnMainSync(live::finish);}}
+        finally {
+            if(activity!=null){MainActivity live=activity;host.runOnMainSync(live::finish);}host.waitForIdleSync();
+            android.content.SharedPreferences.Editor edit=prefs.edit().clear();
+            for(java.util.Map.Entry<String,?> entry:saved.entrySet()){
+                String key=entry.getKey();Object value=entry.getValue();
+                if(value instanceof Integer)edit.putInt(key,(Integer)value);else if(value instanceof Long)edit.putLong(key,(Long)value);
+                else if(value instanceof Boolean)edit.putBoolean(key,(Boolean)value);else if(value instanceof Float)edit.putFloat(key,(Float)value);
+                else if(value instanceof String)edit.putString(key,(String)value);
+            }edit.commit();
+        }
         return result;
     }
     void require(boolean condition,String label){if(!condition)throw new AssertionError(label);checks++;}

@@ -1,5 +1,12 @@
 # MémoMondes — Passation à un prochain agent
 
+## Finition carte — sources 9.15/code56 — 11 octobre 2026
+
+- [Détails de la passe](POLISH-CARTE-9.15.md) : pierres de niveaux et ombres de contact, chemin sablé, repères de départ et Pirates ajustés, Lumi posée près de la pierre, commandes translucides plus légères et lucioles latérales. Pastilles accessibles de 58 dp ; progression et illustrations conservées.
+- Retour sur niveau verrouillé dans GameView/AdventureMap : court mouvement si animations actives, message et haptique selon réglages ; aucun nouveau déblocage. Ombre en deux couches dans VictoryMascot.drawMap, sans changement des états de victoire. Idle, clignements et réactions de l'atlas existant conservés.
+- Validation avant publication : 163 tests unitaires, lint zéro erreur/25 avertissements, 40 contrôles carte Android petit écran et 40 HD, captures inspectées. Voir VALIDATION.md pour les deux incidents de configuration/timing de scénario et les limites. Préférences restaurées par le scénario réussi ; viewport remis à320×640/160 et vérifié, émulateur arrêté avant compilation finale.
+- La livraison et la publication GitHub de 9.15 sont réalisées ensuite ; le bloc de publication ajouté en tête doit fournir l'empreinte finale, l'URL et la preuve du test réseau.
+
 ## Mise à jour 9.14 publiée — 11 octobre 2026
 
 **État actuel : sources sur origin/main et 9.14/code55 publiée**, https://github.com/Nyaru01/Memory/releases/tag/v9.14. Le flux releases/latest/download/update.json ordinaire renvoie bien 9.14/code55. Final unique APK/MemoMondes.apk : 102692884 octets, SHA256 `695d1395f364de8f4d685854086273d41dfd19156dcaaed69dab4eca43d772f9`. L'empreinte change depuis le bloc local ci-dessous à cause de la métadonnée Git embarquée lors de la recompilation ; aucune modification du code applicatif.

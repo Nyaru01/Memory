@@ -1,5 +1,12 @@
 # Changements
 
+## 9.15 — 11 octobre 2026
+
+- Carte : pastilles en pierres ovales avec biseau et ombre de contact ; niveau actuel bordé d'or, niveaux terminés marqués et verrouillés plus discrets. Cibles tactiles conservées.
+- Chemin sablé translucide, traces espacées, étapes de départ et Pirates repositionnées sur les sentiers. Autres repères, paysages et progression conservés.
+- Pieds et ombre de Lumi mieux intégrés ; réactions existantes conservées. Petit retour de refus sur un niveau verrouillé, respectant mode calme et réglages tactiles.
+- Commandes translucides, voile d'en-tête plus court et bouton Continuer moins large. Lucioles lentes dans la végétation en remplacement des nuages génériques ; animations réduites respectées.
+
 ## 9.14 — 11 octobre 2026 — publiée sur GitHub
 
 - Mon aventure devient la carte principale : paysage du chapitre courant, aperçu des deux étapes, Lumi discrètement animée, monde et niveau, message chaleureux, compteur sur 40 et barre de progression. Bouton de 56 dp ; Jeu libre plus compact.

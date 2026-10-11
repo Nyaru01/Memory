@@ -4,18 +4,18 @@ package fr.memomimi.app;
 final class AdventureRoute {
     static final float SECTION=400;
     private static final float[][] POINTS={
-        {.53f,125,.43f,244}, {.55f,138,.43f,292}, {.40f,126,.61f,284}, {.46f,135,.61f,285},
+        {.64f,145,.63f,282}, {.55f,138,.43f,292}, {.40f,126,.61f,284}, {.46f,135,.61f,285},
         {.39f,150,.62f,294}, {.42f,163,.56f,294}, {.61f,157,.45f,298}, {.55f,133,.66f,292},
-        {.64f,160,.40f,294}, {.57f,146,.45f,290}, {.51f,143,.50f,292}, {.64f,152,.40f,292},
+        {.64f,160,.58f,294}, {.57f,146,.45f,290}, {.51f,143,.50f,292}, {.64f,152,.40f,292},
         {.45f,150,.50f,295}, {.56f,135,.54f,294}, {.52f,145,.62f,279}, {.67f,145,.52f,292},
         {.56f,148,.43f,292}, {.43f,143,.55f,282}, {.61f,148,.44f,282}, {.56f,147,.56f,292}
     };
     static final String[][] LANDMARKS={
-        {"Le grand arbre","Le pont du ruisseau"},{"La grange","Le pont de la ferme"},
+        {"Près du grand arbre","Le sentier du ruisseau"},{"La grange","Le pont de la ferme"},
         {"La maison de l’escargot","La mare aux grenouilles"},{"Le pont suspendu","La cascade"},
         {"Les œufs de dinosaures","La vallée des dinosaures"},{"Les igloos","Les pingouins"},
         {"La perle","Le récif"},{"Le palais des sirènes","Les tortues"},
-        {"Le trésor","Le ponton pirate"},{"La tour de l’horloge","Le pont du village"},
+        {"Le trésor","Le sentier pirate"},{"La tour de l’horloge","Le pont du village"},
         {"La fusée","La vallée des cristaux"},{"La tour magique","La cascade enchantée"},
         {"Les maisons champignons","Le pont des fées"},{"Le château sucré","Le pont gaufre"},
         {"Le château de cubes","Le pont des jouets"},{"Les maisons citrouilles","Le potager"},
