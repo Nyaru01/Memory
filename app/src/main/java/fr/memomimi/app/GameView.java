@@ -80,6 +80,7 @@ class GameView extends View {
     final RectF[] themeTiles = new RectF[WORLD_COUNT];
     final RectF[] familyTiles = new RectF[WorldCatalog.FAMILIES.length];
     final boolean[] familyOpen = new boolean[WorldCatalog.FAMILIES.length];
+    final WorldSelector worldSelector=new WorldSelector();
     final Bitmap[] themeStickers = new Bitmap[WORLD_COUNT];
     final RectF worldsTab = new RectF();
     final BoardLayout boardLayout = new BoardLayout();
@@ -478,6 +479,7 @@ class GameView extends View {
         int desiredLayer=screen==7 || screen==-1 || screen==0 ? View.LAYER_TYPE_NONE : View.LAYER_TYPE_SOFTWARE;
         if(getLayerType()!=desiredLayer)setLayerType(desiredLayer,null);
         if(screen==7)canvas.drawColor(0xffe3f0e7);
+        else if(screen==4)canvas.drawColor(UiStyle.BACKGROUND);
         else if(screen!=-1)drawWorldBackground(canvas, this.screen == 5 ? this.albumPage : this.theme);
         if(activityActive && screen<=0 && W>0)homeScreen.request(this);
         if(screen>0)homeScreen.release();
@@ -658,7 +660,7 @@ class GameView extends View {
         if(bounds==homeBtn) return systemTop();
         if(screen==7 && bounds!=adventureMap.back && bounds!=adventureMap.focusButton && bounds!=adventureMap.continueButton) return adventureMap.top;
         if(screen==8) return systemTop()+64*d;
-        if(screen==4) return systemTop()+88*d;
+        if(screen==4) return worldSelector.start;
         if(screen==3) return systemTop()+92*d;
         if(screen==5 && albumTab==2) for(RectF tile:themeTiles) if(bounds==tile)return systemTop()+222*d;
         return systemTop();
@@ -2058,45 +2060,7 @@ class GameView extends View {
     }
 
     int worldColumns() { return W/d < 350 || fontScale()>1.15f ? 2 : 3; }
-    void drawThemesGrid(Canvas canvas) {
-        float top=systemTop(), bottom=H-systemBottom();
-        homeBtn.set(16*d,top+4*d,64*d,top+52*d);
-        round(canvas,homeBtn,18,UiStyle.SURFACE);
-        label(canvas,"‹",homeBtn.centerX(),homeBtn.centerY(),32,ink,Paint.Align.CENTER);
-        fitLabel(canvas,"Choisis ton monde",(64*d+W)/2,top+28*d,22,17,W-88*d,ink);
-        label(canvas,WORLD_COUNT+" mondes · ouvre une famille",W/2,top+67*d,14,UiStyle.MUTED,Paint.Align.CENTER);
-        int columns=worldColumns();
-        float gap=8*d, left=16*d, width=(W-2*left-(columns-1)*gap)/columns;
-        float start=top+88*d, height=Math.max(108*d,Math.min(136*d,width*1.12f));
-        float content=0;
-        for(int family=0;family<familyTiles.length;family++) {
-            content+=56*d;
-            if(familyOpen[family]) content+=((WorldCatalog.WORLDS[family].length+columns-1)/columns)*(height+gap);
-        }
-        worldsScrollMax=Math.max(0,content-(bottom-start));
-        worldsScroll=Math.max(0,Math.min(worldsScroll,worldsScrollMax));
-        for(RectF tile:themeTiles) tile.setEmpty();
-        float y=start-worldsScroll;
-        canvas.save(); canvas.clipRect(0,start,W,bottom);
-        for(int family=0;family<familyTiles.length;family++) {
-            RectF header=familyTiles[family]; header.set(left,y,W-left,y+48*d);
-            round(canvas,header,16,UiStyle.SURFACE);
-            fitLabel(canvas,WorldCatalog.FAMILIES[family],header.centerX()-14*d,header.centerY(),16,14,header.width()-72*d,ink);
-            label(canvas,familyOpen[family] ? "−" : "+",header.right-24*d,header.centerY(),24,purple,Paint.Align.CENTER);
-            y+=56*d;
-            if(familyOpen[family]) {
-                int[] worlds=WorldCatalog.WORLDS[family];
-                for(int index=0;index<worlds.length;index++) {
-                    int world=worlds[index]; float x=left+index%columns*(width+gap);
-                    float tileY=y+index/columns*(height+gap);
-                    themeTiles[world].set(x,tileY,x+width,tileY+height);
-                    if(tileY+height>start && tileY<bottom) drawThemeGridTile(canvas,themeTiles[world],world);
-                }
-                y+=((worlds.length+columns-1)/columns)*(height+gap);
-            }
-        }
-        canvas.restore();
-    }
+    void drawThemesGrid(Canvas canvas) { worldSelector.draw(canvas,this); }
 
     void drawThemeGridTile(Canvas canvas, RectF tile, int world) {
         boolean selected = this.theme == world;
@@ -2279,6 +2243,7 @@ class GameView extends View {
     @Override // android.view.View
     public boolean onTouchEvent(MotionEvent motionEvent) {
         int action = motionEvent.getActionMasked();
+        if(screen==4 && worldSelector.rejectTouch(this,motionEvent)){pressedTarget=null;dragging=false;invalidate();return true;}
         if(action==MotionEvent.ACTION_DOWN) parentReleasePending=false;
         else if(parentReleasePending) {
             if(action==MotionEvent.ACTION_UP || action==MotionEvent.ACTION_CANCEL) parentReleasePending=false;
@@ -2454,14 +2419,15 @@ class GameView extends View {
                     this.screen = worldReturnScreen;
                 } else {
                     for(int family=0;family<familyTiles.length;family++) {
-                        if(y>=systemTop()+88*d && y<=H-systemBottom() && familyTiles[family].contains(x,y)) {
-                            familyOpen[family]=!familyOpen[family];
+                        if(y>=worldSelector.start && y<=H-systemBottom() && familyTiles[family].contains(x,y)) {
+                            worldSelector.toggle(this,family);
                             invalidate(); accessible.changed(); return true;
                         }
                     }
                     for (int world = 0; world < WORLD_COUNT; world++) {
-                        if (y >= systemTop()+88*d && y <= H-systemBottom() && this.themeTiles[world].contains(x, y)) {
+                        if (y >= worldSelector.start && y <= H-systemBottom() && this.themeTiles[world].contains(x, y)) {
                             this.theme = world;
+                            selectionAt=now();navigationAt=now();
                             remember();
                             stopMusic();
                             updateMusic();
@@ -3090,6 +3056,7 @@ class GameView extends View {
         welcomeScreen.release();
         homeScreen.release();
         adventureMap.release();
+        worldSelector.release();
         this.parentHolding = false;
         removeCallbacks(parentHoldAction);
         this.pressedTarget = null;

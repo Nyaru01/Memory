@@ -1,5 +1,14 @@
 # Validation
 
+## Catalogue Jeu libre — 9.18 — 11 octobre 2026
+
+- Debug/tests/lint/instrumentation compilés avec tools/build.ps1. 180 tests unitaires sans échec/erreur, lint zéro erreur/25 avertissements existants. Trois scénarios supplémentaires à deux SDK : géométrie/ressources aux trois tailles et texte1,35, animation/redimensionnement/glissement, parcours direct avec préservation des données.
+- Première passe : deux anciennes assertions sélectionnaient le monde18 désormais sous le viewport ; scénario adapté pour faire défiler. Nouveaux tests ensuite réussis. L'essai Android initial a laissé la vue inactive via pauseMusic et a échoué après expansion ; activité du scénario corrigée. Rafraîchissement final explicite ajouté au renderer pour rétablir les rectangles lorsqu'une horloge traverse la fin d'animation entre deux étapes du dessin.
+- 80 contrôles Android attachés PASS sur320×640/densité160,1236×2550/densité480 (412 dp),1280×1600/densité256 (800 dp) avec font_scale1,3. Cinq familles et vingt mondes, aperçus existants, colonnes2/2/3, rectangles pendant/après animation, véritable geste de glissement sans sélection, choix direct puis8 paires et lancement, aventure17/40/album63/record19 conservés. Préférences restaurées par les scénarios réussis. Rapports dans releases/validation/9.18/.
+- Captures GPU des trois configurations inspectées (nature petit, découverte grand, rêves tablette), ainsi que rendus locaux petit avec texte1,35, grand et tablette. Trente rendus catalogue couvrent les cinq familles aux trois tailles et deux facteurs de texte. Aucun fichier graphique ajouté, previews de paysages par région et cache6 Mio contrôlés.
+- Le helper a refusé l'ancienne release58 après installation de debug59 (downgrade), sans désinstallation ; installation debug59 répétée directement. Taille/densité320×640/160 et font_scale1,0 restaurés et vérifiés, émulateur arrêté avant build final.
+- Limites : émulateur uniquement selon le choix de l'utilisateur ; aucun téléphone, parcours enfant, TalkBack manuel, mesure FPS ou vidéo continue. Texte agrandi respecte le plafond1,35 du projet. Définition des aperçus limitée320 px pour le budget mémoire. Données/renderer/règles Aventure inchangés ; les tests existants d'Aventure sont inclus dans la suite180.
+
 ## Publication 9.17 — 11 octobre 2026
 
 - Sources572bdb6 sur main ; build/tests/lint réussis ou à jour, publication via les scripts du projet et signature fixe vérifiée. Final unique107685851 octets, SHA256 `1cfebd84672feb2502f85dd1ef1492f5231b7a5d571c85fcdb65ace563ed4f40` ; release publique https://github.com/Nyaru01/Memory/releases/tag/v9.17.

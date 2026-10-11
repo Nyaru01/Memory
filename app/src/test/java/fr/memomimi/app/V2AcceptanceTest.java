@@ -81,6 +81,7 @@ public class V2AcceptanceTest {
         render(null,320,480); click(view.play); assertEquals(1,view.screen); assertEquals(24,view.cards.length);
     }
     @Test public void familiesCoverStableWorldIdsAndCollapsedWorldsCannotBeSelected() {
+        view.calm=true;
         boolean[] seen=new boolean[GameView.WORLD_COUNT];
         for(int family=0;family<WorldCatalog.WORLDS.length;family++) for(int world:WorldCatalog.WORLDS[family]) {
             assertFalse(seen[world]); seen[world]=true; assertEquals(family,WorldCatalog.familyOf(world));
@@ -91,6 +92,7 @@ public class V2AcceptanceTest {
         click(view.familyTiles[0]); render(null,360,640);
         assertTrue(view.themeTiles[0].isEmpty()); assertEquals(4,view.screen);
         click(view.familyTiles[4]); render("v92-worlds-robots",360,640);
+        while(view.themeTiles[18].centerY()>view.H-view.systemBottom()){view.scrollPage(true);render(null,360,640);}
         click(view.themeTiles[18]); assertEquals(18,view.theme); assertEquals(8,view.screen);
     }
     @Test public void newWorldsHaveTwelveCardsStoriesAndIndependentAlbumProgress() {

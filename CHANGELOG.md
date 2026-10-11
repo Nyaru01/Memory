@@ -1,5 +1,13 @@
 # Changements
 
+## 9.18 — 11 octobre 2026
+
+- Sélecteur Jeu libre : deux cartes par ligne sur téléphone, grille adaptée aux grandes largeurs, grands aperçus et titres sur deux lignes si nécessaire.
+- Cinq accents pastel, vignettes de familles et chevrons animés ; ouverture multiple actuelle conservée.
+- Compteurs et barres de collection réels, sélection distincte et rappel dans la famille fermée.
+- Décodage des aperçus hors thread UI, cache6 Mio et protection des taps pendant animation ou redimensionnement.
+- [Architecture et ressources](docs/SELECTEUR-MONDES-9.18.md) ; navigation, mondes, données et progression Aventure conservés.
+
 ## 9.17 — 11 octobre 2026 — publiée sur GitHub
 
 - Dix-neuf raccords composés avec un atlas de passages supplémentaire ; vingt paysages conservés.

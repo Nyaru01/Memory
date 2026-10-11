@@ -1,5 +1,12 @@
 # MémoMondes — Passation à un prochain agent
 
+## Catalogue Jeu libre — sources 9.18/code59 — 11 octobre 2026
+
+- [Finition du sélecteur](SELECTEUR-MONDES-9.18.md) : WorldSelector extrait drawThemesGrid, deux colonnes sur téléphone et davantage sur grandes largeurs, paysages existants décodés par région en arrière-plan/cache6 Mio. Aucun nouveau fichier graphique ni changement Aventure.
+- Cinq familles et vingt identifiants conservés, ouverture multiple actuelle conservée. Accents, vignettes, chevrons190 ms, titres sur deux lignes, compteur/barre de collection et coche de sélection distincts. Rappel de sélection dans la famille fermée et libellés accessibles.
+- Ancrage de défilement et protection des taps pendant expansion/redimensionnement. Rafraîchissement final explicite pour reconstruire les cibles. Navigation et remember restent dans GameView ; album, records, progression et sauvegardes inchangés.
+- Validation :180 tests unitaires, lint zéro erreur/25 avertissements ;80 contrôles Android sur petit, grand et tablette avec texte1,3 PASS, captures inspectées. Voir VALIDATION.md pour incidents du scénario, périmètre et limites. Viewport/font restaurés puis émulateur arrêté. Publication à effectuer ; dernier final public9.17 conservé jusqu'au succès des scripts. Les blocs suivants sont historiques.
+
 ## Publication actuelle — 9.17/code58 — 11 octobre 2026
 
 **Final unique : APK/MemoMondes.apk**,107685851 octets, SHA256 `1cfebd84672feb2502f85dd1ef1492f5231b7a5d571c85fcdb65ace563ed4f40`. Release : https://github.com/Nyaru01/Memory/releases/tag/v9.17. Sources applicatives `572bdb6` envoyées sur origin/main ; documentation de publication ajoutée ensuite. Build/publish-apk et publish-github-release réussis, signature fixe vérifiée et clé conservée.
