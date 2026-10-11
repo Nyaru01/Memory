@@ -1,10 +1,17 @@
 # MémoMondes — Passation à un prochain agent
 
+## Publication actuelle — 9.20/code61 — 11 octobre 2026
+
+**Final unique : APK/MemoMondes.apk**,107690590 octets, SHA256 `ee8a4b3e6ef8ebce0090fcba6b08674c005698182dc93079b8806936679d3b3a`. Release : https://github.com/Nyaru01/Memory/releases/tag/v9.20. Sources33a5702 sur origin/main ; compilation complète186 tests sans échec/erreur, lint zéro erreur/25 avertissements existants, scripts du projet réussis, signature fixe vérifiée et clé conservée.
+
+- 24 correctifs8.6–9.19 reconstruits exactement ; depuis9.19 :128388 octets. APK public retéléchargé avec hash identique ; API latest/non draft et manifeste nommé9.20/code61 vérifiés. Flux latest Cache-Control:no-cache confirmé9.20/code61 après propagation initialement9.19, redirection HTTP correcte.
+- UI :116 contrôles petit et116 grand téléphone aux niveaux1/7/17/29/40, captures inspectées. Aucun changement de progression ou de stockage. Émulateur restauré320×640/160 puis arrêté ; pas de téléphone/FPS ni nouveau scénario réseau Android9.20, updater inchangé. Voir VALIDATION.md.
+
 ## Tous les plateaux — sources9.20/code61 — 11 octobre 2026
 
 - Correction étendue aux6/8/10/12 paires (Aventure et Jeu libre via BoardLayout partagé). Hauteur jusqu'à1,30 largeur bornée à l'espace réel, marges12 dp sur les decks denses ; recalcul compact marge6/gap4 dp si largeur sous48 dp. Aucun changement de progression, règles, decks ou stockage.
 - Six tests ciblés PASS, lint zéro erreur/25 avertissements existants. Android116 contrôles petit et116 grand téléphone aux niveaux1/7/17/29/40, captures inspectées. Albums/records/progression préservés et préférences du scénario restaurées. Petit écran12 paires48×62,4 dp ; grand87,5×99,17. Voir VALIDATION.md pour périmètre/incidents/limites.
-- Viewport320×640/160 restauré et émulateur arrêté. Publication finale à documenter après compilation complète et vérification des assets publics. Les blocs suivants sont historiques.
+- Viewport320×640/160 restauré et émulateur arrêté. Compilation complète186 tests et publication9.20 réussies : voir le bloc en tête. Les blocs suivants sont historiques.
 
 ## Publication actuelle — 9.19/code60 — 11 octobre 2026
 

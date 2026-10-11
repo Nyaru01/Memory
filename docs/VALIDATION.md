@@ -1,5 +1,12 @@
 # Validation
 
+## Publication9.20 — 11 octobre 2026
+
+- Sources33a5702 envoyées sur main. Compilation complète186 tests sans échec/erreur, lint zéro erreur/25 avertissements existants. Build/publish-apk/publish-github-release réussis, signature fixe vérifiée, clé conservée.
+- Final unique APK/MemoMondes.apk :107690590 octets, SHA256 `ee8a4b3e6ef8ebce0090fcba6b08674c005698182dc93079b8806936679d3b3a`. Release publique : https://github.com/Nyaru01/Memory/releases/tag/v9.20. APK retéléchargé et empreinte identique au final.
+- 24 correctifs des versions publiques8.6–9.19 reconstruits exactement avant publication ; depuis9.19 :128388 octets. API latest9.20/non draft et manifeste nommé9.20/code61 vérifiés. Flux latest avec Cache-Control:no-cache confirmé9.20/code61 après propagation initialement9.19 ; redirection HTTP vers le manifeste9.20 également vérifiée.
+- Aucun nouveau test réseau Android de reconstruction9.20 : updater inchangé et les24 correctifs reconstruits par le script. Validation UI116+116 contrôles et captures ci-dessous. Émulateur arrêté, aucune confirmation système d'installation supplémentaire.
+
 ## Tous les plateaux — sources 9.20 — 11 octobre 2026
 
 - BoardLayout utilise la hauteur disponible pour les 6/8/10/12 paires et resserre les marges sur les grilles denses. Si une largeur descend sous 48 dp, un second calcul compact (marge6/gap4 dp) ajuste les colonnes. Aucun changement des règles ou des données.
