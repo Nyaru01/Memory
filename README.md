@@ -20,7 +20,7 @@ Installer une fois la version 8.6 ou suivante pour activer les mises à jour dep
 
 ## Monde d'aventure continu — 9.17
 
-Passages illustrés entre les vingt décors, panneaux de chapitre intégrés, progression globale fixe et bouton Lumi. Après une victoire, Lumi et la caméra suivent le même sentier que les traces. Chargement des segments proches et reprise des animations sans changer les données du jeu. [Architecture et limites](docs/MONDE-CONTINU-9.17.md).
+Passages illustrés entre les vingt décors, panneaux de chapitre intégrés, progression globale fixe et bouton Lumi. Après une victoire, Lumi et la caméra suivent le même sentier que les traces. Chargement des segments proches et reprise des animations sans changer les données du jeu. [Architecture et limites](docs/MONDE-CONTINU-9.17.md). [Version9.17 publiée](https://github.com/Nyaru01/Memory/releases/tag/v9.17), correctif depuis9.16 vérifié par téléchargement et reconstruction sur Android.
 
 ## Carte d'aventure — finition 9.15
 

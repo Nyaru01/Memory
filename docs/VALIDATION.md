@@ -1,5 +1,12 @@
 # Validation
 
+## Publication 9.17 — 11 octobre 2026
+
+- Sources572bdb6 sur main ; build/tests/lint réussis ou à jour, publication via les scripts du projet et signature fixe vérifiée. Final unique107685851 octets, SHA256 `1cfebd84672feb2502f85dd1ef1492f5231b7a5d571c85fcdb65ace563ed4f40` ; release publique https://github.com/Nyaru01/Memory/releases/tag/v9.17.
+- 21 correctifs8.6–9.16 reconstruits exactement avant envoi ; depuis9.16 :3105715 octets. APK public complet retéléchargé par curl et identique au final par SHA256. API latest et manifeste latest ordinaire/Cache-Control:no-cache confirment9.17/code58 et la même empreinte.
+- Test réseau Android PASS avec le final release installé et la base publique9.16 fournie : téléchargement3105715 octets, reconstruction exacte107685851, package/version/signature/provider lecture seule vérifiés. Rapport releases/validation/9.17/github-update-9.16-to-9.17.txt. Premier essai DNS indisponible après boot ; répétition réussie sans modification. Aucune nouvelle confirmation système d'installation ni validation de téléphone utilisateur.
+- Base externe de test retirée. Viewport320×640/160 sans override vérifié puis émulateur arrêté. Les contrôles UI de la section suivante portent sur les mêmes sources debug ; limites de performance conservées.
+
 ## Monde continu — 9.17 — 11 octobre 2026
 
 - Compilation debug/tests/lint/instrumentation via tools/build.ps1 terminée ; 174 tests unitaires sans échec ni erreur, lint zéro erreur et 25 avertissements existants. Première passe : huit échecs liés aux anciennes attentes de cache/libellé et au retour de caméra après exploration. Attentes actualisées ; retour ordinaire recentré sur Lumi corrigé. Les passes suivantes passent, dont celle contenant les derniers placements des niveaux et sentiers.

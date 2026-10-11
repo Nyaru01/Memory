@@ -1,12 +1,20 @@
 # MémoMondes — Passation à un prochain agent
 
+## Publication actuelle — 9.17/code58 — 11 octobre 2026
+
+**Final unique : APK/MemoMondes.apk**,107685851 octets, SHA256 `1cfebd84672feb2502f85dd1ef1492f5231b7a5d571c85fcdb65ace563ed4f40`. Release : https://github.com/Nyaru01/Memory/releases/tag/v9.17. Sources applicatives `572bdb6` envoyées sur origin/main ; documentation de publication ajoutée ensuite. Build/publish-apk et publish-github-release réussis, signature fixe vérifiée et clé conservée.
+
+- 21 correctifs depuis les releases publiques8.6–9.16 reconstruits exactement avant envoi. Depuis9.16 :3105715 octets. APK public retéléchargé et SHA256 identique au final ; API latest et manifeste latest, avec et sans Cache-Control:no-cache, confirment9.17/code58.
+- Test réseau Android PASS, final release installé : téléchargement3105715, reconstruction exacte107685851, package/version/signature/provider lecture seule vérifiés. Base publique9.16 fournie au scénario ; aucun nouveau dialogue système d'installation exécuté. Rapport releases/validation/9.17/github-update-9.16-to-9.17.txt. Premier essai DNS indisponible juste après boot, répétition réussie sans changement de code.
+- Contrôles UI détaillés ci-dessous :174 tests unitaires, lint zéro erreur/25 avertissements,72 Android petit écran et72 HD ; captures inspectées, mesures de frames documentées sans promesse60 FPS. Téléphone écarté explicitement par l'utilisateur. Base externe temporaire retirée, viewport320×640/160 sans override vérifié, émulateur arrêté.
+
 ## Monde continu — sources 9.17/code58 — 11 octobre 2026
 
 - [Architecture et ressources](MONDE-CONTINU-9.17.md) : atlas de douze passages supplémentaires composé hors thread UI sur les dix-neuf raccords, vingt illustrations originales conservées ; panneaux locaux, compteur global fixe et bouton Lumi.
 - AdventureJourney conserve39 courbes partagées par les traces, Lumi et la caméra. Placements6,7,11,12,24 ajustés sur les sentiers ; phases gelées pendant les changements d'écran, retour ordinaire recentré. AdventureStore et formats persistants inchangés.
 - AdventureScenery : quatre segments proches maximum/16 Mio, trois raccords/2 Mio et atlas~1,57 Mio. Ne pas recycler les bitmaps publiés au renderer. SDK/caches/temp et clé fixe restent sur D:.
 - Validation :174 tests unitaires, lint zéro erreur/25 avertissements,72 contrôles Android petit écran et72 HD. Captures inspectées. FrameMetrics moyens26,36 ms petit et22,71 ms HD, chargements/captures inclus : aucune promesse60 FPS. Téléphone explicitement écarté par l'utilisateur ; aucun TalkBack/parcours enfant/vidéo continu. Voir VALIDATION.md. Émulateur rétabli320×640/160 puis arrêté.
-- Publication9.17 à effectuer après ce commit ; dernier final/public9.16 conservé jusqu'au succès des scripts de publication. Les blocs suivants sont historiques.
+- Publication9.17 réussie : voir le bloc de publication en tête. Les blocs suivants sont historiques.
 
 ## Publication actuelle — 9.16/code57 — 11 octobre 2026
 

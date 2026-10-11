@@ -1,6 +1,6 @@
 # Changements
 
-## 9.17 — 11 octobre 2026
+## 9.17 — 11 octobre 2026 — publiée sur GitHub
 
 - Dix-neuf raccords composés avec un atlas de passages supplémentaire ; vingt paysages conservés.
 - Panneaux de chapitres locaux, compteur global fixe, jalons de découverte et bouton Lumi.
