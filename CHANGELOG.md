@@ -1,5 +1,11 @@
 # Changements
 
+## 9.14 — 11 octobre 2026 — livraison locale
+
+- Mon aventure devient la carte principale : paysage du chapitre courant, aperçu des deux étapes, Lumi discrètement animée, monde et niveau, message chaleureux, compteur sur 40 et barre de progression. Bouton de 56 dp ; Jeu libre plus compact.
+- Une partie sauvegardée au niveau 1 affiche Continuer même avant la première victoire. Depuis la carte, une partie valide du niveau demandé est reprise sans recréer son jeu ; sauvegardes incohérentes refusées par le validateur existant.
+- Descriptions accessibles avec monde, niveau, progression et action d'ouverture de la carte. Mode calme, animations réduites, formats persistants et collections conservés.
+
 ## 9.13 — 10 octobre 2026 — livraison locale
 
 - Accueil : marges internes de 12 dp autour des deux boutons principaux, espace entre illustrations et boutons, même taille de texte pour les actions.

@@ -1,5 +1,14 @@
 # Validation
 
+## Aventure principale — 9.14 — 11 octobre 2026
+
+- HomeScreen : bloc 324 dp contre 126 dp pour Jeu libre, paysage du chapitre courant, deux niveaux de ce chapitre, Lumi sur le niveau actuel, progression réelle en compteur/barre. Bouton 56 dp, UI et cibles alignées. Mode calme et réduction des animations conservés par drawMap/animationsReduced. Les étapes de l'aperçu ne sont pas de nouveaux boutons.
+- 163 tests unitaires passent sans échec/erreur, lint zéro erreur/25 avertissements. Tests supplémentaires de reprise du premier niveau avant première victoire, conservation du jeu sauvegardé et des paires trouvées, chapitre avancé et aventure terminée. Suites SDK28/35 exécutées via tools/build.ps1 ; scénarios existants de navigation sur 320×480, 360×640 et 412×850 conservés.
+- Rendus locaux inspectés : accueil neuf à 360 pixels, chapitre Pirates niveau18/progression17, Robots niveau40/progression40. Même illustration que la carte, barre et états corrects. Captures sous releases/validation/9.14/.
+- Final release 9.14/code55 installé par install-on-emulator.ps1 ; 30 contrôles Android attachés à 320×640 puis 30 à 1080×1920/densité480 passent. Navigation aventure/carte, libre/configuration/mondes/partie/retour, album/musique, maintien parents et reset confirmé ; préférences restaurées. Rapports device-small.txt/device-hd.txt. Captures home-small.png et home-hd.png inspectées ; bas du menu atteint par défilement sur ces écrans. Taille/densité restaurées puis émulateur arrêté.
+- Final unique APK/MemoMondes.apk : 102692883 octets ; SHA256 a618c50e8ad24de7d8bd326f4c2c72cd42df72f95786ff4b31687c4f2da206a6 ; signature apksigner vérifiée, clé fixe conservée. Compilation et livraison via build.ps1/publish-apk.ps1 réussies. Aucune publication GitHub 9.14.
+- Aucun parcours observé avec enfant, téléphone physique, TalkBack manuel ou animation vidéo évaluée. Les 922 contrôles généraux historiques ne sont pas revendiqués pour cette version. Aucun SDK/asset nouveau ni modification des formats de stockage.
+
 ## Publication et sources GitHub — 11 octobre 2026
 
 - Historiques local/distant fusionnés sans force push ; sources, tests, assets et scripts présents sur main, avec contrôles de présence via API et vérification du SHA de la branche distante. Clé, APK final, caches et intermédiaires exclus du Git.

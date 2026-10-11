@@ -1,5 +1,14 @@
 # MémoMondes — Passation à un prochain agent
 
+## Accueil centré sur l'aventure — 9.14 locale — 11 octobre 2026
+
+**État local actuel : 9.14/code55**, APK/MemoMondes.apk, 102692883 octets, SHA256 `a618c50e8ad24de7d8bd326f4c2c72cd42df72f95786ff4b31687c4f2da206a6`. Build/publish-apk réussis, signature vérifiée, clé fixe conservée. GitHub reste sur 9.13 ; aucune publication distante 9.14 effectuée.
+
+- [Structure UI et états](ACCUEIL-AVENTURE-9.14.md) : HomeScreen affiche Mon aventure sur 324 dp, paysage du chapitre et ses deux étapes, Lumi, monde/niveau, phrase enfant, compteur et barre sur 40, bouton 56 dp. Jeu libre secondaire sur 126 dp. Contrôles du bas accessibles par défilement ; mêmes marges régulières.
+- GameView.adventureStarted() distingue le premier niveau actif d'une aventure neuve. Le bouton ouvre la carte centrée via openAdventure() ; startAdventure reprend la sauvegarde du niveau demandé via loadGame/SavedGame lorsqu'elle existe, au lieu de recréer les cartes. Une sauvegarde refusée désactive sa reprise et conserve progression/collections. Aucun nouveau format persistant.
+- 163 tests unitaires réussis, lint zéro erreur/25 avertissements. Nouveaux scénarios : niveau 1 déjà commencé, cartes et paires conservées à la reprise, chapitre avancé et 40/40. APK final installé sur émulateur Android 15 : 30 contrôles menus petit écran et 30 HD réussis, dont parents/reset ; préférences restaurées par le scénario.
+- Captures réelles 320×640 et 1080×1920/densité480 inspectées, plus rendus locaux à plusieurs tailles et états. Taille/densité restaurées, émulateur arrêté. Pas de téléphone, observation enfant, TalkBack manuel ni validation vidéo/fluide des animations. Les anciens 922 contrôles généraux n'ont pas été relancés.
+
 ## Publication GitHub et sauvegarde des sources — 11 octobre 2026
 
 **État actuel : 9.13/code54 publiée** sur https://github.com/Nyaru01/Memory/releases/tag/v9.13 et reconnue par releases/latest. APK final unique : 102692335 octets, SHA256 `ad7a1664f5509d36762cee7e510271764621f85584a325ca6882929746f972a6`. La recompilation de publication a changé la métadonnée de révision Git embarquée, donc l'empreinte diffère de la livraison locale du 10 octobre sans modification du code applicatif.

@@ -90,6 +90,30 @@ public class AdventureTest {
             view.handleBack();assertEquals(8,view.screen);view.handleBack();assertEquals(0,view.screen);
         }
     }
+    @Test public void homeContinuesFirstSavedLevelWithoutReplacingItsDeckOrProgress() {
+        assertFalse(view.adventureStarted());
+        assertTrue(view.startAdventure(1));
+        for(int i=0;i<view.cards.length;i++)view.cards[i]=i/2;
+        view.matched[0]=view.matched[1]=true;view.found=1;view.moves=2;view.errors=1;
+        view.saveGame();int[] deck=view.cards.clone();
+        view.screen=0;view.showResumePrompt=false;
+        render("home-914-started",360,740);
+        assertTrue(view.adventureStarted());assertEquals(0,view.adventure.completed());
+        click(view.adventureButton);assertEquals(7,view.screen);
+        assertTrue(view.startAdventure(view.adventure.current()));
+        assertArrayEquals(deck,view.cards);assertEquals(1,view.found);
+        assertEquals(2,view.moves);assertEquals(1,view.errors);assertTrue(view.matched[0]);
+    }
+    @Test public void homeReflectsLaterChapterAndCompletedJourney() {
+        for(int completed:new int[]{17,40}) {
+            context.getSharedPreferences("m",0).edit().putInt("adventure_completed",completed).putBoolean("game_active",false).commit();
+            view.screen=0;view.showResumePrompt=false;view.homeScroll=0;
+            render(null,360,740);view.adventureMap.scenery.awaitReady();
+            render("home-914-progress-"+completed,360,740);
+            assertTrue(view.adventureStarted());click(view.adventureButton);
+            assertEquals(7,view.screen);assertEquals(Math.min(40,completed+1),view.adventure.current());
+        }
+    }
     @Test public void freePreferencesSurviveAdventureAndBothModesRewardAlbumIndependently() {
         view.openFreePlay();view.theme=18;view.choosePairs(12);view.remember();
         view.startAdventure(1);finish();assertEquals(1,view.adventure.completed());assertEquals(63,view.albumMask(0));

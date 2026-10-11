@@ -807,8 +807,18 @@ class GameView extends View {
         adventureMap.open(adventure.current(),Math.max(160*d,H-systemTop()-systemBottom()-152*d),d,animationsReduced(),now());
         accessible.changed(); invalidate();
     }
+    boolean adventureStarted() {
+        android.content.SharedPreferences prefs=getContext().getSharedPreferences("m",0);
+        return adventure.completed()>0 || (prefs.getBoolean("game_active",false)
+                && prefs.getInt("saved_adventure_level",0)==adventure.current());
+    }
     boolean startAdventure(int level) {
         if(!adventure.unlocked(level)) return false;
+        android.content.SharedPreferences prefs=getContext().getSharedPreferences("m",0);
+        if(prefs.getBoolean("game_active",false) && prefs.getInt("saved_adventure_level",0)==level){
+            loadGame();
+            return screen==1;
+        }
         theme=AdventureStore.world(level); pairs=AdventureStore.pairs(level); players=1;
         start(); adventureLevel=level; saveGame(); invalidate(); return true;
     }

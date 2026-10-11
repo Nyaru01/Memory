@@ -65,7 +65,7 @@ final class GameAccessibility extends AccessibilityNodeProvider {
         switch (view.screen) {
             case 0:
                 add(result,view.adventureButton,view.adventure.completed()==40 ? "Aventure terminée, revoir les 40 niveaux"
-                        : (view.adventure.completed()==0?"Commencer":"Continuer")+" l’aventure, niveau "+view.adventure.current());
+                        : (view.adventureStarted()?"Continuer":"Commencer")+" l’aventure avec Lumi, "+view.worldTitle(AdventureStore.world(view.adventure.current()))+", niveau "+view.adventure.current()+", "+view.adventure.completed()+" sur 40 niveaux terminés. Ouvrir la carte");
                 add(result,view.freePlayButton,"Jouer librement");
                 add(result,view.albumBtn,"Mon album, "+view.albumCount()+" images");
                 add(result,view.soundBtn,"Musique : "+(view.sound?"activée":"désactivée"));
