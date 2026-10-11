@@ -6,7 +6,7 @@
 
 - 19 correctifs depuis les releases publiques 8.6 à 9.14 reconstruits exactement avant envoi. Depuis 9.14 : 118351 octets. APK public retéléchargé et identique au final par SHA256 ; manifeste nommé v9.15 et API latest vérifiés.
 - Flux latest : premier GET ordinaire encore en9.14 pendant la propagation ; la requête avec Cache-Control:no-cache, identique au jeu, renvoie 9.15/code56. Test réseau Android PASS depuis la base publique 9.14 : téléchargement118351 octets, reconstruction exacte102693314, package/version/signature/provider vérifiés. Premier essai DNS temporairement indisponible, second essai sans correctif car ancien manifeste, répétition après propagation PASS. Rapport releases/validation/9.15/github-update-9.14-to-9.15.txt.
-- Les contrôles UI sont ceux de la build debug validée ci-dessous ; le test réseau utilise le final release installé par le helper. Pas de nouvelle confirmation système d'installation ni de téléphone utilisateur. Base temporaire retirée ; émulateur320×640/160 sans override vérifié puis arrêté.
+- Le dernier GET ordinaire du flux latest confirme également9.15/code56 après propagation. Les contrôles UI sont ceux de la build debug validée ci-dessous ; le test réseau utilise le final release installé par le helper. Pas de nouvelle confirmation système d'installation ni de téléphone utilisateur. Base temporaire retirée ; émulateur320×640/160 sans override vérifié puis arrêté.
 
 ## Finition carte — sources 9.15/code56 — 11 octobre 2026
 
