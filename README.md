@@ -18,9 +18,9 @@ Le dossier source original ayant été perdu, cette version a été reconstruite
 
 Installer une fois la version 8.6 ou suivante pour activer les mises à jour depuis GitHub. Depuis la 8.11, le jeu vérifie au retour dans l'application et toutes les minutes tant qu'elle reste ouverte. Un correctif compatible est téléchargé en arrière-plan ; un panneau propose « Installer » ou « Plus tard », directement dans le jeu. Une partie en cours n'est pas interrompue par ce panneau : le bouton d'installation reste disponible dans le bandeau. La confirmation finale appartient à Android. Le jeu et la progression restent utilisables hors ligne.
 
-## Mon aventure avec Lumi — 9.14 locale
+## Mon aventure avec Lumi — 9.14
 
-Une grande carte met l'aventure au premier plan : paysage du chapitre, Lumi, étapes, monde et niveau actuels, progression sur 40 et bouton principal. Une partie sauvegardée peut être reprise depuis la carte sans perdre ses cartes trouvées. Jeu libre reste séparé et plus compact. [Structure UI et architecture](docs/ACCUEIL-AVENTURE-9.14.md). Les liens GitHub désignent encore la 9.13 publiée.
+Une grande carte met l'aventure au premier plan : paysage du chapitre, Lumi, étapes, monde et niveau actuels, progression sur 40 et bouton principal. Une partie sauvegardée peut être reprise depuis la carte sans perdre ses cartes trouvées. Jeu libre reste séparé et plus compact. [Structure UI et architecture](docs/ACCUEIL-AVENTURE-9.14.md). [Version 9.14 publiée](https://github.com/Nyaru01/Memory/releases/tag/v9.14), avec correctifs depuis les versions publiques précédentes.
 
 ## Accueil — 9.13
 

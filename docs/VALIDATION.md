@@ -1,5 +1,12 @@
 # Validation
 
+## Publication et réception 9.14 — 11 octobre 2026
+
+- Sources 9.14 envoyées sur main et release publiée via publish-github-release.ps1, build/tests/lint à jour réussis et signature vérifiée. 18 correctifs des versions publiques 8.6 à 9.13 reconstruits exactement avant envoi. Aucun changement applicatif depuis la validation locale.
+- Final unique de publication : 102692884 octets, SHA256 695d1395f364de8f4d685854086273d41dfd19156dcaaed69dab4eca43d772f9. Nouvelle métadonnée Git embarquée expliquant la différence avec l'empreinte locale ; clé fixe conservée. APK public retéléchargé et identique au final ; latest API et manifeste latest ordinaire vérifiés 9.14/code55/empreinte identique.
+- Android 15 : scénario network PASS contre le flux public depuis le fichier APK officiel 9.13 fourni comme base ; 117927 octets téléchargés, reconstruction exacte de 102692884 octets, version/package/signature validés et provider lecture seule. Rapport releases/validation/9.14/github-update-9.13-to-9.14.txt. Base temporaire supprimée puis émulateur arrêté.
+- Le test réseau utilise une base fournie ; il ne prétend pas valider la proposition sur le téléphone utilisateur ni rejouer la confirmation système d'installation. Aucune donnée de progression supprimée. Revenir dans l'app connectée déclenche le polling, puis toutes les 60 s au premier plan.
+
 ## Aventure principale — 9.14 — 11 octobre 2026
 
 - HomeScreen : bloc 324 dp contre 126 dp pour Jeu libre, paysage du chapitre courant, deux niveaux de ce chapitre, Lumi sur le niveau actuel, progression réelle en compteur/barre. Bouton 56 dp, UI et cibles alignées. Mode calme et réduction des animations conservés par drawMap/animationsReduced. Les étapes de l'aperçu ne sont pas de nouveaux boutons.

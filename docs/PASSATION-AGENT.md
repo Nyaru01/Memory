@@ -1,5 +1,14 @@
 # MémoMondes — Passation à un prochain agent
 
+## Mise à jour 9.14 publiée — 11 octobre 2026
+
+**État actuel : sources sur origin/main et 9.14/code55 publiée**, https://github.com/Nyaru01/Memory/releases/tag/v9.14. Le flux releases/latest/download/update.json ordinaire renvoie bien 9.14/code55. Final unique APK/MemoMondes.apk : 102692884 octets, SHA256 `695d1395f364de8f4d685854086273d41dfd19156dcaaed69dab4eca43d772f9`. L'empreinte change depuis le bloc local ci-dessous à cause de la métadonnée Git embarquée lors de la recompilation ; aucune modification du code applicatif.
+
+- La non-réception signalée venait de la livraison uniquement locale : publication réalisée via publish-github-release.ps1 après build/tests/lint réussis (tests et lint à jour), signature vérifiée avec la clé fixe. Sources 9cab10f envoyées sur main, puis documentation de publication ajoutée.
+- 18 correctifs depuis les versions publiques 8.6 à 9.13 générés et reconstruits exactement avant publication ; depuis 9.13 : 117927 octets, depuis 9.10 : 117923. APK public retéléchargé et comparé par SHA256 au final et au manifeste ; release latest vérifiée.
+- Test réseau réel Android 15 PASS : depuis la base publique 9.13, téléchargement GitHub HTTPS de 117927 octets, reconstruction exacte de 102692884 octets, package/version/signature et provider lecture seule vérifiés. Rapport releases/validation/9.14/github-update-9.13-to-9.14.txt. Base temporaire retirée de l'émulateur, émulateur arrêté. Pas de nouvelle confirmation système d'installation ni d'essai du téléphone utilisateur.
+- Pour recevoir la proposition : connexion Internet, revenir dans le jeu ou le laisser au premier plan. UpdatePoller vérifie au retour (espacement minimal 15 s) puis toutes les 60 s. Les limites visuelles du bloc précédent restent valables.
+
 ## Accueil centré sur l'aventure — 9.14 locale — 11 octobre 2026
 
 **État local actuel : 9.14/code55**, APK/MemoMondes.apk, 102692883 octets, SHA256 `a618c50e8ad24de7d8bd326f4c2c72cd42df72f95786ff4b31687c4f2da206a6`. Build/publish-apk réussis, signature vérifiée, clé fixe conservée. GitHub reste sur 9.13 ; aucune publication distante 9.14 effectuée.
