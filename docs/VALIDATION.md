@@ -1,11 +1,17 @@
 # Validation
 
+## Publication9.19 — 11 octobre 2026
+
+- Sources1d28ba9 sur main, build final184 tests unitaires sans échec/erreur et lint zéro erreur/25 avertissements. Scripts du projet réussis, clé fixe conservée/signature vérifiée. Final unique107690514 octets, SHA256 `da7f5bc0aadfc17f8584c252c8b337e93c2bff7ffa7d3e645babbbb47f1af323` ; https://github.com/Nyaru01/Memory/releases/tag/v9.19.
+- 23 correctifs8.6–9.18 reconstruits exactement avant envoi ; depuis9.18 :128328 octets. APK public retéléchargé et comparé au final par SHA256. API latest/non draft et manifeste nommé9.19/code60 ; latest Cache-Control:no-cache vérifié après propagation (premier GET encore9.18).
+- Aucun nouveau test réseau Android de reconstruction spécifique9.19, le code de mise à jour étant inchangé et les23 correctifs reconstruits par le script. Validation UI ciblée ci-dessous ; test réseau9.18 conservé comme historique. Émulateur arrêté, aucune nouvelle confirmation système d'installation.
+
 ## Cartes à8 paires — 9.19 — 11 octobre 2026
 
 - BoardLayout uniquement pour la géométrie : marge12 dp/espacement6 dp pour16 cartes, hauteur jusqu'à1,30 fois la largeur bornée à l'espace réel ; trois colonnes si gain réel sur écran très allongé. Rendu et hitCard partagent cardBounds, dernière rangée incomplète centrée. Aucun changement de deck, difficulté, album, records ou sauvegardes.
 - Build debug/lint/instrumentation réussi via build.ps1. Quatre tests ciblés PASS : limites/taps aux densités1/1,5/3 et tailles de deck12/16/20/24, puis vraie aventure7 à320×480,360×780,412×850 sur SDK28/35. Deck identique après redimensionnement,8 paires/16 cartes, progression6 et collections/record préservés. Rendus360×780 et320×480 inspectés. À360×780,79,5×103,35 dp contre76×85,12 dans l'ancien calcul, environ27% de surface en plus ; comparaison calculée, pas une capture de l'ancienne APK.
 - Android :20 contrôles PASS sur capture1176×1920/densité480 (87,5×99 dp),20 sur320×480/160 (56,25×63 dp),21 sur784×1702/320 (392×851 dp,87,5×113,75 dp). Captures inspectées, dernier tap testé, progression conservée et préférences de scénario restaurées. La première override demandée1176×2553 était limitée à1920 de haut par l'émulateur ; contrôle allongé refait à une résolution inférieure. Rapports releases/validation/9.19/.
-- Viewport320×640/densité160 sans override vérifié et émulateur arrêté avant publication. Aucune nouvelle ressource, téléphone ou mesure FPS ; l'en-tête et les consignes gardent leur espace. Compilation finale complète et publication à documenter après succès.
+- Viewport320×640/densité160 sans override vérifié et émulateur arrêté avant publication. Aucune nouvelle ressource, téléphone ou mesure FPS ; l'en-tête et les consignes gardent leur espace. Compilation complète184 tests et publication réussies, voir le bloc en tête.
 
 ## Publication 9.18 — 11 octobre 2026
 

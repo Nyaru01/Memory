@@ -1,10 +1,17 @@
 # MémoMondes — Passation à un prochain agent
 
+## Publication actuelle — 9.19/code60 — 11 octobre 2026
+
+**Final unique : APK/MemoMondes.apk**,107690514 octets, SHA256 `da7f5bc0aadfc17f8584c252c8b337e93c2bff7ffa7d3e645babbbb47f1af323`. Release : https://github.com/Nyaru01/Memory/releases/tag/v9.19. Sources applicatives `1d28ba9` sur origin/main ; documentation de publication ajoutée ensuite. Compilation complète184 tests sans échec, lint zéro erreur/25 avertissements ; scripts build/publish-apk/publish-github-release réussis, signature fixe vérifiée et clé conservée.
+
+- 23 correctifs des versions publiques8.6–9.18 reconstruits exactement avant envoi. Depuis9.18 :128328 octets. APK public retéléchargé et hash identique au final. API latest et manifeste nommé9.19/code60 ; flux latest Cache-Control:no-cache vérifié9.19 après propagation initialement en9.18.
+- UI niveau7 :20/20/21 contrôles Android et captures inspectées, dont un format392×851 dp. Cartes87,5×113,75 dp, environ26% de surface en plus que l'ancien calcul sur ce format.8 paires/16 cartes et progression conservées. Pas de téléphone/FPS ni nouveau test réseau Android de correctif9.19 (celui9.18 est historique). Viewport320×640/160 vérifié, émulateur arrêté.
+
 ## Cartes niveau7 — sources9.19/code60 — 11 octobre 2026
 
 - Le passage à8 paires dès le niveau7 reste normal et inchangé. BoardLayout agrandit les16 cartes avec marges12 dp, gap6 dp et hauteur jusqu'à1,30 largeur selon la place. Grille4×4 courante,3 colonnes si gain de largeur réel ; dernière rangée incomplète centrée via cardLeft utilisé par GameView. Decks, progression et formats inchangés.
 - Quatre tests ciblés PASS, lint zéro erreur/25 avertissements ; rendus inspectés. Android20/20/21 contrôles sur deux hauteurs compactes et un format392×851 dp ; cartes87,5×113,75 dp sur ce dernier. Préférences restaurées, viewport rétabli320×640/160 puis émulateur arrêté. Voir VALIDATION.md.
-- Compilation complète et publication à effectuer ; final public9.18 conservé jusqu'au succès des scripts. Les blocs suivants sont historiques.
+- Compilation complète184 tests et publication9.19 réussies : voir le bloc en tête. Les blocs suivants sont historiques.
 
 ## Publication actuelle — 9.18/code59 — 11 octobre 2026
 

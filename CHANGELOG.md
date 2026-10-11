@@ -1,6 +1,6 @@
 # Changements
 
-## 9.19 — 11 octobre 2026
+## 9.19 — 11 octobre 2026 — publiée sur GitHub
 
 - Plateau à8 paires : marges12 dp, espacement6 dp et cartes jusqu'à1,30 fois leur largeur lorsque la hauteur disponible le permet. La grille4×4 reste privilégiée, trois colonnes sur écrans très allongés si le gain de largeur atteint6%.
 - Dernière rangée incomplète centrée ; rendu et zones tactiles issus de BoardLayout. Aucun changement du nombre de cartes, des paires, sauvegardes ou progression.

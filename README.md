@@ -20,7 +20,7 @@ Installer une fois la version 8.6 ou suivante pour activer les mises à jour dep
 
 ## Taille des cartes — 9.19
 
-Le niveau7 passe normalement à8 paires. Les plateaux de16 cartes utilisent mieux l'écran : marges et espaces resserrés, cartes plus hautes lorsque la place le permet, grille adaptée aux formats très allongés. Paires, difficulté, sauvegardes et progression conservées.
+Le niveau7 passe normalement à8 paires. Les plateaux de16 cartes utilisent mieux l'écran : marges et espaces resserrés, cartes plus hautes lorsque la place le permet, grille adaptée aux formats très allongés. Paires, difficulté, sauvegardes et progression conservées. [Version9.19 publiée](https://github.com/Nyaru01/Memory/releases/tag/v9.19).
 
 ## Catalogue du Jeu libre — 9.18
 
