@@ -1,5 +1,13 @@
 # Validation
 
+## Carte vivante — 9.16 — 11 octobre 2026
+
+- Build debug/tests/lint/instrumentation via tools/build.ps1 : 166 tests unitaires sans échec ni erreur, lint zéro erreur et 25 avertissements existants. Deux passages car les derniers ajustements de timing et de reprise avaient été ajoutés pendant la première compilation.
+- 45 contrôles Android attachés PASS à 320×640/densité160, puis 45 PASS à 1080×1920/densité480. Atlas dédié présent, vraie victoire, départ/trajet/toucher/arrivée, pause/reprise conservant le trajet, changement de frames d'attente sans mise à l'échelle, commandes, quatre zones, progression inchangée et caches bornés.
+- Captures réelles départ/respiration/arrivée petit écran inspectées ; rendus locaux départ et Pirates inspectés. Rapports dans releases/validation/9.16/android-small.txt et android-hd.txt. Préférences restaurées par le scénario ; viewport remis à320×640/160 sans override puis émulateur arrêté avant build final.
+- PNG Lumi supplémentaire inspecté : 1266×1242 RGBA, coin transparent ; aucun paysage remplacé. Variante de padding écartée ; fichiers de génération conservés sur D: dans app/build/art-generation-9.16, atlas retenu dans assets.
+- Pas d'essai sur téléphone, TalkBack manuel, parcours enfant, observation vidéo ou mesure FPS. Les changements d'états et captures ne prouvent pas la fluidité sur tous les appareils. Animaux peints non animés ; besoins graphiques détaillés dans CARTE-VIVANTE-9.16.md. Aucun nouveau format de sauvegarde ou écriture de progression par l'animation.
+
 ## Publication et correctif 9.15 — 11 octobre 2026
 
 - Sources8b57c4d envoyées sur main sans réécriture ; compilation finale et publication par les scripts du projet, tests/lint à jour. Final unique102693314 octets, SHA256 fb0e2483882078ddb3a5c13556d4abb7f99a8f3fc4b8f9658a90d6d0ea60a676 ; signature vérifiée avec la clé fixe. Aucun SDK/asset ajouté.

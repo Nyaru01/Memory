@@ -4,6 +4,16 @@ import org.junit.Test;
 import static org.junit.Assert.*;
 
 public class MascotAnimationTest {
+    @Test public void mapUsesBreathingBlinkEarsHopAndTouchFramesWithoutFrameRateDependency(){
+        MascotAnimation a=new MascotAnimation();java.util.Set<Integer> poses=new java.util.HashSet<>();
+        for(long t=0;t<12000;t+=20){a.sampleMap(t,-1,false,false,-1);assertTrue(a.frame>=0&&a.frame<16);poses.add(a.frame);}
+        for(int frame:new int[]{0,1,2,3,5,6,7,8,9,10,11,12,13,14,15})assertTrue("Map pose "+frame,poses.contains(frame));
+        a.sampleMap(7990,-1,false,false,-1);int expected=a.frame;
+        a.sampleMap(200,-1,false,false,-1);a.sampleMap(7990,-1,false,false,-1);assertEquals(expected,a.frame);
+        for(int i=0;i<6;i++){a.sampleMap(6000,i*240,false,false,-1);assertEquals(18+i,a.frame);}
+        a.sampleMap(10000,-1,true,true,200);assertEquals(0,a.frame);assertEquals(0,a.lift,0);
+        a.sampleMap(10000,0,true,false,-1);assertEquals(MascotAnimation.State.TOUCH,a.state);assertEquals(20,a.frame);
+    }
     @Test public void dedicatedWelcomeGreetsSlowlyThenSettlesAndCanReplay() {
         assertEquals(5000,WelcomeMascot.DURATION_MS);
         assertEquals(0,WelcomeMascot.pose(500,false));assertEquals(1,WelcomeMascot.pose(1000,false));

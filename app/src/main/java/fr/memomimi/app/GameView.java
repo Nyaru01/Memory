@@ -2995,7 +2995,7 @@ class GameView extends View {
         this.activityActive = false;
         welcomeScreen.release();
         homeScreen.release();
-        adventureMap.release();
+        adventureMap.pause(now());
         this.parentHolding = false;
         removeCallbacks(parentHoldAction);
         this.pressedTarget = null;
@@ -3006,6 +3006,8 @@ class GameView extends View {
     }
 
     void resumeMusic() {
+        adventureMap.resume(now());
+        postInvalidate();
         this.systemReducedMotion = android.provider.Settings.Global.getFloat(
                 getContext().getContentResolver(), android.provider.Settings.Global.ANIMATOR_DURATION_SCALE, 1f) == 0f;
         this.activityActive = true;

@@ -5,7 +5,7 @@ import android.graphics.*;
 /** Bake only the small visible join, off the UI thread. Original paintings are never altered. */
 final class AdventureSeam {
     static Bitmap bake(Bitmap before,Bitmap after,int width,int sectionHeight,int seed){
-        int height=Math.min(Math.round(sectionHeight*.24f),AdventureScenery.MAX_SEAM_BYTES/(width*6));
+        int height=Math.min(Math.round(sectionHeight*(seed==1?.42f:.28f)),AdventureScenery.MAX_SEAM_BYTES/(width*6));
         height=Math.max(8,height);
         Bitmap result=null,mask=null;
         try {

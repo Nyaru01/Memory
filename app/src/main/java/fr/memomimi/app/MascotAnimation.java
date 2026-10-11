@@ -2,6 +2,27 @@ package fr.memomimi.app;
 
 /** Allocation-free atlas timeline. Row-major 6 x 4 sheet; motion uses monotonic time. */
 final class MascotAnimation {
+    private static final int[] MAP_IDLE={0,1,2,3,8,9,10,5,6,7,11,0};
+    private static final long[] MAP_END={1500,2200,3500,4100,5700,6300,7800,7900,7990,8100,10000,12000};
+    /** Map-only real atlas poses, independent of victory/loading. No bitmap work here. */
+    void sampleMap(long elapsed,long reaction,boolean reduced,boolean travelling,long arrival) {
+        scaleX=scaleY=1;lift=tilt=0;blend=1;state=State.IDLE;
+        if(reduced){boolean touched=reaction>=0&&reaction<TOUCH_MS;state=touched?State.TOUCH:State.IDLE;frame=previousFrame=touched?20:0;return;}
+        long time=Math.max(0,elapsed);
+        if(reaction>=0&&reaction<TOUCH_MS){
+            state=State.TOUCH;frame=18+(int)(reaction/240);lift=.035f*(float)Math.sin(reaction*Math.PI/TOUCH_MS);
+        }else if(arrival>=0){
+            state=State.VICTORY;frame=12+Math.min(3,(int)(arrival*4/AdventureMotion.CELEBRATE_MS));
+        }else if(travelling){
+            state=State.APPEAR;frame=12+(int)(time/220%4);lift=.025f*(float)Math.abs(Math.sin(time*Math.PI/880));
+        }else{
+            long cycle=time%12000;
+            if(cycle>=10000&&cycle<11100){state=State.VICTORY;frame=12+Math.min(3,(int)((cycle-10000)/275));}
+            else{int index=0;while(index<MAP_END.length-1&&cycle>=MAP_END[index])index++;
+                frame=MAP_IDLE[index];if(frame>=5&&frame<=7)state=State.BLINK;}
+        }
+        previousFrame=frame;
+    }
     enum State { IDLE, BLINK, APPEAR, VICTORY, TOUCH }
     State state = State.IDLE;
     int frame;

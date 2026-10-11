@@ -1,4 +1,4 @@
-# MémoMondes 9.15 — V2
+# MémoMondes 9.16 — V2
 
 **Reprise du projet par un agent : [document de passation](docs/PASSATION-AGENT.md).**
 

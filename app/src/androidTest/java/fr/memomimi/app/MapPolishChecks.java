@@ -27,6 +27,11 @@ final class MapPolishChecks {
             Thread.sleep(100);capture("polish-depart");
             long start=v.adventureMap.motion.startedAt;
             host.runOnMainSync(()->{require(v.adventureMap.motion.from==1 && v.adventureMap.motion.to==2,"Journey starts from completed level");require(v.adventureMap.hardwareCanvas,"Attached hardware Canvas");require(v.victoryMascot.hasAtlas(),"Real Lumi poses bundled");});
+            final float[] pausedProgress=new float[1];
+            host.runOnMainSync(()->{require(v.victoryMascot.hasMapAtlas(),"Dedicated breathing/ears/blink/hop atlas loaded");pausedProgress[0]=v.adventureMap.motion.progress(GameView.now());v.pauseMusic();});
+            Thread.sleep(600);
+            host.runOnMainSync(()->{v.resumeMusic();require(Math.abs(v.adventureMap.motion.progress(GameView.now())-pausedProgress[0])<.02f,"Lifecycle pause preserves journey position");});
+            start=v.adventureMap.motion.startedAt;
             waitUntil(start,AdventureMotion.DEPART_MS+AdventureMotion.MOVE_MS/2);capture("polish-travel");
             host.runOnMainSync(()->{require(v.adventureMap.motion.progress(GameView.now())>.4f && v.adventureMap.motion.travelling(GameView.now()),"Mid-journey visible");float x=v.adventureMap.lumi.centerX(),y=v.adventureMap.lumi.centerY();touch(v,MotionEvent.ACTION_DOWN,x,y);touch(v,MotionEvent.ACTION_UP,x,y);require(v.adventureMap.motion.reactionAt>=0 && v.screen==7,"Touch reacts during journey");require(v.adventureMap.motion.from==1,"A tap does not cancel travel");});
             Thread.sleep(120);capture("polish-touch");
@@ -34,6 +39,9 @@ final class MapPolishChecks {
             host.runOnMainSync(()->{require(v.adventureMap.motion.arrival(GameView.now())>=0,"Arrival celebrates");require(v.victoryMascot.animation.state==MascotAnimation.State.VICTORY,"Arrival uses victory sprite poses");require(v.adventure.completed()==1,"Animation cannot unlock another level");});
             host.runOnMainSync(()->{click(v,v.adventureMap.continueButton);require(v.screen==1 && v.adventureLevel==2,"Continue launches next playable level");v.clearSavedGame();prefs.edit().putInt("adventure_completed",17).commit();v.openAdventure();});
             Thread.sleep(600);capture("polish-level18");
+            final int[] idleFrame=new int[1];host.runOnMainSync(()->idleFrame[0]=v.victoryMascot.animation.frame);
+            Thread.sleep(1200);capture("polish-idle-breath");
+            host.runOnMainSync(()->{require(v.victoryMascot.animation.frame!=idleFrame[0],"Idle changes real sprite frames");require(v.victoryMascot.animation.scaleY==1,"Breathing is drawn in sprite frames");});
             host.runOnMainSync(()->{RectF n=v.adventureMap.nodes[17];require(n.centerY()>v.adventureMap.top && n.centerY()<v.adventureMap.bottom,"Opening focuses level18");require(!v.adventureMap.motion.travelling(GameView.now()),"Ordinary opening has no replayed journey");});
             for(int level:new int[]{6,13,21,40}){
                 host.runOnMainSync(()->{v.adventureMap.focus(level,v.adventureMap.bottom-v.adventureMap.top,v.d);v.invalidate();});

@@ -49,8 +49,8 @@ final class AdventureDecor {
             long time=reduced?0:Math.max(0,elapsed+section*311+i*530);
             int frame=(int)(time/320%4),previous=(frame+3)%4;
             float fraction=reduced?1:(time%320)/320f;fraction=fraction*fraction*(3-2*fraction);
-            float x=i==0?33*d:w-37*d;
-            float cy=y+(i==0?198:340)*d+(reduced?0:(float)Math.sin(time/1800d)*7*d);
+            float x=(i==0?33*d:w-37*d)+(reduced?0:(float)Math.sin(time/2400d+i)*12*d);
+            float cy=y+(i==0?198:340)*d+(reduced?0:(float)Math.sin(time/1800d)*12*d);
             float size=(i==0?38:32)*d;target.set(x-size/2,cy-size/2,x+size/2,cy+size/2);
             SpritePose.draw(c,atlas,frames[row*4+previous],frames[row*4+frame],target,fraction,paint);
         }

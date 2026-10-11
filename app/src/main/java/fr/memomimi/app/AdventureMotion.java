@@ -2,7 +2,9 @@ package fr.memomimi.app;
 
 /** Map-only animation state. It never writes or unlocks progression. */
 final class AdventureMotion {
-    static final long DEPART_MS=480,MOVE_MS=2600,TRAVEL_MS=DEPART_MS+MOVE_MS,CELEBRATE_MS=1900;
+    static final long VALIDATE_MS=600,DEPART_MS=1200,MOVE_MS=2600,TRAVEL_MS=DEPART_MS+MOVE_MS,CELEBRATE_MS=1900;
+    boolean validating(long now){return travelling(now)&&now-startedAt<VALIDATE_MS;}
+    boolean unlocking(long now){return travelling(now)&&now-startedAt>=VALIDATE_MS&&now-startedAt<DEPART_MS;}
     int pendingFrom, from, to;
     long startedAt, reactionAt=-1, lastFrame;
     float velocity;

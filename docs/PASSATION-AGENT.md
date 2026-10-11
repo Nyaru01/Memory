@@ -1,5 +1,12 @@
 # MémoMondes — Passation à un prochain agent
 
+## Carte vivante — sources 9.16/code57 — 11 octobre 2026
+
+- [Implémentation et ressources](CARTE-VIVANTE-9.16.md) : atlas Lumi supplémentaire 16 frames de respiration/clignement/oreilles/saut ; expressions au toucher de l'atlas original. Horloge dédiée à la carte, pause/reprise conservant trajet et réactions. Accueil/victoire/chargement gardent leurs propres animations.
+- Séquence visuelle de victoire : validation600 ms, apparition600 ms, trajet2600 ms, arrivée1900 ms puis attente. AdventureStore et tous les formats persistants inchangés. Médaillons crème/bronze, traces sans ruban, reflets/papillons, en-tête et fondu forêt–ferme ; paysages et repères conservés.
+- Validation : 166 tests unitaires, lint zéro erreur/25 avertissements, 45 contrôles Android petit écran et 45 HD PASS. Captures réelles petit écran et arrivée HD inspectées ; viewport rétabli320×640/160 puis émulateur arrêté avant compilation finale. Pas de mesure FPS, vidéo manuelle, téléphone/TalkBack/parcours enfant. Les animaux peints restent fixes ; ressources nécessaires précisées dans le document.
+- Publication de la9.16 en cours : le bloc ci-dessous décrit la précédente9.15. Consulter le prochain bloc de publication pour l'empreinte finale et la preuve de réception.
+
 ## Publication actuelle — 9.15/code56 — 11 octobre 2026
 
 **Final unique et release GitHub : 9.15/code56**, 102693314 octets, SHA256 `fb0e2483882078ddb3a5c13556d4abb7f99a8f3fc4b8f9658a90d6d0ea60a676`. URL : https://github.com/Nyaru01/Memory/releases/tag/v9.15. Sources applicatives `8b57c4d` sur origin/main, documentation de publication ajoutée ensuite. Build/publish-apk et publish-github-release réussis, signature vérifiée, clé fixe conservée.

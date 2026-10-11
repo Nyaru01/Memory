@@ -6,6 +6,14 @@ import static org.junit.Assert.*;
 
 /** Meaningful renderer regressions in addition to the full progression scenarios. */
 public class AdventureIllustrationTest extends AdventureTest {
+    @Test public void pauseFreezesTravelAndTouchWithoutChangingProgress(){
+        AdventureMap map=view.adventureMap;map.motion.completed(1);map.open(2,488,1,false,1000);
+        map.motion.reactionAt=1500;float progress=map.motion.progress(2000);
+        map.pause(2000);map.pause(2500);map.resume(9000);
+        assertEquals(progress,map.motion.progress(9000),.0001);assertEquals(8500,map.motion.reactionAt);
+        assertTrue(map.motion.travelling(9000));assertEquals(0,view.adventure.completed());
+        assertTrue(view.victoryMascot.hasMapAtlas());
+    }
     @Test public void landscapeFillsBottomAtStartAndEndWithSoftHeader() {
         view.openAdventure();render(null,360,640);
         for(int level:new int[]{1,40}){

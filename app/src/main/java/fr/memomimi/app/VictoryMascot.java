@@ -18,6 +18,8 @@ final class VictoryMascot {
     final RectF bounds = new RectF();
     final MascotAnimation animation = new MascotAnimation();
     private Bitmap atlas;
+    private Bitmap mapAtlas;
+    private final Rect[] mapFrames=new Rect[16];
     private final Rect[] frames = new Rect[24];
     private final RectF destination = new RectF();
 
@@ -35,9 +37,15 @@ final class VictoryMascot {
                         (col+1)*atlas.getWidth()/6, (row+1)*atlas.getHeight()/4);
             }
         } catch (IOException ignored) { /* Static Canvas fallback if asset is missing. */ }
+        try(InputStream input=context.getAssets().open("mascot/lumi-map-v916.png")){
+            BitmapFactory.Options options=new BitmapFactory.Options();options.inScaled=false;
+            mapAtlas=BitmapFactory.decodeStream(input,null,options);
+            if(mapAtlas!=null)for(int i=0;i<16;i++)mapFrames[i]=new Rect(i%4*mapAtlas.getWidth()/4,i/4*mapAtlas.getHeight()/4,(i%4+1)*mapAtlas.getWidth()/4,(i/4+1)*mapAtlas.getHeight()/4);
+        }catch(IOException|OutOfMemoryError ignored){ /* Original atlas remains available. */ }
     }
     boolean hasAtlas() { return atlas != null; }
     int atlasBytes() { return atlas == null ? 0 : atlas.getAllocationByteCount(); }
+    boolean hasMapAtlas(){return mapAtlas!=null;}
     private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG | Paint.FILTER_BITMAP_FLAG);
     private final Path star = new Path();
     private final RectF bubble = new RectF();
@@ -159,16 +167,17 @@ final class VictoryMascot {
     }
 
     void drawMap(Canvas canvas, RectF area, long elapsed, long reaction, boolean reduced, boolean travelling,long arrival) {
-        // Reuse actual atlas pose sequences, including blinks and occasional waves.
-        long wave=elapsed%11000;
-        long touch=reaction>=0 && reaction<1440 ? reaction : wave>=8500 && wave<9940 ? wave-8500 : -1;
-        animation.sample(arrival>=0 ? MascotAnimation.APPEAR_MS+arrival : travelling ? 1300+elapsed%2100 : 6000+elapsed, touch, 0, reduced);
+        animation.sampleMap(elapsed,reaction,reduced,travelling,arrival);
         float size=Math.min(area.height()*.93f,area.width());
         canvas.save();
         float shadow=Math.max(.65f,1-animation.lift*1.5f);
         oval(canvas,area.centerX(),area.bottom-size*.015f,size*.29f*shadow,size*.045f,0x18544934);
         oval(canvas,area.centerX(),area.bottom-size*.015f,size*.20f*shadow,size*.025f,0x3d544934);
-        drawSprite(canvas,area.centerX(),area.bottom-size*.10f,size);
+        if(mapAtlas!=null && animation.state!=MascotAnimation.State.TOUCH){
+            canvas.save();canvas.translate(area.centerX(),area.bottom-size*.10f-animation.lift*size);
+            destination.set(-size*.5f,-size*.88f,size*.5f,size*.12f);
+            fill(Color.WHITE);canvas.drawBitmap(mapAtlas,mapFrames[animation.frame],destination,paint);canvas.restore();
+        }else drawSprite(canvas,area.centerX(),area.bottom-size*.10f,size);
         canvas.restore();
     }
 

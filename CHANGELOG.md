@@ -1,5 +1,12 @@
 # Changements
 
+## 9.16 — 11 octobre 2026
+
+- Carte vivante : spritesheet d'attente de Lumi à 16 frames, respiration dessinée, clignement, oreilles et sauts ; six expressions de l'atlas original au toucher.
+- Validation, apparition du niveau suivant, trajet animé et célébration ; horloges gelées en arrière-plan, réduction des animations respectée.
+- Papillons mobiles et reflets ; médaillons bronze, traces sans ruban, en-tête doux et fondu forêt–ferme élargi. Illustrations, disposition et stockage conservés.
+- Détails et besoins graphiques pour les animaux peints : [carte vivante](docs/CARTE-VIVANTE-9.16.md).
+
 ## 9.15 — 11 octobre 2026 — publiée sur GitHub
 
 - Carte : pastilles en pierres ovales avec biseau et ombre de contact ; niveau actuel bordé d'or, niveaux terminés marqués et verrouillés plus discrets. Cibles tactiles conservées.
